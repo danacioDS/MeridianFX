@@ -1,7 +1,5 @@
 # 🏗️ MERIDIAN FX — APPLICATION PRODUCTION STRATEGY (FINAL VERSION)
 
-**Version 2.2 — Approved for Execution**
-
 ---
 
 ## 📌 Executive Summary
