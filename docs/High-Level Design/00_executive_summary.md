@@ -6,39 +6,7 @@
 
 Its purpose is to turn market noise into practical financial intelligence for traders, analysts, and risk managers.
 ---
-MERIDIAN FX — Documentation
-│
-├── 📋 00 — Executive Summary
-│   ├── Vision
-│   ├── Core Principles
-│   ├── Product Scope
-│   └── Roadmap Overview
-│
-├── 📐 01 — System Architecture & Build Strategy
-│   ├── System Architecture
-│   ├── Data Flow
-│   ├── AI/ML Components
-│   ├── Agent Architecture
-│   └── Build Strategy
-│
-├── 📊 02 — Product Specification
-│   ├── Product Overview
-│   ├── UI/UX & Dashboard
-│   ├── Output Specification
-│   └── Data Contracts
-│
-├── 🚀 03 — Implementation Roadmap
-│   ├── MVP
-│   ├── V2 — Intelligence
-│   ├── V3 — Advanced Analytics
-│   └── V4 — Evaluation & Learning
-│
-└── 📚 04 — Glossary & Definitions
-    ├── Financial Terms
-    ├── ML/AI Terms
-    ├── Metrics
-    └── Formulas
----
+
 
 ## The Problem It Solves
 
