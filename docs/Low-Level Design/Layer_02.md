@@ -1,47 +1,39 @@
-```text
-Excellent! You have received a very precise evaluation. Now we are going to apply the **5 final adjustments**, and the Product LLD will reach **9.5+/10**, completely frozen and ready to move to the next level.
-
----
+Absolutely. Below is the **exact same Product LLD v3 in English**, with **no changes to the content, structure, logic, values, or definitions**—only translated from Spanish to English.
 
 # 📋 MERIDIAN FX — PRODUCT LLD (v3)
 
-## Frozen Product Functional Specification
+## Product Functional Specification — FROZEN
 
 ---
 
 ## 🏛️ 1. PRODUCT PURPOSE
 
-```
-
+```text
 MERIDIAN FX — PRODUCT
 
 MISSION:
-Provide actionable, traceable, explainable, and measurable
-financial intelligence for the foreign exchange market.
+Provide actionable, traceable,
+explainable and measurable financial intelligence for the foreign exchange market.
 
 GUIDING PRINCIPLE:
-
 > "Meridian does not produce mere predictions.
-> It produces actionable, traceable, explainable,
-> and measurable financial intelligence."
+> It produces actionable, traceable,
+> explainable and measurable financial intelligence."
 
 PRODUCT RESPONSIBILITIES:
-
 1. Answer 5 fundamental user questions
-2. Present intelligence clearly and actionably
+2. Present intelligence in a clear and actionable way
 3. Maintain complete traceability of every signal
 4. Explain the "why" behind every prediction
 5. Measure and display its own performance
 
 NOT A RESPONSIBILITY:
-
-* Generate predictions (that is Layer 3)
-* Make trading decisions (that is Layer 2)
-* Manage raw data (that is Layer 4)
+- Generate predictions (that is Layer 3)
+- Make trading decisions (that is Layer 2)
+- Manage raw data (that is Layer 4)
 
 PRODUCT ARCHITECTURE:
 4 Primary Views → 5 User Questions
-
 ```
 
 ---
@@ -50,8 +42,7 @@ PRODUCT ARCHITECTURE:
 
 ### 2.1 Signal (Central Identifier)
 
-```
-
+```text
 SIGNAL — Central Product Identifier
 
 Purpose:
@@ -59,179 +50,166 @@ Unify all pieces of intelligence around a unique identifier.
 
 Structure:
 {
-signal_id: str                    // "sig-20260826-1700-001"
-pair: str
-generated_at: datetime
-as_of: datetime                   // NEW: point in time of knowledge
-horizon: str                      // "5D"
+    signal_id: str                    // "sig-20260826-1700-001"
+    pair: str
+    generated_at: datetime
+    as_of: datetime                   // NEW: point in time of knowledge
+    horizon: str                      // "5D"
 
-```
-// References to lower layers (indexed IDs)
-prediction_id: str
-decision_id: str
-feature_snapshot_id: str
-data_snapshot_id: str
-regime_id: str
+    // References to lower layers (indexed IDs)
+    prediction_id: str
+    decision_id: str
+    feature_snapshot_id: str
+    data_snapshot_id: str
+    regime_id: str
 
-// Lifecycle state
-lifecycle_state: "GENERATED" | "VALID" | "ACTIVE" | 
-                 "INVALIDATED" | "EXPIRED" | "EVALUATED"
+    // Lifecycle state
+    lifecycle_state: "GENERATED" | "VALID" | "ACTIVE" |
+                     "INVALIDATED" | "EXPIRED" | "EVALUATED"
 
-// Derived properties
-actionable: bool
+    // Derived properties
+    actionable: bool
 
-// Canonical traceability (metadata source)
-traceability: Traceability
-```
-
+    // Canonical traceability (metadata source)
+    traceability: Traceability
 }
-
 ```
 
 ### 2.2 Traceability (Canonical Source)
 
-```
-
+```text
 TRACEABILITY — Complete signal metadata
 
 Structure:
 {
-prediction: {
-prediction_id: str
-model_version: str
-feature_version: str
-dataset_version: str
-generated_at: datetime
-model_id: str
-}
+    prediction: {
+        prediction_id: str
+        model_version: str
+        feature_version: str
+        dataset_version: str
+        generated_at: datetime
+        model_id: str
+    }
 
-```
-decision: {
-    decision_id: str
-    decision_version: str
-    policy_version: str
-    fusion_version: str
-    decision_score: float          // NEW: Layer 2 score
-    generated_at: datetime
-}
+    decision: {
+        decision_id: str
+        decision_version: str
+        policy_version: str
+        fusion_version: str
+        decision_score: float          // NEW: Layer 2 score
+        generated_at: datetime
+    }
 
-features: {
-    snapshot_id: str
-    feature_count: int
-    feature_list: [
-        {
-            feature_name: str
-            value: float
-            source: str
-            available_time: datetime
-            vintage: str
-            event_time: datetime      // NEW: when the event occurred
-        }
-    ]
-}
+    features: {
+        snapshot_id: str
+        feature_count: int
+        feature_list: [
+            {
+                feature_name: str
+                value: float
+                source: str
+                available_time: datetime
+                vintage: str
+                event_time: datetime    // NEW: when the event occurred
+            }
+        ]
+    }
 
-data: {
-    snapshot_id: str
-    data_quality: DataQuality
-    pit_validation: "PASS" | "FAIL"
-    as_of: datetime                // NEW: point of knowledge
-}
+    data: {
+        snapshot_id: str
+        data_quality: DataQuality
+        pit_validation: "PASS" | "FAIL"
+        as_of: datetime                // NEW: point of knowledge
+    }
 
-regime: {
-    regime_id: str
-    risk: "Risk-On" | "Neutral" | "Risk-Off"
-    policy: "Restrictive" | "Neutral" | "Accommodative"
-    growth: "Strong" | "Moderate" | "Weak"
-    vix: float
+    regime: {
+        regime_id: str
+        risk: "Risk-On" | "Neutral" | "Risk-Off"
+        policy: "Restrictive" | "Neutral" | "Accommodative"
+        growth: "Strong" | "Moderate" | "Weak"
+        vix: float
+    }
 }
-```
-
-}
-
 ```
 
 ### 2.3 Signal Lifecycle (REFINED)
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    SIGNAL LIFECYCLE (REFINED)                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  GENERATED                                                                 │
-│  └── Signal generated by the system                                       │
-│  └── prediction_id + decision_id assigned                                 │
-│  └── feature_snapshot_id + data_snapshot_id assigned                     │
+│  GENERATED                                                                  │
+│  └── Signal generated by the system                                        │
+│  └── prediction_id + decision_id assigned                                  │
+│  └── feature_snapshot_id + data_snapshot_id assigned                      │
 │  └── as_of = point of knowledge                                            │
-│      │                                                                     │
-│      ▼                                                                     │
-│  VALID                                                                     │
-│  └── Signal passes PIT validation                                          │
-│  └── data_quality >= threshold                                             │
-│  └── required inputs available                                             │
+│      │                                                                      │
+│      ▼                                                                      │
+│  VALID                                                                      │
+│  └── Signal passes PIT validation                                           │
+│  └── data_quality >= threshold                                              │
+│  └── required inputs available                                              │
 │  └── Transition: automatic                                                 │
-│      │                                                                     │
-│      ▼                                                                     │
-│  ACTIVE                                                                    │
-│  └── Signal available to the user                                          │
-│  └── Visible in Global Overview / Forecast                                │
-│  └── actionable = true/false (derived property)                           │
-│  └── TTL: horizon (5D)                                                     │
-│      │                                                                     │
+│      │                                                                      │
+│      ▼                                                                      │
+│  ACTIVE                                                                     │
+│  └── Signal available to the user                                           │
+│  └── Visible in Global Overview / Forecast                                 │
+│  └── actionable = true/false (derived property)                            │
+│  └── TTL: horizon (5D)                                                      │
+│      │                                                                      │
 │      ├───────────────────────────────────────────────────────────────────┐  │
 │      │                                                                   │  │
 │      ▼                                                                   ▼  │
 │  INVALIDATED                                                         EXPIRED│
-│  └── Invalidation condition triggered                              └── Horizon completed│
+│  └── Invalidation condition triggered                            └── Horizon completed│
 │  └── invalidator_reason captured                                     └── Signal no longer relevant│
-│  └── invalidator_id recorded                                             │  │
+│  └── invalidator_id registered                                         │  │
 │      │                                                                   │  │
 │      └───────────────────────────────────────────────────────────────────┘  │
 │                                    │                                        │
 │                                    ▼                                        │
-│                              EVALUATED                                     │
-│                              └── Outcome known                             │
-│                              └── performance_metrics calculated            │
-│                              └── Available for Performance Dashboard       │
+│                              EVALUATED                                      │
+│                              └── Outcome known                              │
+│                              └── performance_metrics calculated             │
+│                              └── Available for Performance Dashboard        │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ### 2.4 Lifecycle Transitions (NEW)
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    LIFECYCLE TRANSITIONS                                   │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  Transition: GENERATED → VALID                                             │
-│  Conditions:                                                              │
-│  ├── PIT Validation = PASS                                                │
+│  Conditions:                                                               │
+│  ├── PIT Validation = PASS                                                 │
 │  ├── Data Quality >= threshold                                             │
-│  └── Required inputs available                                             │
+│  └── Required inputs available                                              │
 │                                                                             │
 │  Transition: VALID → ACTIVE                                                │
-│  Conditions:                                                              │
-│  ├── Signal published (immediate)                                         │
+│  Conditions:                                                               │
+│  ├── Signal published (immediate)                                          │
 │  └── Freshness check pass                                                  │
 │                                                                             │
 │  Transition: ACTIVE → INVALIDATED                                          │
-│  Conditions:                                                              │
+│  Conditions:                                                               │
 │  ├── Invalidation condition triggered                                      │
-│  └── invalidator_reason recorded                                           │
+│  └── invalidator_reason registered                                         │
 │                                                                             │
 │  Transition: ACTIVE → EXPIRED                                              │
-│  Conditions:                                                              │
+│  Conditions:                                                               │
 │  └── horizon completed                                                     │
 │                                                                             │
 │  Transition: INVALIDATED/EXPIRED → EVALUATED                               │
-│  Conditions:                                                              │
+│  Conditions:                                                               │
 │  └── Outcome known (target_time reached)                                   │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ---
@@ -240,21 +218,20 @@ regime: {
 
 ### 3.1 Edge Ratio (CANONICAL DEFINITION)
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    EDGE RATIO — CANONICAL DEFINITION                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  gross_expected_return:                                                    │
 │      Model expected return EXCLUDING financing/carry                       │
-│      Source: Layer 3 (Prediction)                                         │
+│      Source: Layer 3 (Prediction)                                          │
 │                                                                             │
-│  carry:                                                                    │
+│  carry:                                                                     │
 │      Expected financing/carry contribution over horizon                    │
 │      Source: Layer 2 (Economic Filter)                                     │
 │                                                                             │
-│  transaction_costs:                                                        │
+│  transaction_costs:                                                         │
 │      spread + slippage + commission                                        │
 │      Source: Layer 2 (Economic Filter)                                     │
 │                                                                             │
@@ -262,28 +239,26 @@ regime: {
 │      gross_expected_return + carry - transaction_costs                     │
 │                                                                             │
 │  required_minimum_edge:                                                    │
-│      Configurable policy (default: 0.0020)                                │
+│      Configurable policy (default: 0.0020)                                 │
 │      Source: Layer 2 (Policy Registry)                                     │
 │                                                                             │
 │  edge_ratio = net_expected_return / required_minimum_edge                  │
 │                                                                             │
 │  Interpretation:                                                           │
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
-│  │  edge_ratio >= 1.0  →  Actionable                                  │    │
-│  │  edge_ratio < 1.0   →  Not actionable                              │    │
+│  │  edge_ratio >= 1.0  →  Actionable                                   │    │
+│  │  edge_ratio < 1.0   →  Not actionable                               │    │
 │  │  edge_ratio >= 2.0  →  Strong edge                                  │    │
 │  │  edge_ratio >= 1.5  →  Moderate edge                                │    │
 │  │  edge_ratio < 1.5   →  Weak edge                                    │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ### 3.2 As-Of Time (NEW)
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    AS-OF TIME                                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -305,24 +280,22 @@ regime: {
 │  event_time      = 2026-08-20 08:30:00 UTC                                │
 │  available_time  = 2026-08-20 08:31:00 UTC  (1 min delay)                │
 │  as_of           = 2026-08-20 08:31:30 UTC  (knowledge point)            │
-│  generated_at    = 2026-08-20 08:32:00 UTC  (signal generated)            │
+│  generated_at    = 2026-08-20 08:32:00 UTC  (signal generated)           │
 │                                                                             │
 │  USE:                                                                      │
 │  Allows Meridian to reconstruct exactly what it knew at the time            │
 │  the signal was generated, avoiding look-ahead bias.                       │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ---
 
 ## 📊 4. DATA QUALITY (REFINED)
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    DATA QUALITY — BY SOURCE                               │
+│                    DATA QUALITY — BY SOURCE                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  DataQuality:                                                              │
@@ -346,7 +319,7 @@ regime: {
 │  │   │   }                                                                 │
 │  │   ├── positioning_data: {                                               │
 │  │   │   ├── score: float                                                  │
-│  │   │   ├── status: "fresh" | "stale" | "expired"                       │  │
+│  │   │   ├── status: "fresh" | "stale" | "expired"                       │
 │  │   │   ├── age_hours: float                                              │
 │  │   │   └── as_of: datetime                                               │
 │  │   │   }                                                                 │
@@ -371,7 +344,6 @@ regime: {
 │      }                                                                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ---
@@ -380,8 +352,7 @@ regime: {
 
 ### 5.1 Metric Definition
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    METRIC DEFINITION                                       │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -403,39 +374,36 @@ regime: {
 │  │  Brier Score        │ LOWER_IS_BETTER  │ Good: <= 0.22, Neutral: 25│    │
 │  │  Sharpe (net)       │ HIGHER_IS_BETTER │ Good: >= 0.70, Neutral: 50│    │
 │  │  Max Drawdown (%)   │ LOWER_IS_BETTER  │ Good: < 10, Neutral: < 15 │    │
-│  │  Profit Factor      │ HIGHER_IS_BETTER │ Good: >= 1.40, Neutral: 1.20│  │
-│  │  ECE                │ LOWER_IS_BETTER  │ Good: <= 0.04, Neutral: 0.06│  │
+│  │  Profit Factor      │ HIGHER_IS_BETTER │ Good: >= 1.40, Neutral: 1.20│   │
+│  │  ECE                │ LOWER_IS_BETTER  │ Good: <= 0.04, Neutral: 0.06│   │
 │  └─────────────────────────────────────────────────────────────────────┘    │
 │                                                                             │
-│  NOTE: Max Drawdown expressed as a positive magnitude (e.g., 7.2 for -7.2%)│
+│  NOTE: Max Drawdown expressed as a positive magnitude (e.g. 7.2 for -7.2%)│
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ### 5.2 Metric Status Determination
 
-```
-
+```text
 INPUT: value: float, definition: MetricDefinition
 OUTPUT: status: "good" | "neutral" | "poor"
 
 IF definition.direction == "HIGHER_IS_BETTER":
-IF value >= definition.good_threshold:
-status = "good"
-ELSE IF value >= definition.neutral_threshold:
-status = "neutral"
-ELSE:
-status = "poor"
+    IF value >= definition.good_threshold:
+        status = "good"
+    ELSE IF value >= definition.neutral_threshold:
+        status = "neutral"
+    ELSE:
+        status = "poor"
 
 IF definition.direction == "LOWER_IS_BETTER":
-IF value <= definition.good_threshold:
-status = "good"
-ELSE IF value <= definition.neutral_threshold:
-status = "neutral"
-ELSE:
-status = "poor"
-
+    IF value <= definition.good_threshold:
+        status = "good"
+    ELSE IF value <= definition.neutral_threshold:
+        status = "neutral"
+    ELSE:
+        status = "poor"
 ```
 
 ---
@@ -444,8 +412,7 @@ status = "poor"
 
 ### 6.1 Separation Principle
 
-```
-
+```text
 DOMAIN MODEL (Semantics)              PRESENTATION MODEL (UI)
 ─────────────────────                 ──────────────────────
 direction: "BULLISH"                  direction_icon: "📈"
@@ -455,72 +422,63 @@ edge_ratio: 3.1                       edge_status: "Strong edge"
 regime.risk: "Risk-On"                regime_formatted: "🟢 RISK-ON"
 
 RULE: The Presentation Model is derived from the Domain Model.
-The Domain Model contains NO UI elements.
-
+The Domain Model does NOT contain UI elements.
 ```
 
 ### 6.2 ViewModels
 
-```
-
+```text
 OpportunityViewModel:
 {
-// From Domain Model
-signal_id: str
-rank: int
-pair: str
-direction: "BULLISH" | "BEARISH"
-probability: float
-expected_return: float
-net_return: float
-edge_ratio: float
-actionable: bool
-signal_strength: "STRONG" | "MODERATE" | "WEAK"
-lifecycle_state: str
+    // From Domain Model
+    signal_id: str
+    rank: int
+    pair: str
+    direction: "BULLISH" | "BEARISH"
+    probability: float
+    expected_return: float
+    net_return: float
+    edge_ratio: float
+    actionable: bool
+    signal_strength: "STRONG" | "MODERATE" | "WEAK"
+    lifecycle_state: str
 
-```
-// From Presentation Model (derived)
-direction_icon: "📈" | "📉"
-status_badge: "🟢 ACTIONABLE" | "⚪ NO EDGE"
-edge_status: "Strong edge" | "Moderate edge" | "Weak edge"
-```
-
+    // From Presentation Model (derived)
+    direction_icon: "📈" | "📉"
+    status_badge: "🟢 ACTIONABLE" | "⚪ NO EDGE"
+    edge_status: "Strong edge" | "Moderate edge" | "Weak edge"
 }
 
 ForecastViewModel:
 {
-// From Domain Model
-signal_id: str
-lifecycle_state: str
-traceability: Traceability
-as_of: datetime
+    // From Domain Model
+    signal_id: str
+    lifecycle_state: str
+    traceability: Traceability
+    as_of: datetime
 
-```
-direction: "BULLISH" | "BEARISH" | "NEUTRAL"
-probability: float
-horizon: str
-model_version: str
-expected_return: float
-prediction_interval: {lower: float, upper: float}
+    direction: "BULLISH" | "BEARISH" | "NEUTRAL"
+    probability: float
+    horizon: str
+    model_version: str
+    expected_return: float
+    prediction_interval: {lower: float, upper: float}
 
-gross_return: float
-total_costs: float
-net_return: float
-edge_ratio: float
-min_edge: float
-actionable: bool
-valid: bool
+    gross_return: float
+    total_costs: float
+    net_return: float
+    edge_ratio: float
+    min_edge: float
+    actionable: bool
+    valid: bool
 
-// From Presentation Model (derived)
-direction_icon: "📈" | "📉" | "➖"
-direction_label: "BULLISH" | "BEARISH" | "NEUTRAL"
-status_badge: "🟢 ACTIONABLE" | "⚪ NO EDGE" | "UNAVAILABLE"
-edge_status: "Strong edge" | "Moderate edge" | "Weak edge"
-validity_status: "✅ Valid" | "⚠️ Degraded" | "❌ Invalid"
-```
-
+    // From Presentation Model (derived)
+    direction_icon: "📈" | "📉" | "➖"
+    direction_label: "BULLISH" | "BEARISH" | "NEUTRAL"
+    status_badge: "🟢 ACTIONABLE" | "⚪ NO EDGE" | "UNAVAILABLE"
+    edge_status: "Strong edge" | "Moderate edge" | "Weak edge"
+    validity_status: "✅ Valid" | "⚠️ Degraded" | "❌ Invalid"
 }
-
 ```
 
 ---
@@ -529,40 +487,35 @@ validity_status: "✅ Valid" | "⚠️ Degraded" | "❌ Invalid"
 
 ### 7.1 GlobalOverviewPresenter
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  GlobalOverviewPresenter                                                   │
 │  Owner: Layer 1 (Product) | Access: Read-only | Version: v3               │
 │  Input: None                                                              │
 │  Output: GlobalOverviewResponse                                            │
 │  Response States: AVAILABLE | DEGRADED | STALE | PARTIAL | UNAVAILABLE   │
-│  Freshness: Last update cycle                                               │
+│  Freshness: Latest update cycle                                            │
 │  Failure: Last valid snapshot or UNAVAILABLE                               │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ### 7.2 ForecastPresenter
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  ForecastPresenter                                                         │
 │  Owner: Layer 1 (Product) | Access: Read-only | Version: v3               │
 │  Input: pair: str                                                         │
 │  Output: ForecastDashboardResponse                                         │
-│  Response States: AVAILABLE | DEGRADED | PARTIAL | UNAVAILABLE           │
-│  Freshness: Last prediction                                                │
+│  Response States: AVAILABLE | DEGRADED | PARTIAL | UNAVAILABLE            │
+│  Freshness: Latest prediction                                              │
 │  Failure: Structured error or UNAVAILABLE                                  │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ### 7.3 TraceabilityPresenter (NEW)
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  TraceabilityPresenter                                                     │
 │  Owner: Layer 1 (Product) | Access: Read-only | Version: v1               │
@@ -572,45 +525,42 @@ validity_status: "✅ Valid" | "⚠️ Degraded" | "❌ Invalid"
 │  Freshness: Associated with signal_id                                      │
 │  Failure: Partial traceability or UNAVAILABLE                              │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ---
 
 ## 📊 8. RESPONSE STATES
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    RESPONSE STATES                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  AVAILABLE                                                                 │
+│  AVAILABLE                                                                  │
 │  └── Complete and valid data available                                     │
-│  └── HTTP 200                                                              │
+│  └── HTTP 200                                                               │
 │                                                                             │
-│  DEGRADED                                                                  │
+│  DEGRADED                                                                   │
 │  └── Data available but with reduced quality                               │
 │  └── HTTP 200 + warning flag                                               │
 │                                                                             │
-│  STALE                                                                     │
+│  STALE                                                                      │
 │  └── Data available but outdated                                           │
 │  └── HTTP 200 + stale flag                                                 │
 │                                                                             │
-│  PARTIAL                                                                   │
+│  PARTIAL                                                                    │
 │  └── Some data available, other data unavailable                           │
 │  └── HTTP 200 + partial flag                                               │
 │                                                                             │
-│  UNAVAILABLE                                                               │
-│  └── Required data unavailable                                              │
+│  UNAVAILABLE                                                                │
+│  └── Required data not available                                           │
 │  └── HTTP 503 + structured error                                           │
 │                                                                             │
-│  ERROR                                                                     │
+│  ERROR                                                                      │
 │  └── Unexpected system error                                               │
 │  └── HTTP 500 + structured error                                           │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ---
@@ -619,95 +569,92 @@ validity_status: "✅ Valid" | "⚠️ Degraded" | "❌ Invalid"
 
 ### 9.1 Application Metrics
 
-| Metric | Definition | Target |
-|---------|------------|--------|
-| **Page Load** | Page load time | < 3s |
-| **API Latency** | API response time | < 200ms |
-| **Error Rate** | % of requests with error | < 1% |
-| **User Engagement** | Pages per session | > 3 |
+| Metric              | Definition               | Target  |
+| ------------------- | ------------------------ | ------- |
+| **Page Load**       | Page loading time        | < 3s    |
+| **API Latency**     | API response time        | < 200ms |
+| **Error Rate**      | % of requests with error | < 1%    |
+| **User Engagement** | Pages per session        | > 3     |
 
 ### 9.2 Intelligence Metrics
 
-| Metric | Definition | Target |
-|---------|------------|--------|
-| **Signal Coverage** | % of pairs with active signal | > 80% |
-| **Signal Validity Rate** | % of valid signals | > 70% |
-| **Decision Availability** | % of signals with decision | > 95% |
-| **Explanation Coverage** | % with drivers available | > 95% |
-| **Traceability Coverage** | % with complete traceability | > 99% |
-| **Forecast Freshness** | Average age of forecasts | < 1h |
-| **Actionable Precision** | % of actionable signals | > 20% |
-| **User Drill-down Rate** | % of users exploring drivers | > 40% |
+| Metric                    | Definition                    | Target |
+| ------------------------- | ----------------------------- | ------ |
+| **Signal Coverage**       | % of pairs with active signal | > 80%  |
+| **Signal Validity Rate**  | % of valid signals            | > 70%  |
+| **Decision Availability** | % of signals with decision    | > 95%  |
+| **Explanation Coverage**  | % with drivers available      | > 95%  |
+| **Traceability Coverage** | % with complete traceability  | > 99%  |
+| **Forecast Freshness**    | Average forecast age          | < 1h   |
+| **Actionable Precision**  | % of actionable signals       | > 20%  |
+| **User Drill-down Rate**  | % of users exploring drivers  | > 40%  |
 
 ---
 
-## 📌 SUMMARY — v2 → v3 CHANGES
+## 📌 SUMMARY — CHANGES v2 → v3
 
-```
-
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                    v2 → v3 CHANGES                                         │
+│                    CHANGES v2 → v3                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  1. ✅ Edge Ratio canonically defined                                      │
-│     └── gross_expected_return (excludes carry)                            │
+│     └── gross_expected_return (excludes carry)                             │
 │     └── carry (financing)                                                  │
-│     └── net_expected_return = gross + carry - costs                       │
-│     └── edge_ratio = net / required_minimum_edge                          │
+│     └── net_expected_return = gross + carry - costs                        │
+│     └── edge_ratio = net / required_minimum_edge                           │
 │                                                                             │
 │  2. ✅ Lifecycle refined: ACTIONABLE removed as a state                   │
-│     └── GENERATED → VALID → ACTIVE → INVALIDATED/EXPIRED → EVALUATED     │
-│     └── actionable is a derived property, not a state                    │
+│     └── GENERATED → VALID → ACTIVE → INVALIDATED/EXPIRED → EVALUATED      │
+│     └── actionable is a property, not a state                              │
 │                                                                             │
 │  3. ✅ Lifecycle Transitions formalized                                    │
-│     └── Conditions for each transition                                    │
-│     └── invalidator_reason + invalidator_id                               │
+│     └── Conditions for each transition                                     │
+│     └── invalidator_reason + invalidator_id                                │
 │                                                                             │
-│  4. ✅ Traceability simplified                                             │
-│     └── Signal contains IDs (indexed)                                     │
-│     └── Traceability contains canonical metadata                          │
-│     └── No duplication                                                     │
+│  4. ✅ Traceability simplified                                              │
+│     └── Signal contains IDs (indexed)                                      │
+│     └── Traceability contains canonical metadata                           │
+│     └── No duplication                                                      │
 │                                                                             │
-│  5. ✅ Performance Metrics refined                                         │
-│     └── Max Drawdown as positive magnitude (e.g., 7.2)                   │
+│  5. ✅ Performance Metrics refined                                          │
+│     └── Max Drawdown as positive magnitude (e.g. 7.2)                     │
 │     └── Thresholds expressed correctly                                    │
-│     └── LOWER_IS_BETTER with positive values                             │
+│     └── LOWER_IS_BETTER with positive values                              │
 │                                                                             │
 │  6. ✅ As-Of Time introduced                                               │
-│     └── event_time → available_time → as_of → generated_at               │
-│     └── Enables exact reconstruction of knowledge                         │
+│     └── event_time → available_time → as_of → generated_at                │
+│     └── Allows reconstruction of exact knowledge                           │
 │                                                                             │
 │  7. ✅ Decision Score added                                                │
-│     └── Reference to Layer 2 decision_score                               │
-│     └── Connects Product with decision layer                              │
+│     └── Reference to Layer 2 decision_score                                │
+│     └── Connects Product with decision layer                               │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
-
 ```
 
 ---
 
 ## 📊 FINAL EVALUATION
 
-| Dimension | Score |
-|-----------|------:|
-| Product Intent | **9.9** |
-| User Questions / UX | **9.9** |
-| Domain / Presentation Separation | **9.9** |
-| Signal ID + Traceability | **9.9** |
-| Edge Ratio Definition | **9.9** |
-| As-Of Time | **9.9** |
-| Signal Lifecycle | **9.8** |
-| Lifecycle Transitions | **9.8** |
-| Data Quality by Source | **9.8** |
-| Performance Metrics | **9.8** |
-| Contracts | **9.7** |
-| Product Metrics | **9.2** |
-| **OVERALL** | **⭐ 9.7/10** |
+| Dimension                        |        Score |
+| -------------------------------- | -----------: |
+| Product Intent                   |      **9.9** |
+| User Questions / UX              |      **9.9** |
+| Domain / Presentation Separation |      **9.9** |
+| Signal ID + Traceability         |      **9.9** |
+| Edge Ratio Definition            |      **9.9** |
+| As-Of Time                       |      **9.9** |
+| Signal Lifecycle                 |      **9.8** |
+| Lifecycle Transitions            |      **9.8** |
+| Data Quality by Source           |      **9.8** |
+| Performance Metrics              |      **9.8** |
+| Contracts                        |      **9.7** |
+| Product Metrics                  |      **9.2** |
+| **OVERALL**                      | **⭐ 9.7/10** |
 
 ---
 
 **Meridian FX — Product LLD v3** ✅
 
 **FROZEN — Ready for Technical LLD.**
-```
