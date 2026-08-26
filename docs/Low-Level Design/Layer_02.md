@@ -1,5 +1,3 @@
-Absolutely. Below is the **exact same Product LLD v3 in English**, with **no changes to the content, structure, logic, values, or definitions**—only translated from Spanish to English.
-
 # 📋 MERIDIAN FX — PRODUCT LLD (v3)
 
 ## Product Functional Specification — FROZEN
