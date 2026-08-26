@@ -1,4 +1,4 @@
-# 📊 MERIDIAN FX — Minimum Viable Product
+# 📊 MERIDIAN FX — Implementation Roadmap
 
 ---
 

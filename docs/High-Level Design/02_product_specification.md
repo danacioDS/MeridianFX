@@ -1,4 +1,4 @@
-# 📊 MERIDIAN FX — OPTIMIZED PRODUCT MOCKUP
+# 📊 MERIDIAN FX — Product Specification
 
 **Version 1.0 — Render Product (512 MB) with Neon Database**
 
