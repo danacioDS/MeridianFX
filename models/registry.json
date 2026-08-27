@@ -1,0 +1,40 @@
+{
+  "models": [
+    {
+      "model_id": "USD/JPY_xgboost_v1.0_20260827_182648",
+      "pair": "USD/JPY",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_JPY_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.3114754098360656,
+        "auc": 0.40792540792540793,
+        "brier": 0.4355507493019104,
+        "n_samples": 301,
+        "n_features": 23
+      },
+      "created_at": "2026-08-27T18:26:48.630694",
+      "active": true
+    },
+    {
+      "model_id": "USD/JPY_logistic_v1.0_20260827_182648",
+      "pair": "USD/JPY",
+      "model_type": "logistic",
+      "version": "v1.0",
+      "path": "models/logistic_USD_JPY_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.3114754098360656,
+        "auc": 0.4475524475524475,
+        "brier": 0.42431727540470965,
+        "n_samples": 301,
+        "n_features": 23
+      },
+      "created_at": "2026-08-27T18:26:48.631168",
+      "active": true
+    }
+  ],
+  "current": {
+    "USD/JPY_xgboost": "USD/JPY_xgboost_v1.0_20260827_182648",
+    "USD/JPY_logistic": "USD/JPY_logistic_v1.0_20260827_182648"
+  }
+}
