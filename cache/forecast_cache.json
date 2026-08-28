@@ -1,0 +1,146 @@
+{
+  "forecast_USD/JPY": {
+    "data": {
+      "direction": "UP",
+      "probability": 0.5398290753364563,
+      "expected_return": 0.000796581506729126,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0.0796581506729126,
+      "signal_strength": 0.0021151403228761487,
+      "edge_ratio": 0.0796581506729126,
+      "net_return": 0.0005576070547103881,
+      "position_size": 0,
+      "model": {
+        "version": "xgb-v1.0",
+        "type": "xgboost"
+      },
+      "shap": {
+        "base_value": -0.8113473403289463,
+        "base_probability": 0.30760345998006206,
+        "final_probability": 0.5398290555499983,
+        "contributions": [
+          {
+            "feature": "macd_hist",
+            "contribution": 0.8810605828073657,
+            "abs_contribution": 0.8810605828073657
+          },
+          {
+            "feature": "rsi_14",
+            "contribution": 0.35759681653099523,
+            "abs_contribution": 0.35759681653099523
+          },
+          {
+            "feature": "bb_upper",
+            "contribution": -0.3387400512338524,
+            "abs_contribution": 0.3387400512338524
+          },
+          {
+            "feature": "sma_20",
+            "contribution": 0.20545247892538496,
+            "abs_contribution": 0.20545247892538496
+          },
+          {
+            "feature": "adx",
+            "contribution": -0.1308908608067792,
+            "abs_contribution": 0.1308908608067792
+          },
+          {
+            "feature": "macd_signal",
+            "contribution": 0.1221585040180178,
+            "abs_contribution": 0.1221585040180178
+          },
+          {
+            "feature": "macd",
+            "contribution": 0.11955828853673074,
+            "abs_contribution": 0.11955828853673074
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.11740072079057821,
+            "abs_contribution": 0.11740072079057821
+          },
+          {
+            "feature": "aroon_down",
+            "contribution": 0.11182614089295273,
+            "abs_contribution": 0.11182614089295273
+          },
+          {
+            "feature": "ema_12",
+            "contribution": -0.10020171080029862,
+            "abs_contribution": 0.10020171080029862
+          }
+        ],
+        "feature_count": 23
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 160.08200073242188
+      },
+      "timestamp": "2026-08-28T16:06:14.138489"
+    },
+    "timestamp": "2026-08-28T16:06:14.138501"
+  },
+  "drivers_USD/JPY": {
+    "data": {
+      "pair": "USD/JPY",
+      "shap": [
+        {
+          "feature": "macd_hist",
+          "contribution": 0.8824791841925677,
+          "abs_contribution": 0.8824791841925677
+        },
+        {
+          "feature": "rsi_14",
+          "contribution": 0.3573033127543012,
+          "abs_contribution": 0.3573033127543012
+        },
+        {
+          "feature": "bb_upper",
+          "contribution": -0.3387400512338524,
+          "abs_contribution": 0.3387400512338524
+        },
+        {
+          "feature": "sma_20",
+          "contribution": 0.20545247922572632,
+          "abs_contribution": 0.20545247922572632
+        },
+        {
+          "feature": "adx",
+          "contribution": -0.1308908608067792,
+          "abs_contribution": 0.1308908608067792
+        },
+        {
+          "feature": "macd_signal",
+          "contribution": 0.1221585040180178,
+          "abs_contribution": 0.1221585040180178
+        },
+        {
+          "feature": "macd",
+          "contribution": 0.11955828853673074,
+          "abs_contribution": 0.11955828853673074
+        },
+        {
+          "feature": "bb_width",
+          "contribution": -0.11852581869942745,
+          "abs_contribution": 0.11852581869942745
+        },
+        {
+          "feature": "aroon_down",
+          "contribution": 0.11182614089295273,
+          "abs_contribution": 0.11182614089295273
+        },
+        {
+          "feature": "ema_12",
+          "contribution": -0.10020171080029862,
+          "abs_contribution": 0.10020171080029862
+        }
+      ],
+      "narrative": "Top drivers: macd_hist (positive, 0.882), rsi_14 (positive, 0.357), bb_upper (negative, 0.339)",
+      "timestamp": "2026-08-28T16:01:26.254691"
+    },
+    "timestamp": "2026-08-28T16:01:26.254700"
+  }
+}

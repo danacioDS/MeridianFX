@@ -2,146 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Estilos del mockup - blanco y limpio */
 :root {
-  --paper: #ffffff;
-  --panel: #F8F9FB;
-  --panel-2: #F2F4F7;
-  --ink: #10151F;
-  --ink-soft: #4B5566;
-  --muted: #8891A0;
-  --line: #E6E9EE;
-  --navy: #16233F;
-  --meridian: #0E7C86;
-  --meridian-soft: #E4F2F1;
-  --bull: #0E8F5F;
-  --bull-soft: #E7F5EE;
-  --bear: #C4453A;
-  --bear-soft: #FBEAE8;
-  --amber: #B8860B;
-  --amber-soft: #FBF3DF;
-  --violet: #5B4EA8;
-  --violet-soft: #EFEDFA;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
 }
 
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
-
-/* Fuentes del mockup */
-.mono {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-}
-
-.serif {
-  font-family: 'Instrument Serif', Georgia, serif;
-}
-
-/* Clases de utilidad del mockup */
-.bg-panel { background: var(--panel); }
-.bg-panel-2 { background: var(--panel-2); }
-.border-line { border-color: var(--line); }
-.text-muted { color: var(--muted); }
-.text-ink-soft { color: var(--ink-soft); }
-
-/* Colores de estado */
-.text-bull { color: var(--bull); }
-.text-bear { color: var(--bear); }
-.text-meridian { color: var(--meridian); }
-.bg-bull-soft { background: var(--bull-soft); }
-.bg-bear-soft { background: var(--bear-soft); }
-.bg-meridian-soft { background: var(--meridian-soft); }
-
-/* Tarjetas estilo mockup */
-.card-mockup {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 18px 20px;
-  background: var(--paper);
-}
-
-/* Tabla estilo mockup */
-.table-mockup {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-/* Badges de estado */
-.tag-actionable {
-  background: var(--bull-soft);
-  color: var(--bull);
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 100px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.tag-noedge {
-  background: var(--panel-2);
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 100px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-/* Regime Strip */
-.regime-strip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--navy);
-  color: #fff;
-  border-radius: 10px;
-  padding: 11px 18px;
-  margin-bottom: 18px;
-  font-size: 13px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-/* Pipeline Stepper */
-.pipeline-step {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 9px 14px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--panel);
-  flex: 1;
-  min-width: 120px;
-}
-
-.pipeline-step.final {
-  background: var(--bull-soft);
-  border-color: var(--bull);
-}
-
-.pipeline-step .label {
-  font-size: 9.5px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.pipeline-step .value {
-  font-family: 'IBM Plex Mono', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.pipeline-step.final .value {
-  color: var(--bull);
+  @apply bg-background text-text-primary font-sans antialiased;
 }

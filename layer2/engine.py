@@ -1,4 +1,6 @@
 import pandas as pd
+import json
+import os
 from datetime import datetime, timedelta
 from .data.provider import DataProvider
 from .features.technical import TechnicalFeatures
@@ -9,8 +11,11 @@ from .explainers.shap_explainer import SHAPExplainer
 from .decision.filter import EconomicFilter
 from .config import MODEL_PATH
 
+CACHE_DIR = "cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
+
 class DecisionEngine:
-    """Motor de decisión principal con caché."""
+    """Motor de decisión principal con caché persistente en disco."""
     
     def __init__(self):
         self.data_provider = DataProvider()
@@ -21,9 +26,12 @@ class DecisionEngine:
         self.economic_filter = EconomicFilter()
         self.is_trained = False
         
-        # Caché simple
+        # Caché en memoria
         self.cache = {}
         self.cache_ttl = 300  # 5 minutos
+        
+        # Cargar caché desde disco
+        self._load_cache()
         
         # Cargar modelos activos
         active_xgb = self.registry.get_active('USD/JPY', 'xgboost')
@@ -55,6 +63,42 @@ class DecisionEngine:
             self.logistic_model = LogisticModel(active_log['path'])
             if self.logistic_model.model is not None:
                 print(f"✅ Logistic cargado: {active_log['version']}")
+        
+        # Pre-cargar forecast en caché
+        print("🔄 Pre-cargando forecast en caché...")
+        self.get_forecast('USD/JPY')
+        print("✅ Caché pre-cargado")
+    
+    def _load_cache(self):
+        """Carga caché desde disco."""
+        cache_file = os.path.join(CACHE_DIR, "forecast_cache.json")
+        if os.path.exists(cache_file):
+            try:
+                with open(cache_file, 'r') as f:
+                    data = json.load(f)
+                    for key, value in data.items():
+                        self.cache[key] = {
+                            'data': value['data'],
+                            'timestamp': datetime.fromisoformat(value['timestamp'])
+                        }
+                    print(f"✅ Caché cargado desde disco ({len(self.cache)} entradas)")
+            except Exception as e:
+                print(f"⚠️ Error cargando caché: {e}")
+    
+    def _save_cache(self):
+        """Guarda caché en disco."""
+        cache_file = os.path.join(CACHE_DIR, "forecast_cache.json")
+        try:
+            data = {}
+            for key, entry in self.cache.items():
+                data[key] = {
+                    'data': entry['data'],
+                    'timestamp': entry['timestamp'].isoformat()
+                }
+            with open(cache_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"⚠️ Error guardando caché: {e}")
     
     def _get_cached(self, key: str):
         """Obtiene del caché si no ha expirado."""
@@ -65,83 +109,17 @@ class DecisionEngine:
         return None
     
     def _set_cache(self, key: str, data):
-        """Guarda en caché."""
+        """Guarda en caché (memoria + disco)."""
         self.cache[key] = {
             'data': data,
             'timestamp': datetime.now()
         }
-    
-    def train(self, pair: str = "USD/JPY", period: str = "2y"):
-        """Entrena ambos modelos y registra el mejor."""
-        print(f"🔄 Entrenando modelos para {pair}...")
-        
-        result = self.data_provider.get_historical(pair, period=period)
-        df = result['data']
-        print(f"📊 Datos obtenidos: {len(df)} filas (provider: {result['provider']})")
-        
-        df_feat = TechnicalFeatures.generate(df)
-        print(f"📈 Features generadas: {len(df_feat)} filas")
-        
-        if len(df_feat) == 0:
-            raise ValueError("No se pudieron generar features")
-        
-        y = TechnicalFeatures.create_target(df_feat)
-        feature_cols = TechnicalFeatures.get_feature_names()
-        X = df_feat[feature_cols].dropna()
-        y = y[X.index]
-        
-        print(f"🎯 Muestras: {X.shape[0]}, Features: {X.shape[1]}")
-        
-        if len(X) < 50:
-            raise ValueError(f"Datos insuficientes: {len(X)} muestras")
-        
-        print("\n📊 Entrenando XGBoost...")
-        xgb = XGBoostModel()
-        xgb_metrics = xgb.train(X, y)
-        
-        print("\n📊 Entrenando Logistic Regression...")
-        log = LogisticModel()
-        log_metrics = log.train(X, y)
-        
-        xgb_version = "v1.0"
-        log_version = "v1.0"
-        
-        xgb_path = f"models/xgboost_{pair.replace('/', '_')}_{xgb_version}.pkl"
-        log_path = f"models/logistic_{pair.replace('/', '_')}_{log_version}.pkl"
-        
-        xgb.save(xgb_path)
-        log.save(log_path)
-        
-        xgb_id = self.registry.register(pair, 'xgboost', xgb_version, xgb_metrics, xgb_path)
-        log_id = self.registry.register(pair, 'logistic', log_version, log_metrics, log_path)
-        
-        print(f"\n✅ Modelos registrados:")
-        print(f"   XGBoost: {xgb_id} (AUC: {xgb_metrics['auc']:.4f})")
-        print(f"   Logistic: {log_id} (AUC: {log_metrics['auc']:.4f})")
-        
-        active_xgb = self.registry.get_active(pair, 'xgboost')
-        if active_xgb:
-            self.xgb_model = XGBoostModel(active_xgb['path'])
-            self.is_trained = True
-            
-            try:
-                X_background = X.sample(min(100, len(X)))
-                self.shap_explainer = SHAPExplainer(
-                    self.xgb_model.model,
-                    self.xgb_model.feature_names,
-                    X_background
-                )
-                print("✅ SHAP Explainer inicializado")
-            except Exception as e:
-                print(f"⚠️ SHAP no inicializado: {e}")
-        
-        return {'xgb': xgb_metrics, 'logistic': log_metrics}
+        self._save_cache()
     
     def get_forecast(self, pair: str) -> dict:
-        """Obtiene forecast completo con caché."""
+        """Obtiene forecast completo con caché persistente."""
         cache_key = f"forecast_{pair}"
         
-        # Intentar caché
         cached = self._get_cached(cache_key)
         if cached:
             print(f"📦 Usando caché para {pair}")
@@ -203,7 +181,6 @@ class DecisionEngine:
                 'timestamp': datetime.now().isoformat()
             }
             
-            # Guardar en caché
             self._set_cache(cache_key, response)
             return response
             
@@ -212,7 +189,7 @@ class DecisionEngine:
             return self._fallback_forecast(pair)
     
     def get_drivers(self, pair: str) -> dict:
-        """Obtiene drivers (SHAP) con caché."""
+        """Obtiene drivers (SHAP) con caché persistente."""
         cache_key = f"drivers_{pair}"
         
         cached = self._get_cached(cache_key)

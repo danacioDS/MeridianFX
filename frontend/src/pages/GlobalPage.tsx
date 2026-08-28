@@ -1,22 +1,27 @@
+/**
+ * Global Intelligence — composition layer.
+ *
+ * Composes data hooks (useRanking) with the Prompt X presentational
+ * components. No analysis, ranking, or derivation occurs here — the ranking
+ * order, scores, and actionability come from the backend contract.
+ * Unsupported mockup panels (Market Regime on the global view, Early Warnings,
+ * Key Events) render their availability state per MIGRATION_REPORT.md.
+ */
 import {
   ApiError,
   LoadingSpinner,
   NotAvailable,
   Panel,
+  RegimeBar,
   UniverseSelector,
 } from "../components/common";
-import { RegimeStrip } from "../components/mockup";
 import { EarlyWarnings, RankingCard } from "../components/global";
-import { useRanking, useActivePair, pairUniverseFromRanking, useDrivers } from "../hooks";
+import { useRanking, useActivePair, pairUniverseFromRanking } from "../hooks";
 
 export function GlobalPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
-  const drivers = useDrivers(pair);
   const universe = pairUniverseFromRanking(ranking.data);
-
-  const macroRegime = drivers.data?.macro_regime;
-  const regimeLabel = macroRegime?.risk ?? 'UNKNOWN';
 
   if (ranking.isLoading) {
     return <LoadingSpinner label="Loading ranking" />;
@@ -31,18 +36,11 @@ export function GlobalPage(): JSX.Element {
   const data = ranking.data;
 
   return (
-    <section className="flex flex-col gap-6">
+    <section aria-label="Global Intelligence" className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold text-ink">Global Intelligence</h2>
+        <h2 className="text-xl font-semibold text-text-primary">Global Intelligence</h2>
         <UniverseSelector currencies={universe} selected={pair} onChange={setPair} />
       </div>
-
-      {/* Regime Strip */}
-      <RegimeStrip 
-        regime={regimeLabel}
-        vix={16.8}
-        riskAppetite={0.72}
-      />
 
       {data ? (
         <div className="flex flex-col gap-6">
@@ -52,11 +50,7 @@ export function GlobalPage(): JSX.Element {
                 <RankingSummary data={data} />
                 <div className="flex flex-col gap-3">
                   {data.opportunities.map((opportunity) => (
-                    <RankingCard 
-                      key={opportunity.pair} 
-                      rank={opportunity.rank} 
-                      opportunity={opportunity} 
-                    />
+                    <RankingCard key={opportunity.pair} rank={opportunity.rank} opportunity={opportunity} />
                   ))}
                 </div>
               </Panel>
@@ -64,10 +58,7 @@ export function GlobalPage(): JSX.Element {
 
             <aside className="flex flex-col gap-4">
               <Panel title="Market Regime">
-                <NotAvailable
-                  feature="Market Regime"
-                  reason="UNSUPPORTED_BY_CONTRACT: no RegimeResponse stream (G4)."
-                />
+                <RegimeBar macroRegime={null} />
               </Panel>
               <Panel title="Early Warnings">
                 <EarlyWarnings />
@@ -75,7 +66,7 @@ export function GlobalPage(): JSX.Element {
               <Panel title="Key Events Today">
                 <NotAvailable
                   feature="key-events"
-                  reason="UNSUPPORTED_BY_CONTRACT: economic calendar gap (EC-1)"
+                  reason="UNSUPPORTED_BY_CONTRACT: economic calendar gap (EC-1) — no events stream in Layer 1 §7"
                 />
               </Panel>
             </aside>
@@ -90,14 +81,14 @@ function RankingSummary({ data }: { data: NonNullable<ReturnType<typeof useRanki
   return (
     <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
       <div className="flex items-baseline gap-1.5">
-        <dt className="text-xs text-muted">Top Opportunity</dt>
-        <dd className="font-medium text-ink">
+        <dt className="text-xs text-text-secondary">Top Opportunity</dt>
+        <dd className="font-medium text-text-primary">
           {data.top_opportunity?.pair ?? "—"}
         </dd>
       </div>
       <div className="flex items-baseline gap-1.5">
-        <dt className="text-xs text-muted">Actionable</dt>
-        <dd className="font-medium text-ink">
+        <dt className="text-xs text-text-secondary">Actionable</dt>
+        <dd className="font-medium text-text-primary">
           {data.total_actionable}/{data.total_pairs}
         </dd>
       </div>

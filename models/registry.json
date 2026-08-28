@@ -31,10 +31,144 @@
       },
       "created_at": "2026-08-27T18:26:48.631168",
       "active": true
+    },
+    {
+      "model_id": "EUR/USD_xgboost_v1.0_20260828_153418",
+      "pair": "EUR/USD",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_EUR_USD_v1.0.pkl",
+      "metrics": {
+        "auc": 0.45,
+        "accuracy": 0.38,
+        "brier": 0.42,
+        "n_samples": 200
+      },
+      "created_at": "2026-08-28T15:34:18.451387",
+      "active": true
+    },
+    {
+      "model_id": "GBP/USD_xgboost_v1.0_20260828_153429",
+      "pair": "GBP/USD",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_GBP_USD_v1.0.pkl",
+      "metrics": {
+        "auc": 0.43,
+        "accuracy": 0.36,
+        "brier": 0.44,
+        "n_samples": 319
+      },
+      "created_at": "2026-08-28T15:34:29.463111",
+      "active": true
+    },
+    {
+      "model_id": "USD/CNY_xgboost_v1.0_20260828_153641",
+      "pair": "USD/CNY",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_CNY_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.671875,
+        "auc": 0.3795454545454546,
+        "brier": 0.29256218671798706,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-08-28T15:36:41.134877",
+      "active": true
+    },
+    {
+      "model_id": "USD/MXN_xgboost_v1.0_20260828_153642",
+      "pair": "USD/MXN",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_MXN_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.484375,
+        "auc": 0.43690349946977725,
+        "brier": 0.32887816429138184,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-08-28T15:36:42.767793",
+      "active": true
+    },
+    {
+      "model_id": "USD/BRL_xgboost_v1.0_20260828_153644",
+      "pair": "USD/BRL",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_BRL_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.46875,
+        "auc": 0.51953125,
+        "brier": 0.29410305619239807,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-08-28T15:36:44.178266",
+      "active": true
+    },
+    {
+      "model_id": "USD/ARS_xgboost_v1.0_20260828_153645",
+      "pair": "USD/ARS",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_ARS_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.5,
+        "auc": 0.5133928571428572,
+        "brier": 0.3951680064201355,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-08-28T15:36:45.258561",
+      "active": true
+    },
+    {
+      "model_id": "USD/BOB_xgboost_v1.0_20260828_153646",
+      "pair": "USD/BOB",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_BOB_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.515625,
+        "auc": 0.4374384236453202,
+        "brier": 0.3446144461631775,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-08-28T15:36:46.453575",
+      "active": true
+    },
+    {
+      "model_id": "USD/CHF_xgboost_v1.0_20260828_153647",
+      "pair": "USD/CHF",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_CHF_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.5625,
+        "auc": 0.7331378299120235,
+        "brier": 0.341678261756897,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-08-28T15:36:47.603623",
+      "active": true
     }
   ],
   "current": {
     "USD/JPY_xgboost": "USD/JPY_xgboost_v1.0_20260827_182648",
-    "USD/JPY_logistic": "USD/JPY_logistic_v1.0_20260827_182648"
+    "USD/JPY_logistic": "USD/JPY_logistic_v1.0_20260827_182648",
+    "EUR/USD_xgboost": "EUR/USD_xgboost_v1.0_20260828_153418",
+    "GBP/USD_xgboost": "GBP/USD_xgboost_v1.0_20260828_153429",
+    "USD/CNY_xgboost": "USD/CNY_xgboost_v1.0_20260828_153641",
+    "USD/MXN_xgboost": "USD/MXN_xgboost_v1.0_20260828_153642",
+    "USD/BRL_xgboost": "USD/BRL_xgboost_v1.0_20260828_153644",
+    "USD/ARS_xgboost": "USD/ARS_xgboost_v1.0_20260828_153645",
+    "USD/BOB_xgboost": "USD/BOB_xgboost_v1.0_20260828_153646",
+    "USD/CHF_xgboost": "USD/CHF_xgboost_v1.0_20260828_153647"
   }
 }

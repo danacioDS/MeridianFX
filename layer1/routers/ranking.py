@@ -1,17 +1,37 @@
 from fastapi import APIRouter
 from datetime import datetime
-from ..models.responses import RankingResponse
-from ..adapters.decision_to_response import DecisionAdapter
+from ..models.responses import RankingResponse, RankedOpportunity
+from layer2.ranking.engine import RankingEngine
 
 router = APIRouter(prefix="/v1/fx", tags=["ranking"])
+ranking_engine = RankingEngine()
 
 @router.get("/ranking", response_model=RankingResponse)
 async def get_ranking():
-    mock_data = {
-        'opportunities': [
-            {'rank': 1, 'pair': 'USD/JPY', 'direction': 'UP', 'opportunity_score': 0.85, 'edge_ratio': 3.1, 'actionable': True, 'confidence': 0.72, 'decision_quality': 'HIGH', 'position_size': 0.15},
-            {'rank': 2, 'pair': 'EUR/USD', 'direction': 'DOWN', 'opportunity_score': 0.72, 'edge_ratio': 2.4, 'actionable': True, 'confidence': 0.65, 'decision_quality': 'MEDIUM', 'position_size': 0.10},
-            {'rank': 3, 'pair': 'GBP/USD', 'direction': 'UP', 'opportunity_score': 0.58, 'edge_ratio': 1.8, 'actionable': False, 'confidence': 0.45, 'decision_quality': 'LOW', 'position_size': 0.0}
-        ]
-    }
-    return DecisionAdapter.to_ranking_response(mock_data)
+    data = ranking_engine.get_ranking()
+    
+    opportunities = []
+    for opp in data['opportunities']:
+        opportunities.append(
+            RankedOpportunity(
+                rank=opp.get('rank', 0),
+                pair=opp['pair'],
+                direction=opp.get('direction', 'UNKNOWN'),
+                opportunity_score=opp.get('opportunity_score', 0.0),
+                edge_ratio=opp.get('edge_ratio', 0.0),
+                actionable=opp.get('actionable', False),
+                confidence=opp.get('confidence', 0.0),
+                decision_quality=opp.get('decision_quality', 'LOW'),
+                position_size=opp.get('position_size', 0.0)
+            )
+        )
+    
+    return RankingResponse(
+        timestamp=datetime.now(),
+        opportunities=opportunities,
+        top_opportunity=opportunities[0] if opportunities else None,
+        total_actionable=data.get('total_actionable', 0),
+        total_pairs=data.get('total_pairs', 0),
+        snapshot_timestamp=datetime.now(),
+        as_of=datetime.now()
+    )

@@ -1,6 +1,6 @@
 """
 Data Provider con fallback entre múltiples fuentes.
-Alpha Vantage → Twelve Data → Yahoo Finance
+Yahoo Finance → Alpha Vantage → Twelve Data
 """
 import pandas as pd
 from datetime import datetime
@@ -10,11 +10,11 @@ from .sources.yahoo import YahooSource
 
 class DataProvider:
     def __init__(self):
-        # Orden: Alpha → Twelve → Yahoo (Alpha tiene más datos históricos)
+        # Orden: Yahoo primero (más confiable para datos diarios y sin límite estricto)
         self.sources = [
+            ('yahoo', YahooSource.fetch),
             ('alpha', AlphaVantageSource.fetch),
-            ('twelve', TwelveDataSource.fetch),
-            ('yahoo', YahooSource.fetch)
+            ('twelve', TwelveDataSource.fetch)
         ]
         self.last_provider = None
         self.last_success = None

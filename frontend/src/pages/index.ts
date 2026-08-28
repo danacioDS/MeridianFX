@@ -3,3 +3,4 @@ export * from "./ForecastPage";
 export * from "./DriversPage";
 export * from "./EvaluationPage";
 export * from "./StatusPage";
+export { HistoricalPage } from './HistoricalPage';
