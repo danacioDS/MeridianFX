@@ -1,47 +1,35 @@
-/**
- * Application root.
- *
- * Wires routing, QueryClientProvider, and ThemeProvider around the layout.
- * No analytical logic lives here — modules consume backend contracts verbatim.
- */
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { ThemeProvider } from "./components/common";
-import { MainLayout } from "./components/layout";
-import {
-  DriversPage,
-  EvaluationPage,
-  ForecastPage,
-  GlobalPage,
-  StatusPage,
-} from "./pages";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MainLayout } from './components/layout/MainLayout';
+import { GlobalPage, ForecastPage, DriversPage, EvaluationPage, StatusPage, HistoricalPage } from './pages';
 
+// Crear QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 30 * 1000, // 30 segundos
       refetchOnWindowFocus: false,
-      staleTime: 30_000,
     },
   },
 });
 
-export default function App(): JSX.Element {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<GlobalPage />} />
-              <Route path="/forecast" element={<ForecastPage />} />
-              <Route path="/drivers" element={<DriversPage />} />
-              <Route path="/evaluation" element={<EvaluationPage />} />
-              <Route path="/status" element={<StatusPage />} />
-              <Route path="*" element={<GlobalPage />} />
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </ThemeProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<GlobalPage />} />
+            <Route path="forecast" element={<ForecastPage />} />
+            <Route path="drivers" element={<DriversPage />} />
+            <Route path="evaluation" element={<EvaluationPage />} />
+            <Route path="status" element={<StatusPage />} />
+            <Route path="historical" element={<HistoricalPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
+
+export default App;

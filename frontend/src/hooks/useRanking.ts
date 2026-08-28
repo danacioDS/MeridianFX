@@ -1,16 +1,19 @@
-/**
- * Ranking data-fetching hook.
- *
- * Returns the raw backend response without transformation.
- */
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { getRanking } from "../services";
-import type { RankingResponse } from "../types";
+import { useQuery } from '@tanstack/react-query';
 
-/** Fetches the opportunity ranking snapshot. */
-export function useRanking(): UseQueryResult<RankingResponse> {
-  return useQuery<RankingResponse>({
-    queryKey: ["ranking"],
-    queryFn: () => getRanking(),
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+async function fetchRanking() {
+  const response = await fetch(`${API_URL}/v1/fx/ranking`);
+  if (!response.ok) {
+    throw new Error(`Error ${response.status}: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export function useRanking() {
+  return useQuery({
+    queryKey: ['ranking'],
+    queryFn: fetchRanking,
+    refetchInterval: 30000, // 30 segundos
   });
 }

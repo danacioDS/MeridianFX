@@ -1,17 +1,236 @@
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
+@layer base {
+  :root {
+    --paper: #ffffff;
+    --panel: #F8F9FB;
+    --panel-2: #F2F4F7;
+    --ink: #10151F;
+    --ink-soft: #4B5566;
+    --muted: #8891A0;
+    --line: #E6E9EE;
+    --navy: #16233F;
+    --meridian: #0E7C86;
+    --meridian-soft: #E4F2F1;
+    --bull: #0E8F5F;
+    --bull-soft: #E7F5EE;
+    --bear: #C4453A;
+    --bear-soft: #FBEAE8;
+    --amber: #B8860B;
+    --amber-soft: #FBF3DF;
+    --violet: #5B4EA8;
+    --violet-soft: #EFEDFA;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    color: #10151F;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    /* Fuente base más grande */
+    font-size: 16px;
+  }
+
+  /* Aumentar tamaño de todas las fuentes */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+
+  h1 { font-size: 1.75rem; }
+  h2 { font-size: 1.5rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.1rem; }
+
+  .font-mono {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .font-serif {
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F2F4F7;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #8891A0;
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #4B5566;
+  }
 }
 
-html,
-body,
-#root {
-  height: 100%;
-}
+@layer components {
+  /* Cards y paneles */
+  .card {
+    @apply border border-gray-200 rounded-xl bg-white p-5;
+  }
 
-body {
-  @apply bg-background text-text-primary font-sans antialiased;
+  .card-panel {
+    @apply border border-gray-200 rounded-xl bg-gray-50 p-5;
+  }
+
+  /* Actionability note */
+  .actionability-note {
+    @apply text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-lg px-5 py-3.5 leading-relaxed;
+  }
+  .actionability-note b {
+    @apply text-gray-900 font-mono font-semibold;
+  }
+
+  /* Badges */
+  .badge-bull {
+    @apply bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full;
+  }
+  .badge-bear {
+    @apply bg-red-50 text-red-700 text-xs font-semibold px-3 py-1 rounded-full;
+  }
+  .badge-neutral {
+    @apply bg-gray-100 text-gray-500 text-xs font-semibold px-3 py-1 rounded-full;
+  }
+  .badge-meridian {
+    @apply bg-teal-50 text-teal-700 text-xs font-semibold px-3 py-1 rounded-full;
+  }
+
+  /* Regime Strip */
+  .regime-strip {
+    @apply bg-navy text-white rounded-xl px-5 py-3.5 flex items-center justify-between flex-wrap gap-2 text-sm;
+  }
+  .regime-strip .pill {
+    @apply border border-white/20 px-3 py-1 rounded-full text-xs uppercase tracking-wide;
+  }
+  .regime-strip .metrics {
+    @apply flex gap-5 text-white/75 text-sm;
+  }
+  .regime-strip .metrics b {
+    @apply text-white font-mono font-medium;
+  }
+
+  /* Universe bar */
+  .universe-bar {
+    @apply border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap;
+  }
+  .universe-bar .label {
+    @apply text-[11px] uppercase tracking-wider text-gray-400 font-semibold;
+  }
+  .universe-bar .chip {
+    @apply font-mono text-sm font-semibold px-3 py-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 cursor-pointer transition-all;
+  }
+  .universe-bar .chip:hover {
+    @apply bg-teal-50 border-teal-600 text-teal-600;
+  }
+  .universe-bar .chip.active {
+    @apply bg-teal-50 border-teal-600 text-teal-600;
+  }
+  .universe-bar .chip.base {
+    @apply bg-navy text-white border-navy cursor-default;
+  }
+
+  /* Tab Navigation */
+  .tab-nav {
+    @apply flex gap-6 border-b border-gray-200 mb-5 overflow-x-auto;
+  }
+  .tab-nav .tab {
+    @apply text-sm font-semibold text-gray-400 py-3 border-b-2 border-transparent cursor-pointer whitespace-nowrap transition-all;
+  }
+  .tab-nav .tab:hover {
+    @apply text-gray-900;
+  }
+  .tab-nav .tab.active {
+    @apply text-gray-900 border-teal-600;
+  }
+  .tab-nav .tab .n {
+    @apply font-mono text-teal-600 mr-1.5 font-semibold;
+  }
+
+  /* Top Bar */
+  .topbar {
+    @apply flex items-end justify-between pb-4 border-b-2 border-gray-900 mb-4 flex-wrap gap-2;
+  }
+  .topbar .brand {
+    @apply flex items-baseline gap-2.5;
+  }
+  .topbar .brand-mark {
+    @apply w-2.5 h-2.5 rounded-full bg-teal-600 inline-block -translate-y-0.5;
+  }
+  .topbar .brand-name {
+    @apply font-serif text-2xl tracking-wide;
+  }
+  .topbar .brand-name b {
+    @apply italic text-teal-600 font-normal;
+  }
+  .topbar .brand-tag {
+    @apply text-xs uppercase tracking-widest text-gray-400 ml-0.5;
+  }
+  .topbar .ver-pill {
+    @apply text-[11px] font-mono text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full ml-1.5;
+  }
+  .topbar .top-meta {
+    @apply text-right text-sm text-gray-600;
+  }
+  .topbar .top-meta .status {
+    @apply flex gap-3 justify-end items-center mt-1 flex-wrap text-sm;
+  }
+  .topbar .top-meta .dot {
+    @apply w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block mr-1.5;
+  }
+  .topbar .prov-tag {
+    @apply text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded flex items-center gap-1.5 whitespace-nowrap;
+  }
+  .topbar .prov-tag::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full inline-block;
+  }
+  .topbar .prov-tag.live {
+    @apply bg-emerald-50 text-emerald-600;
+  }
+  .topbar .prov-tag.live::before {
+    @apply bg-emerald-500;
+  }
+  .topbar .prov-tag.model {
+    @apply bg-teal-50 text-teal-600;
+  }
+  .topbar .prov-tag.model::before {
+    @apply bg-teal-500;
+  }
+
+  /* Section label */
+  .section-label {
+    @apply flex items-center gap-3 text-xs uppercase tracking-wider text-gray-400 font-semibold;
+  }
+  .section-label::after {
+    content: '';
+    @apply flex-1 h-px bg-gray-200;
+  }
+
+  /* Tables */
+  .table-mockup {
+    @apply border border-gray-200 rounded-xl overflow-hidden;
+  }
+  .table-mockup thead th {
+    @apply bg-gray-50 text-gray-400 text-xs font-semibold uppercase tracking-wider px-4 py-3 text-left border-b border-gray-200;
+  }
+  .table-mockup tbody td {
+    @apply px-4 py-3 text-sm border-t border-gray-200 text-gray-600;
+  }
+  .table-mockup tbody tr:hover {
+    @apply bg-gray-50/50;
+  }
 }
