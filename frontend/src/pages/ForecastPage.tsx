@@ -8,13 +8,15 @@ import {
   UniverseSelector,
 } from "../components/common";
 import { RegimeStrip } from "../components/mockup";
-import { useForecast, useRanking, useActivePair, pairUniverseFromRanking, useInterpretation } from "../hooks";
+import { MacroPanel } from "../components/macro";
+import { useForecast, useRanking, useActivePair, pairUniverseFromRanking, useInterpretation, useMacroContext } from "../hooks";
 
 export function ForecastPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
   const forecast = useForecast(pair);
   const interpretation = useInterpretation(pair);
+  const macro = useMacroContext();
   const universe = pairUniverseFromRanking(ranking.data);
 
   if (forecast.isLoading) {
@@ -34,6 +36,7 @@ export function ForecastPage(): JSX.Element {
   const prediction = data?.prediction;
   const decision = data?.decision;
   const interpretationData = interpretation.data;
+  const macroData = macro.data;
 
   return (
     <section className="flex flex-col gap-6">
@@ -43,6 +46,13 @@ export function ForecastPage(): JSX.Element {
       </div>
 
       <RegimeStrip regime="UNKNOWN" vix={16.8} riskAppetite={0.72} />
+
+      {/* Macro Panel - primera fila */}
+      {macroData?.macro && (
+        <div className="w-full">
+          <MacroPanel macro={macroData.macro} isLoading={macro.isLoading} />
+        </div>
+      )}
 
       {prediction ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
