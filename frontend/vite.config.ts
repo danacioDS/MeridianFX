@@ -6,5 +6,6 @@ export default defineConfig({
   server: {
     port: 5174,
     host: true,
+    strictPort: true,  // Forzar el puerto, no cambiar automáticamente
   },
 })

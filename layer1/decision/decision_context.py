@@ -3,10 +3,30 @@ Decision Context — Contexto completo para la interpretación LLM.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from .economic_filter import EconomicFilterResult, Forecast
 from .signal_validity import SignalValidity
+
+
+@dataclass
+class MacroContext:
+    """Contexto macroeconómico."""
+    timestamp: str
+    source: str
+    summary: Dict[str, Any]
+    indicators: Dict[str, Any]
+    fx_relevance: str
+    series: Dict[str, Any]
+    
+    def to_dict(self) -> Dict:
+        return {
+            "timestamp": self.timestamp,
+            "source": self.source,
+            "summary": self.summary,
+            "indicators": self.indicators,
+            "fx_relevance": self.fx_relevance,
+        }
 
 
 @dataclass
@@ -31,6 +51,9 @@ class DecisionContext:
     yield_spread: float
     policy_divergence: str
     
+    # Macro Context (de FRED)
+    macro: Optional[MacroContext] = None
+    
     # Comparativas (opcional)
     previous_probability: Optional[float] = None
     previous_edge: Optional[float] = None
@@ -42,7 +65,7 @@ class DecisionContext:
     
     def to_dict(self) -> dict:
         """Convierte a diccionario para el LLM"""
-        return {
+        result = {
             "pair": self.pair,
             "horizon": self.horizon,
             "direction": self.direction,
@@ -72,15 +95,21 @@ class DecisionContext:
                 "probability": self.previous_probability,
                 "edge": self.previous_edge,
                 "regime": self.previous_regime,
-            } if self.previous_probability else None,
+            } if self.previous_probability is not None else None,
             "model_version": self.model_version,
             "timestamp": self.timestamp.isoformat(),
         }
+        
+        # Añadir macro si está disponible
+        if self.macro:
+            result["macro"] = self.macro.to_dict()
+        
+        return result
 
 
 class DecisionEngine:
     """
-    Motor de decisión que integra forecast, filtro económico y validez.
+    Motor de decisión que integra forecast, filtro económico, validez y macro.
     """
     
     def __init__(self):
@@ -105,27 +134,10 @@ class DecisionEngine:
         previous_probability: Optional[float] = None,
         previous_edge: Optional[float] = None,
         previous_regime: Optional[str] = None,
+        macro_context: Optional[Dict] = None,
     ) -> DecisionContext:
         """
         Construye el contexto de decisión completo.
-        
-        Args:
-            pair: Par de divisas
-            direction: Dirección (UP/DOWN)
-            probability: Probabilidad
-            expected_return: Retorno esperado
-            expected_volatility: Volatilidad esperada
-            regime: Régimen de riesgo
-            vix: Índice VIX
-            yield_spread: Diferencial de rendimientos
-            policy_divergence: Divergencia de política
-            horizon: Horizonte de forecast
-            previous_probability: Probabilidad anterior
-            previous_edge: Edge anterior
-            previous_regime: Régimen anterior
-            
-        Returns:
-            DecisionContext completo
         """
         # 1. Aplicar filtro económico
         forecast = Forecast(
@@ -145,7 +157,19 @@ class DecisionEngine:
             policy_divergence=policy_divergence
         )
         
-        # 3. Construir contexto
+        # 3. Crear MacroContext si hay datos
+        macro = None
+        if macro_context:
+            macro = MacroContext(
+                timestamp=macro_context.get("timestamp", datetime.now().isoformat()),
+                source=macro_context.get("source", "FRED"),
+                summary=macro_context.get("summary", {}),
+                indicators=macro_context.get("indicators", {}),
+                fx_relevance=macro_context.get("fx_relevance", "UNKNOWN"),
+                series=macro_context.get("series", {})
+            )
+        
+        # 4. Construir contexto
         return DecisionContext(
             pair=pair,
             direction=direction,
@@ -157,6 +181,7 @@ class DecisionEngine:
             vix=vix,
             yield_spread=yield_spread,
             policy_divergence=policy_divergence,
+            macro=macro,
             previous_probability=previous_probability,
             previous_edge=previous_edge,
             previous_regime=previous_regime,

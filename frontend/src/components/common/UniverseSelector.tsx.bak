@@ -22,11 +22,12 @@ export function UniverseSelector({ currencies, selected, onChange }: UniverseSel
         <span className="font-mono text-[11.5px] font-semibold px-3 py-1 rounded-lg border border-navy bg-navy text-white cursor-default">
           USD
         </span>
-        {currencies.map((pair) => {
+        {currencies.map((curr) => {
+          const pair = `USD/${curr}`;
           const isActive = pair === selected;
           return (
             <button
-              key={pair}
+              key={curr}
               onClick={() => onChange(pair)}
               className={`font-mono text-[11.5px] font-semibold px-3 py-1 rounded-lg border transition-all ${
                 isActive
@@ -34,7 +35,7 @@ export function UniverseSelector({ currencies, selected, onChange }: UniverseSel
                   : 'bg-paper border-line text-ink-soft hover:bg-meridian-soft hover:border-meridian hover:text-meridian'
               }`}
             >
-              {pair}
+              {curr}
             </button>
           );
         })}

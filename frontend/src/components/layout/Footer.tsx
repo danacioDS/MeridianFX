@@ -8,7 +8,7 @@ export function Footer(): JSX.Element {
     <footer className="w-full border-t border-line mt-8 pt-4">
       <div className="text-center">
         <p className="text-sm text-ink-soft">
-          <strong>Stratus Intelligence</strong> · MeridianFX · © {new Date().getFullYear()}
+          <strong>Stratus Intelligence</strong> · MeridianFX · © {new Date().getFullYear()} | MSc. Daniel Canedo
         </p>
         <p className="text-xs text-muted mt-1">
           4-Layer Architecture: Data → Research → Decision → Intelligence

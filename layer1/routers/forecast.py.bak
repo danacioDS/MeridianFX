@@ -4,12 +4,12 @@ import numpy as np
 
 router = APIRouter(prefix="/v1/fx", tags=["forecast"])
 
-# Datos de forecast alineados con el ranking
+# Datos de forecast para todos los pares
 FORECAST_DATA = {
     "USD/JPY": {
         "direction": "UP",
-        "probability": 0.33,      # Coincide con el ranking
-        "expected_return": 0.0002,
+        "probability": 0.54,
+        "expected_return": 0.0008,
         "expected_volatility": 0.12,
     },
     "EUR/USD": {
@@ -63,13 +63,11 @@ FORECAST_DATA = {
 }
 
 
-@router.get("/{base}/{quote}/forecast")
-async def get_forecast(base: str, quote: str):
+@router.get("/{pair}/forecast")
+async def get_forecast(pair: str):
     """
     Obtener forecast para un par específico.
     """
-    pair = f"{base}/{quote}"
-    
     try:
         if pair in FORECAST_DATA:
             data = FORECAST_DATA[pair]
