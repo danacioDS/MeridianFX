@@ -1,29 +1,41 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{ts,tsx}"],
-  darkMode: "class",
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
-        background: "#0A0A0F",
-        surface: "#14141D",
-        primary: "#00D4AA",
-        "text-primary": "#FFFFFF",
-        "text-secondary": "#8A8A9A",
-        border: "#2A2A3A",
-        success: "#00D4AA",
-        warning: "#F5A623",
-        error: "#FF6B6B",
-        info: "#4A9EFF",
+        // Colores del mockup
+        paper: '#ffffff',
+        panel: '#F8F9FB',
+        'panel-2': '#F2F4F7',
+        ink: '#10151F',
+        'ink-soft': '#4B5566',
+        muted: '#8891A0',
+        line: '#E6E9EE',
+        navy: '#16233F',
+        meridian: '#0E7C86',
+        'meridian-soft': '#E4F2F1',
+        bull: '#0E8F5F',
+        'bull-soft': '#E7F5EE',
+        bear: '#C4453A',
+        'bear-soft': '#FBEAE8',
+        amber: '#B8860B',
+        'amber-soft': '#FBF3DF',
+        violet: '#5B4EA8',
+        'violet-soft': '#EFEDFA',
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        mono: ['IBM Plex Mono', 'monospace'],
+        serif: ['Instrument Serif', 'serif'],
       },
-      screens: {
-        tablet: "768px",
-        desktop: "1200px",
+      borderRadius: {
+        'mockup': '12px',
+        'mockup-sm': '8px',
       },
     },
   },
   plugins: [],
-};
+}

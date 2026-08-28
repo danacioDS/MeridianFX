@@ -1,5 +1,5 @@
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 from .data.provider import DataProvider
 from .features.technical import TechnicalFeatures
 from .models.xgboost_model import XGBoostModel
@@ -10,7 +10,7 @@ from .decision.filter import EconomicFilter
 from .config import MODEL_PATH
 
 class DecisionEngine:
-    """Motor de decisión principal con SHAP explicabilidad."""
+    """Motor de decisión principal con caché."""
     
     def __init__(self):
         self.data_provider = DataProvider()
@@ -21,6 +21,10 @@ class DecisionEngine:
         self.economic_filter = EconomicFilter()
         self.is_trained = False
         
+        # Caché simple
+        self.cache = {}
+        self.cache_ttl = 300  # 5 minutos
+        
         # Cargar modelos activos
         active_xgb = self.registry.get_active('USD/JPY', 'xgboost')
         if active_xgb:
@@ -29,7 +33,6 @@ class DecisionEngine:
                 self.is_trained = True
                 print(f"✅ XGBoost cargado: {active_xgb['version']}")
                 
-                # Inicializar SHAP
                 try:
                     result = self.data_provider.get_historical('USD/JPY', period='1y')
                     df = result['data']
@@ -52,6 +55,21 @@ class DecisionEngine:
             self.logistic_model = LogisticModel(active_log['path'])
             if self.logistic_model.model is not None:
                 print(f"✅ Logistic cargado: {active_log['version']}")
+    
+    def _get_cached(self, key: str):
+        """Obtiene del caché si no ha expirado."""
+        if key in self.cache:
+            entry = self.cache[key]
+            if datetime.now() - entry['timestamp'] < timedelta(seconds=self.cache_ttl):
+                return entry['data']
+        return None
+    
+    def _set_cache(self, key: str, data):
+        """Guarda en caché."""
+        self.cache[key] = {
+            'data': data,
+            'timestamp': datetime.now()
+        }
     
     def train(self, pair: str = "USD/JPY", period: str = "2y"):
         """Entrena ambos modelos y registra el mejor."""
@@ -77,17 +95,14 @@ class DecisionEngine:
         if len(X) < 50:
             raise ValueError(f"Datos insuficientes: {len(X)} muestras")
         
-        # Entrenar XGBoost
         print("\n📊 Entrenando XGBoost...")
         xgb = XGBoostModel()
         xgb_metrics = xgb.train(X, y)
         
-        # Entrenar Logistic
         print("\n📊 Entrenando Logistic Regression...")
         log = LogisticModel()
         log_metrics = log.train(X, y)
         
-        # Registrar modelos
         xgb_version = "v1.0"
         log_version = "v1.0"
         
@@ -104,13 +119,11 @@ class DecisionEngine:
         print(f"   XGBoost: {xgb_id} (AUC: {xgb_metrics['auc']:.4f})")
         print(f"   Logistic: {log_id} (AUC: {log_metrics['auc']:.4f})")
         
-        # Cargar el mejor modelo
         active_xgb = self.registry.get_active(pair, 'xgboost')
         if active_xgb:
             self.xgb_model = XGBoostModel(active_xgb['path'])
             self.is_trained = True
             
-            # Inicializar SHAP
             try:
                 X_background = X.sample(min(100, len(X)))
                 self.shap_explainer = SHAPExplainer(
@@ -125,10 +138,18 @@ class DecisionEngine:
         return {'xgb': xgb_metrics, 'logistic': log_metrics}
     
     def get_forecast(self, pair: str) -> dict:
-        """Obtiene forecast completo con SHAP explicación."""
+        """Obtiene forecast completo con caché."""
+        cache_key = f"forecast_{pair}"
+        
+        # Intentar caché
+        cached = self._get_cached(cache_key)
+        if cached:
+            print(f"📦 Usando caché para {pair}")
+            return cached
+        
+        print(f"📊 Generando forecast para {pair}...")
+        
         try:
-            print(f"📊 Generando forecast para {pair}...")
-            
             result = self.data_provider.get_historical(pair, period="1y")
             df = result['data']
             
@@ -140,7 +161,6 @@ class DecisionEngine:
                 print("⚠️ No hay datos suficientes, usando fallback")
                 return self._fallback_forecast(pair)
             
-            # Predicción XGBoost
             if self.is_trained and self.xgb_model:
                 try:
                     xgb_pred = self.xgb_model.predict(latest)
@@ -149,7 +169,6 @@ class DecisionEngine:
             else:
                 xgb_pred = self._heuristic_forecast(latest)
             
-            # SHAP explicación
             shap_explanation = None
             if self.shap_explainer is not None:
                 try:
@@ -157,10 +176,9 @@ class DecisionEngine:
                 except Exception as e:
                     print(f"⚠️ SHAP falló: {e}")
             
-            # Aplicar filtro económico
             filtered = self.economic_filter.apply(xgb_pred)
             
-            return {
+            response = {
                 'direction': filtered.get('direction'),
                 'probability': filtered.get('probability'),
                 'expected_return': filtered.get('expected_return'),
@@ -185,36 +203,48 @@ class DecisionEngine:
                 'timestamp': datetime.now().isoformat()
             }
             
+            # Guardar en caché
+            self._set_cache(cache_key, response)
+            return response
+            
         except Exception as e:
             print(f"❌ Error: {e}")
             return self._fallback_forecast(pair)
     
     def get_drivers(self, pair: str) -> dict:
-        """Obtiene drivers (SHAP) para un par."""
+        """Obtiene drivers (SHAP) con caché."""
+        cache_key = f"drivers_{pair}"
+        
+        cached = self._get_cached(cache_key)
+        if cached:
+            return cached
+        
         try:
-            # Obtener forecast primero (esto asegura que tenemos datos y SHAP)
             forecast = self.get_forecast(pair)
             shap_data = forecast.get('shap', {})
             
             if not shap_data or 'contributions' not in shap_data:
-                return {
+                response = {
                     'pair': pair,
                     'shap': [],
                     'narrative': 'No SHAP explanation available',
                     'timestamp': datetime.now().isoformat()
                 }
+                self._set_cache(cache_key, response)
+                return response
             
             contributions = shap_data['contributions']
             
             if not contributions:
-                return {
+                response = {
                     'pair': pair,
                     'shap': [],
                     'narrative': 'No SHAP explanation available',
                     'timestamp': datetime.now().isoformat()
                 }
+                self._set_cache(cache_key, response)
+                return response
             
-            # Crear narrative basada en top drivers
             top_drivers = contributions[:3]
             narrative_parts = []
             for d in top_drivers:
@@ -223,12 +253,15 @@ class DecisionEngine:
             
             narrative = f"Top drivers: " + ", ".join(narrative_parts)
             
-            return {
+            response = {
                 'pair': pair,
                 'shap': contributions,
                 'narrative': narrative,
                 'timestamp': datetime.now().isoformat()
             }
+            
+            self._set_cache(cache_key, response)
+            return response
             
         except Exception as e:
             print(f"⚠️ get_drivers error: {e}")

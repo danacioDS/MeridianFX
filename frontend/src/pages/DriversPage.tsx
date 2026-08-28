@@ -1,13 +1,12 @@
-/**
- * Drivers & Explanation — composition layer.
- *
- * Composes useDrivers with the Prompt X drivers components. SHAP drivers,
- * macro regime, RAG signals, narrative, risks, and event sensitivities are
- * passed through verbatim — this page never derives new drivers or values.
- */
 import { ApiError, LoadingSpinner, Panel, UniverseSelector } from "../components/common";
-import { MacroRegime, NarrativePanel, RagPanel, RisksPanel, ShapBars } from "../components/drivers";
-import { pairUniverseFromRanking, useActivePair, useDrivers, useRanking } from "../hooks";
+import { MacroRegime, NarrativePanel, RagPanel, RisksPanel } from "../components/drivers";
+import { SHAPBar, RegimeStrip } from "../components/mockup";
+import {
+  pairUniverseFromRanking,
+  useActivePair,
+  useDrivers,
+  useRanking,
+} from "../hooks";
 
 export function DriversPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
@@ -24,23 +23,41 @@ export function DriversPage(): JSX.Element {
   }
 
   const data = drivers.data ?? null;
+  
+  const shapContributions = data?.shap?.map((item, index) => ({
+    feature: item.feature,
+    contribution: item.contribution,
+    rank: index + 1
+  })) ?? [];
+
+  const macroRegime = data?.macro_regime;
+  const regimeLabel = macroRegime?.risk ?? 'UNKNOWN';
 
   return (
-    <section aria-label="Drivers & Explanation" className="flex flex-col gap-6">
+    <section className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold text-text-primary">
+        <h2 className="text-xl font-semibold text-ink">
           {pair} · Drivers &amp; Explanation
         </h2>
         <UniverseSelector currencies={universe} selected={pair} onChange={setPair} />
       </div>
 
+      <RegimeStrip 
+        regime={regimeLabel}
+        vix={16.8}
+        riskAppetite={0.72}
+      />
+
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Key Drivers">
-          <ShapBars shap={data?.shap ?? null} />
+        <Panel title="Key Drivers (SHAP)">
+          <SHAPBar contributions={shapContributions} maxContributions={10} />
+          <div className="mt-3 text-xs text-muted font-mono">
+            Model: xgb-v1.0 · Source: DriversResponse
+          </div>
         </Panel>
 
         <Panel title="Macro Regime">
-          <MacroRegime macroRegime={data?.macro_regime ?? null} />
+          <MacroRegime macroRegime={macroRegime ?? null} />
         </Panel>
 
         <Panel title="Policy Signals (Fed vs BoJ)">
@@ -51,8 +68,11 @@ export function DriversPage(): JSX.Element {
           <NarrativePanel narrative={data?.narrative ?? null} />
         </Panel>
 
-        <Panel title="Risks & Event Sensitivities">
-          <RisksPanel risks={data?.risks ?? null} eventSensitivity={data?.event_sensitivity ?? null} />
+        <Panel title="Risks & Event Sensitivities" className="lg:col-span-2">
+          <RisksPanel 
+            risks={data?.risks ?? null} 
+            eventSensitivity={data?.event_sensitivity ?? null} 
+          />
         </Panel>
       </div>
     </section>
