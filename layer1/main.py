@@ -36,3 +36,5 @@ async def health_check():
 @app.get("/")
 async def root():
     return {"message": "Meridian FX API", "version": "1.0.0"}
+from layer1.routers import interpretation
+app.include_router(interpretation.router)

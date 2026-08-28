@@ -1,13 +1,20 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MainLayout } from './components/layout/MainLayout';
-import { GlobalPage, ForecastPage, DriversPage, EvaluationPage, StatusPage, HistoricalPage } from './pages';
+import { 
+  GlobalPage, 
+  ForecastPage, 
+  DriversPage, 
+  EvaluationPage, 
+  StatusPage, 
+  HistoricalPage,
+  AboutPage 
+} from './pages';
 
-// Crear QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30 * 1000, // 30 segundos
+      staleTime: 30 * 1000,
       refetchOnWindowFocus: false,
     },
   },
@@ -25,6 +32,7 @@ function App() {
             <Route path="evaluation" element={<EvaluationPage />} />
             <Route path="status" element={<StatusPage />} />
             <Route path="historical" element={<HistoricalPage />} />
+            <Route path="about" element={<AboutPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

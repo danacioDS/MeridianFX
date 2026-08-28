@@ -6,6 +6,7 @@ const tabs = [
   { path: '/drivers', label: 'Drivers' },
   { path: '/evaluation', label: 'Evaluation' },
   { path: '/status', label: 'Status' },
+  { path: '/about', label: 'About' },
 ];
 
 export function Header(): JSX.Element {
@@ -13,7 +14,7 @@ export function Header(): JSX.Element {
 
   return (
     <div className="w-full">
-      {/* Top Bar - estilo mockup con FX verde */}
+      {/* Top Bar */}
       <div className="flex items-end justify-between pb-4 border-b-2 border-ink mb-4 flex-wrap gap-3">
         <div className="flex items-baseline gap-3">
           <span className="w-3 h-3 rounded-full bg-meridian inline-block -translate-y-0.5"></span>
@@ -36,7 +37,7 @@ export function Header(): JSX.Element {
         </div>
       </div>
 
-      {/* Tab Navigation - más grandes */}
+      {/* Tab Navigation */}
       <div className="flex gap-8 border-b border-line mb-5 overflow-x-auto">
         {tabs.map((tab) => {
           const isActive = location.pathname === tab.path || (tab.path === '/' && location.pathname === '/');
