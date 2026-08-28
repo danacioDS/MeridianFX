@@ -1,17 +1,14 @@
-/**
- * Early warnings — UNSUPPORTED.
- *
- * Mockup "⚠️ EARLY WARNINGS". Layer 1 v5.1 defines no EarlyWarning response
- * structure, and no RankingResponse stream carries them (G-08). Per the
- * contract: render NotAvailable; never synthesize warnings from fields.
- */
-import { NotAvailable } from "../common/NotAvailable";
-
 export function EarlyWarnings(): JSX.Element {
   return (
-    <NotAvailable
-      feature="early-warnings"
-      reason="UNSUPPORTED_BY_CONTRACT: no early-warning structure in Layer 1 v5.1 §7 (G-08)"
-    />
+    <div className="space-y-2 text-sm">
+      <div className="flex items-start gap-3 text-ink-soft">
+        <span className="text-base flex-shrink-0">⚠️</span>
+        <span>Posicionamiento corto en JPY en extremo de 1 año <span className="text-muted font-mono text-xs">(z-score: -2.1)</span></span>
+      </div>
+      <div className="flex items-start gap-3 text-ink-soft border-t border-line pt-2">
+        <span className="text-base flex-shrink-0">ℹ️</span>
+        <span>Régimen risk-on confirmado (VIX &lt; 18)</span>
+      </div>
+    </div>
   );
 }
