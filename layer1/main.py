@@ -33,3 +33,5 @@ async def root():
     return {"message": "Meridian FX API", "version": "1.0.0"}
 
 app.include_router(price.router)
+from layer1.routers import forecast_dashboard
+app.include_router(forecast_dashboard.router)

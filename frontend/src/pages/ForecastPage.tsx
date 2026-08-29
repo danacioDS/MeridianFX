@@ -1,6 +1,5 @@
 /**
- * Forecast Dashboard — Contract-driven con todos los componentes presentacionales
- * Mantiene toda la UX de v2.3.0-macro-panel: UniverseSelector, Ranking, MacroPanel, RegimeStrip
+ * Forecast Dashboard — Completo con tendencias, forecast y análisis macro
  */
 import {
   ApiError,
@@ -10,140 +9,153 @@ import {
 } from "../components/common";
 import { RegimeStrip } from "../components/mockup";
 import { MacroPanel } from "../components/macro";
-import { ForecastHero } from "../components/forecast/ForecastHero";
-import { ProbabilityGauge } from "../components/forecast/ProbabilityGauge";
-import { ProbabilityChart } from "../components/forecast/ProbabilityChart";
-import { EconomicFilter } from "../components/forecast/EconomicFilter";
-import { SignalValidity } from "../components/forecast/SignalValidity";
+import { SpotCard } from "../components/forecast/SpotCard";
+import { TrendCard } from "../components/forecast/TrendCard";
+import { ForecastCard } from "../components/forecast/ForecastCard";
+import { useForecastDashboard } from "../hooks/useForecastDashboard";
 import {
-  useForecast,
   useRanking,
   useActivePair,
   pairUniverseFromRanking,
-  useInterpretation,
   useMacroContext,
 } from "../hooks";
 
 export function ForecastPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
-  const forecast = useForecast(pair);
-  const interpretation = useInterpretation(pair);
+  const { data, isLoading, error, refetch } = useForecastDashboard(pair);
   const macro = useMacroContext();
   const universe = pairUniverseFromRanking(ranking.data);
 
-  if (forecast.isLoading) {
+  if (isLoading) {
     return <LoadingSpinner label={`Cargando forecast para ${pair}...`} />;
   }
 
-  if (forecast.isError) {
+  if (error) {
     return (
       <ApiError
-        message={forecast.error?.message}
-        onRetry={() => void forecast.refetch()}
+        message={error?.message}
+        onRetry={() => void refetch()}
       />
     );
   }
 
-  const data = forecast.data;
-  const prediction = data?.prediction;
-  const decision = data?.decision;
-  const drivers = data?.drivers;
-  const data_quality = data?.data_quality;
-  const interpretationData = interpretation.data;
-  const macroData = macro.data;
+  if (!data) {
+    return <div>No hay datos disponibles</div>;
+  }
+
+  const { spot, trends, forecasts, volatility, source, last_date, macro: macroData } = data;
 
   return (
     <section className="flex flex-col gap-6">
-      {/* Header con selector de par */}
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-2xl font-semibold text-ink">{pair} · Forecast Dashboard</h2>
         <UniverseSelector currencies={universe} selected={pair} onChange={setPair} />
       </div>
 
-      {/* Regime Strip (mockup) */}
       <RegimeStrip regime="UNKNOWN" vix={16.8} riskAppetite={0.72} />
 
-      {/* Macro Panel - primera fila */}
-      {macroData?.macro && (
+      {/* Macro Panel */}
+      {macro.data?.macro && (
         <div className="w-full">
-          <MacroPanel macro={macroData.macro} isLoading={macro.isLoading} />
+          <MacroPanel macro={macro.data.macro} isLoading={macro.isLoading} />
         </div>
       )}
 
-      {/* Forecast Hero - usa el contrato completo */}
-      {data && (
-        <div className="w-full">
-          <ForecastHero forecast={data} />
-        </div>
+      {/* Spot Price */}
+      <Panel title="📊 Precio Actual">
+        <SpotCard spot={spot} pair={pair} last_date={last_date} source={source} />
+      </Panel>
+
+      {/* Tendencias */}
+      {trends && (
+        <Panel title="📈 Tendencias">
+          <div className="space-y-2">
+            <div className="text-sm text-muted">Retornos por período</div>
+            <TrendCard trends={trends} />
+            <div className="text-sm text-muted mt-2">
+              Volatilidad anualizada: <span className="font-semibold">{volatility}%</span>
+            </div>
+          </div>
+        </Panel>
       )}
 
-      {/* Probability Gauge + Economic Filter */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <Panel title="Probability">
-            <ProbabilityGauge probability={prediction?.probability} />
-          </Panel>
-        </div>
-        <div className="lg:col-span-2">
-          <EconomicFilter decision={decision ?? null} />
-        </div>
-      </div>
+      {/* Forecasts */}
+      {forecasts && (
+        <Panel title="🔮 Predicción XGBoost">
+          <div className="space-y-3">
+            <div className="text-sm text-muted">Forecast a 30, 60 y 90 días</div>
+            <ForecastCard forecasts={forecasts} currentPrice={spot.price} />
+            <div className="text-xs text-muted mt-2">
+              Modelo: XGBoost v2.1 · Features: 37 · Horizonte: 30/60/90 días
+            </div>
+          </div>
+        </Panel>
+      )}
 
-      {/* Probability Chart + Signal Validity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ProbabilityChart data={null} />
-        <SignalValidity decisionValidity={null} />
-      </div>
-
-      {/* Economic Interpretation */}
-      {interpretationData && (
-        <Panel title="📝 Economic Interpretation">
-          <div className="prose prose-sm max-w-none">
-            <p className="text-gray-700">{interpretationData.summary}</p>
-            {interpretationData.bullets && (
-              <ul className="list-disc pl-4 space-y-1">
-                {interpretationData.bullets.map((bullet: string, i: number) => (
-                  <li key={i} className="text-gray-600">{bullet}</li>
-                ))}
-              </ul>
+      {/* Análisis Macro */}
+      {macroData && macroData.summary && (
+        <Panel title="🏛️ Contexto Macro">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {macroData.summary.fed_funds && (
+              <div className="text-center p-2 bg-panel-2 rounded">
+                <div className="text-xs text-muted">Fed Funds</div>
+                <div className="text-sm font-bold">{macroData.summary.fed_funds}%</div>
+              </div>
+            )}
+            {macroData.summary.inflation && (
+              <div className="text-center p-2 bg-panel-2 rounded">
+                <div className="text-xs text-muted">Inflación</div>
+                <div className="text-sm font-bold">{macroData.summary.inflation}%</div>
+              </div>
+            )}
+            {macroData.summary.gdp_growth && (
+              <div className="text-center p-2 bg-panel-2 rounded">
+                <div className="text-xs text-muted">PIB</div>
+                <div className={`text-sm font-bold ${macroData.summary.gdp_growth > 0 ? 'text-bull' : 'text-bear'}`}>
+                  {macroData.summary.gdp_growth > 0 ? '+' : ''}{macroData.summary.gdp_growth}%
+                </div>
+              </div>
+            )}
+            {macroData.summary.yield_spread !== undefined && macroData.summary.yield_spread !== null && (
+              <div className="text-center p-2 bg-panel-2 rounded">
+                <div className="text-xs text-muted">Spread 10-2</div>
+                <div className={`text-sm font-bold ${macroData.summary.yield_spread > 0 ? 'text-bull' : 'text-bear'}`}>
+                  {macroData.summary.yield_spread}%
+                </div>
+              </div>
             )}
           </div>
-        </Panel>
-      )}
-
-      {/* Key Drivers */}
-      {drivers && drivers.shap && drivers.shap.length > 0 && (
-        <Panel title="🔍 Key Drivers">
-          <div className="space-y-3">
-            {drivers.shap.slice(0, 6).map((driver) => (
-              <div
-                key={`${driver.rank}-${driver.feature}`}
-                className="flex justify-between items-center p-2 bg-gray-50 rounded"
-              >
-                <span className="text-sm font-medium">{driver.feature}</span>
-                <span className={`text-sm ${driver.contribution > 0 ? 'text-bull' : driver.contribution < 0 ? 'text-bear' : 'text-text-secondary'}`}>
-                  {driver.contribution > 0 ? '+' : ''}{driver.contribution.toFixed(3)}
+          {macroData.indicators?.monetary_stance && (
+            <div className="flex gap-2 mt-2 flex-wrap">
+              <span className={`px-2 py-0.5 text-xs rounded-full ${
+                macroData.indicators.monetary_stance === 'RESTRICTIVE' ? 'bg-bear/20 text-bear' :
+                macroData.indicators.monetary_stance === 'ACCOMMODATIVE' ? 'bg-bull/20 text-bull' :
+                'bg-panel-3 text-muted'
+              }`}>
+                Política: {macroData.indicators.monetary_stance}
+              </span>
+              {macroData.indicators.growth_signal && (
+                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                  macroData.indicators.growth_signal === 'STRONG' ? 'bg-bull/20 text-bull' :
+                  macroData.indicators.growth_signal === 'WEAK' ? 'bg-bear/20 text-bear' :
+                  'bg-panel-3 text-muted'
+                }`}>
+                  Crecimiento: {macroData.indicators.growth_signal}
                 </span>
-              </div>
-            ))}
-          </div>
-        </Panel>
-      )}
-
-      {/* Data Quality */}
-      {data_quality && (
-        <Panel title="📊 Data Quality">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="text-center">
-              <div className="text-sm text-gray-500">Overall</div>
-              <div className="font-semibold">{data_quality.overall.toFixed(2)}</div>
+              )}
+              {macroData.indicators.inflation_signal && (
+                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                  macroData.indicators.inflation_signal === 'HIGH' ? 'bg-bear/20 text-bear' :
+                  macroData.indicators.inflation_signal === 'LOW' ? 'bg-bull/20 text-bull' :
+                  'bg-panel-3 text-muted'
+                }`}>
+                  Inflación: {macroData.indicators.inflation_signal}
+                </span>
+              )}
             </div>
-            <div className="text-center">
-              <div className="text-sm text-gray-500">Status</div>
-              <div className="font-semibold">{data_quality.status}</div>
-            </div>
-          </div>
+          )}
         </Panel>
       )}
     </section>
