@@ -6,7 +6,7 @@
  * Layer 4 metrics. No inference — every value is a backend field.
  */
 import type { StatusResponse } from "../../types/contracts";
-import { formatDateTime, formatNumber } from "../../utils";
+import { formatDateTime } from "../../utils";
 import { getStatusColor, getStatusLabel } from "../../utils/status";
 import { NotAvailable } from "../common/NotAvailable";
 
@@ -49,9 +49,9 @@ export function SystemStatus({ status }: SystemStatusProps): JSX.Element {
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
         <Row label="Data Quality" value={intelligence.data_quality?.status ?? "—"} />
         <Row label="Overall Quality" value={intelligence.data_quality?.overall ?? "—"} />
-        <Row label="Model Performance" value={intelligence.model_performance?.status ?? "—"} />
-        <Row label="Model Drift" value={intelligence.model_drift?.status ?? "—"} />
-        <Row label="Decision Validity" value={intelligence.decision_validity?.status ?? "—"} />
+        <Row label="Model Performance" value={intelligence.model_performance ?? "—"} />
+        <Row label="Model Drift" value={intelligence.model_drift ?? "—"} />
+        <Row label="Decision Validity" value={intelligence.decision_validity ?? "—"} />
         <Row label="Safe Mode" value={intelligence.safe_mode_state ?? "—"} />
         <Row label="Data Freshness" value={status.metrics?.data_freshness ?? "—"} />
         <Row 

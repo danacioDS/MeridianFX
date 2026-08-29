@@ -1,61 +1,78 @@
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
-const tabs = [
-  { path: '/', label: 'Global' },
-  { path: '/forecast', label: 'Forecast' },
-  { path: '/drivers', label: 'Drivers' },
-  { path: '/evaluation', label: 'Evaluation' },
-  { path: '/status', label: 'Status' },
-  { path: '/about', label: 'About' },
-];
+interface HeaderProps {
+  subtitle?: string;
+  version?: string;
+}
 
-export function Header(): JSX.Element {
-  const location = useLocation();
+export function Header({ subtitle = "Financial Intelligence", version = "v2.0" }: HeaderProps): JSX.Element {
+  const [liveData, setLiveData] = useState(false);
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    setLiveData(true);
+    const interval = setInterval(() => {
+      setTime(new Date().toLocaleTimeString());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const navItems = [
+    { to: "/", label: "Global" },
+    { to: "/forecast", label: "Forecast" },
+    { to: "/drivers", label: "Drivers" },
+    { to: "/evaluation", label: "Evaluation" },
+    { to: "/status", label: "Status" },
+    { to: "/price", label: "Price" },
+    { to: "/about", label: "About" },
+  ];
 
   return (
-    <div className="w-full">
-      {/* Top Bar */}
-      <div className="flex items-end justify-between pb-4 border-b-2 border-ink mb-4 flex-wrap gap-3">
-        <div className="flex items-baseline gap-3">
-          <span className="w-3 h-3 rounded-full bg-meridian inline-block -translate-y-0.5"></span>
-          <span className="font-serif text-4xl tracking-wide">
-            Meridian<span className="italic text-meridian font-normal">FX</span>
-          </span>
-          <span className="text-xs uppercase tracking-widest text-muted ml-1">Financial Intelligence</span>
-          <span className="text-[11px] font-mono text-meridian bg-meridian-soft px-2.5 py-0.5 rounded-full ml-1">v2.0</span>
-        </div>
-        <div className="text-right text-sm text-ink-soft">
-          <div className="text-base font-medium">{new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-          <div className="flex gap-4 justify-end items-center mt-1 flex-wrap text-sm">
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded flex items-center gap-1.5 whitespace-nowrap bg-bull-soft text-bull">
-              <span className="w-1.5 h-1.5 rounded-full bg-bull inline-block"></span>
-              Live Data
+    <header className="border-b border-line pb-4 mb-6">
+      <div className="flex flex-wrap items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-serif font-bold text-ink">
+              Meridian<span className="text-meridian italic">FX</span>
+            </h1>
+            <span className="text-xs text-muted border border-line rounded px-2 py-0.5">
+              {version}
             </span>
-            <span><span className="w-1.5 h-1.5 rounded-full bg-bull inline-block mr-1.5"></span>Fresh · {new Date().toLocaleTimeString()}</span>
-            <span className="font-mono text-sm font-semibold text-ink">9 modelos activos</span>
           </div>
+          <p className="text-sm text-muted">{subtitle}</p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className={`inline-block h-2 w-2 rounded-full ${liveData ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+            <span className="text-xs text-muted">
+              {liveData ? 'Live Data' : 'Offline'}
+            </span>
+          </div>
+          <span className="text-xs text-muted font-mono">
+            {time || '--:--:--'}
+          </span>
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="flex gap-8 border-b border-line mb-5 overflow-x-auto">
-        {tabs.map((tab) => {
-          const isActive = location.pathname === tab.path || (tab.path === '/' && location.pathname === '/');
-          return (
-            <Link
-              key={tab.path}
-              to={tab.path}
-              className={`text-base font-semibold py-3 border-b-2 cursor-pointer whitespace-nowrap transition-all ${
-                isActive 
-                  ? 'text-ink border-meridian' 
-                  : 'text-muted border-transparent hover:text-ink'
-              }`}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+      <nav className="flex flex-wrap gap-1 mt-3 border-t border-line pt-3">
+        {navItems.map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            className={({ isActive }) =>
+              `px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                isActive
+                  ? 'bg-meridian text-white'
+                  : 'text-muted hover:text-ink hover:bg-panel-2'
+              }`
+            }
+          >
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+    </header>
   );
 }

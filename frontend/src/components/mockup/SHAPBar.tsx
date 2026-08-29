@@ -32,7 +32,6 @@ export function SHAPBar({ contributions, maxContributions = 10 }: SHAPBarProps) 
         const isPositive = item.contribution >= 0;
         const pct = Math.abs(item.contribution) / maxAbs * 100;
         const color = isPositive ? '#0E8F5F' : '#C4453A';
-        const bgColor = isPositive ? '#E7F5EE' : '#FBEAE8';
         
         return (
           <div key={item.rank} className="space-y-1">

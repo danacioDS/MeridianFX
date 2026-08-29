@@ -263,3 +263,15 @@ Memory target: ~250–300 MB. Max DB connections: ≤3.
   Financial Intelligence System<br><br>
   <strong>STRATUS INTELLIGENCE</strong>
 </p>
+
+
+
+## Fornt end 
+cd frontend
+npm run dev
+
+## Back end 
+
+cd ~/repo_lab/MeridianFX
+source venv/bin/activate
+uvicorn layer1.main:app --reload --host 0.0.0.0 --port 8000

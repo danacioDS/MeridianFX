@@ -1,65 +1,186 @@
 """
 Data Provider con fallback entre múltiples fuentes.
 Yahoo Finance → Alpha Vantage → Twelve Data
+
+Contrato canónico:
+- DataFrame con índice datetime
+- índice timezone-naive
+- orden cronológico ascendente
+- columnas: Open, High, Low, Close, Volume
+- iloc[-1] siempre representa el dato más reciente
 """
+
 import pandas as pd
 from datetime import datetime
+
 from .sources.twelve import TwelveDataSource
 from .sources.alpha_vantage import AlphaVantageSource
 from .sources.yahoo import YahooSource
 
+
 class DataProvider:
     def __init__(self):
-        # Orden: Yahoo primero (más confiable para datos diarios y sin límite estricto)
         self.sources = [
-            ('yahoo', YahooSource.fetch),
-            ('alpha', AlphaVantageSource.fetch),
-            ('twelve', TwelveDataSource.fetch)
+            ("yahoo", YahooSource.fetch),
+            ("alpha", AlphaVantageSource.fetch),
+            ("twelve", TwelveDataSource.fetch),
         ]
+
         self.last_provider = None
         self.last_success = None
         self.fallback_used = False
-    
-    def get_historical(self, pair: str, period: str = "1y", interval: str = "1d") -> dict:
+
+    @staticmethod
+    def _normalize(df: pd.DataFrame) -> pd.DataFrame:
+        """Apply the canonical DataProvider contract."""
+
+        if df is None or df.empty:
+            raise ValueError("Empty dataframe")
+
+        df = df.copy()
+
+        # Canonical datetime index
+        df.index = pd.to_datetime(df.index)
+
+        # Remove timezone if present
+        if getattr(df.index, "tz", None) is not None:
+            df.index = df.index.tz_localize(None)
+
+        # Canonical column names
+        required = ["Open", "High", "Low", "Close", "Volume"]
+
+        for column in required:
+            if column not in df.columns:
+                if column == "Volume":
+                    df[column] = 0.0
+                elif "Close" in df.columns:
+                    df[column] = df["Close"]
+                else:
+                    raise ValueError(
+                        f"Missing required column: {column}"
+                    )
+
+        # Numeric contract
+        for column in required:
+            df[column] = pd.to_numeric(
+                df[column],
+                errors="coerce",
+            )
+
+        # Close is mandatory
+        df = df.dropna(subset=["Close"])
+
+        # Chronological ascending order
+        df = df.sort_index()
+
+        # Remove duplicated timestamps
+        df = df[~df.index.duplicated(keep="last")]
+
+        if df.empty:
+            raise ValueError("No valid rows after normalization")
+
+        return df
+
+    def get_historical(
+        self,
+        pair: str,
+        period: str = "1y",
+        interval: str = "1d",
+    ) -> dict:
+
         for source_name, source_func in self.sources:
             try:
                 print(f"📥 Intentando {source_name}...")
-                df = source_func(pair, period, interval)
-                if df is not None and not df.empty and len(df) > 20:
-                    self.last_provider = source_name
-                    self.last_success = datetime.now()
-                    self.fallback_used = (source_name != self.sources[0][0])
-                    
-                    last_date = df.index[-1]
-                    days_ago = (datetime.now() - last_date).days
-                    freshness = "FRESH" if days_ago <= 1 else "STALE" if days_ago <= 5 else "OLD"
-                    
-                    print(f"✅ {source_name} funcionó ({len(df)} filas)")
-                    
-                    return {
-                        'data': df,
-                        'provider': source_name,
-                        'fallback_used': self.fallback_used,
-                        'timestamp': datetime.now(),
-                        'freshness': freshness,
-                        'last_price': float(df['Close'].iloc[-1]),
-                        'last_date': last_date
-                    }
-            except Exception as e:
-                print(f"⚠️ {source_name} falló: {str(e)[:100]}")
+
+                raw_df = source_func(
+                    pair,
+                    period,
+                    interval,
+                )
+
+                df = self._normalize(raw_df)
+
+                if len(df) < 20:
+                    raise ValueError(
+                        f"Insufficient data: {len(df)} rows"
+                    )
+
+                self.last_provider = source_name
+                self.last_success = datetime.now()
+                self.fallback_used = (
+                    source_name != self.sources[0][0]
+                )
+
+                last_date = df.index[-1]
+
+                # Compare using date only to avoid timezone issues
+                today = datetime.now().date()
+                last_day = last_date.date()
+
+                days_ago = (today - last_day).days
+
+                if days_ago <= 1:
+                    freshness = "FRESH"
+                elif days_ago <= 5:
+                    freshness = "STALE"
+                else:
+                    freshness = "OLD"
+
+                last_price = float(
+                    df["Close"].iloc[-1]
+                )
+
+                print(
+                    f"✅ {source_name} funcionó "
+                    f"({len(df)} filas)"
+                )
+
+                return {
+                    "data": df,
+                    "provider": source_name,
+                    "fallback_used": self.fallback_used,
+                    "timestamp": datetime.now(),
+                    "freshness": freshness,
+                    "last_price": last_price,
+                    "last_date": last_date,
+                }
+
+            except Exception as exc:
+                print(
+                    f"⚠️ {source_name} falló: "
+                    f"{type(exc).__name__}: {str(exc)[:100]}"
+                )
                 continue
-        
-        raise Exception("Todas las fuentes de datos fallaron")
-    
+
+        raise Exception(
+            f"Todas las fuentes de datos fallaron para {pair}"
+        )
+
     def get_latest_price(self, pair: str) -> float:
-        result = self.get_historical(pair, period="5d", interval="1d")
-        return result['last_price']
-    
+        result = self.get_historical(
+            pair,
+            period="5d",
+            interval="1d",
+        )
+
+        return result["last_price"]
+
     def get_status(self) -> dict:
         return {
-            'last_provider': self.last_provider,
-            'last_success': self.last_success.isoformat() if self.last_success else None,
-            'fallback_used': self.fallback_used,
-            'sources_available': [s[0] for s in self.sources],
-            'status': 'HEALTHY' if self.last_success else 'UNKNOWN'
+            "last_provider": self.last_provider,
+            "last_success": (
+                self.last_success.isoformat()
+                if self.last_success
+                else None
+            ),
+            "fallback_used": self.fallback_used,
+            "sources_available": [
+                source[0]
+                for source in self.sources
+            ],
+            "status": (
+                "HEALTHY"
+                if self.last_success
+                else "UNKNOWN"
+            ),
         }

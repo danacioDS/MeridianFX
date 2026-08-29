@@ -1,10 +1,11 @@
 {
-  "cached_at": "2026-08-28T18:22:41.885988",
+  "cached_at": "2026-08-29T16:39:36.629917",
+  "schema_version": "v2",
   "value": {
-    "timestamp": "2026-08-28T18:22:41.885726",
+    "timestamp": "2026-08-29T16:39:36.629422",
     "source": "FRED",
     "summary": {
-      "fed_funds": 100,
+      "fed_funds": 4.75,
       "inflation": 4.1,
       "unemployment": 3.8,
       "gdp_growth": 2.03,
@@ -16,7 +17,7 @@
     "series": {
       "fed_funds": {
         "latest_value": 4.75,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 5.0,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -27,7 +28,7 @@
       },
       "cpi": {
         "latest_value": 316.2,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 315.0,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -38,7 +39,7 @@
       },
       "unemployment": {
         "latest_value": 3.8,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 3.9,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -49,7 +50,7 @@
       },
       "gdp": {
         "latest_value": 22600,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 22450,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -60,7 +61,7 @@
       },
       "yield_10y": {
         "latest_value": 4.4,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 4.2,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -71,7 +72,7 @@
       },
       "yield_2y": {
         "latest_value": 4.9,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 4.7,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -82,7 +83,7 @@
       },
       "yield_spread": {
         "latest_value": -0.5,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": -0.5,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -93,7 +94,7 @@
       },
       "consumer_sentiment": {
         "latest_value": 67.5,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 68.0,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -104,7 +105,7 @@
       },
       "core_cpi": {
         "latest_value": 4.1,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 4.2,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -115,7 +116,7 @@
       },
       "payrolls": {
         "latest_value": 158000,
-        "latest_date": "2026-08-28",
+        "latest_date": "2026-08-29",
         "previous_value": 157500,
         "source": "SIMULATED",
         "warning": "FRED_API_KEY not set",
@@ -126,7 +127,7 @@
       }
     },
     "indicators": {
-      "real_rate": 95.9,
+      "real_rate": 0.65,
       "monetary_stance": "RESTRICTIVE",
       "growth_signal": "STRONG",
       "inflation_signal": "HIGH"

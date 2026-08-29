@@ -8,6 +8,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from layer2.engine import DecisionEngine
+from layer2.data.macro.service import MacroService
+from layer2.data.macro.transformer import MacroTransformer
 
 # Crear engine y asegurar que carga los modelos
 def get_engine():
@@ -46,7 +48,43 @@ def get_engine():
 
 _engine = get_engine()
 
+# Inicializar MacroService
+macro_service = MacroService()
+macro_transformer = MacroTransformer()
+
 router = APIRouter(prefix="/v1/fx", tags=["drivers"])
+
+async def get_macro_regime(pair: str) -> MacroRegime:
+    """Obtiene el régimen macro real desde FRED."""
+    try:
+        # Obtener datos macro (async - CON AWAIT)
+        macro_data = await macro_service.get_macro_context()
+        
+        # Transformar a régimen usando to_regime
+        regime = macro_transformer.to_regime(macro_data)
+        
+        return MacroRegime(
+            risk=regime.get('risk', 'MODERATE'),
+            policy=regime.get('policy', 'NEUTRAL'),
+            growth=regime.get('growth', 'STABLE'),
+            inflation=regime.get('inflation', 'STABLE')
+        )
+    except Exception as e:
+        print(f"⚠️ Macro regime error: {e}")
+        # Fallback a placeholder
+        return MacroRegime(
+            risk="MODERATE",
+            policy="NEUTRAL",
+            growth="STABLE",
+            inflation="STABLE"
+        )
+
+def get_rag_signals(pair: str) -> Rag:
+    """Obtiene señales RAG (LLM) - placeholder por ahora."""
+    return Rag(
+        fed=RagSignal(sentiment=0.0, expectation_gap=0.0),
+        boj=RagSignal(sentiment=0.0, expectation_gap=0.0)
+    )
 
 @router.get("/{pair:path}/drivers", response_model=DriversResponse)
 async def get_drivers(
@@ -72,19 +110,20 @@ async def get_drivers(
             )
         )
     
-    # Macro regime (placeholder)
-    macro_regime = MacroRegime(
-        risk="MODERATE",
-        growth="STABLE",
-        policy="NEUTRAL",
-        inflation="STABLE"
-    )
+    # Macro regime REAL desde FRED (async - CON AWAIT)
+    macro_regime = await get_macro_regime(pair)
     
-    # RAG (placeholder)
-    rag = Rag(
-        fed=RagSignal(sentiment=0.0, expectation_gap=0.0),
-        boj=RagSignal(sentiment=0.0, expectation_gap=0.0)
-    )
+    # RAG (placeholder por ahora)
+    rag = get_rag_signals(pair)
+    
+    # Narrative con macro context
+    narrative = drivers_data.get('narrative', '')
+    if not narrative:
+        narrative = f"Top drivers: {', '.join([f'{d.feature} ({d.contribution:.3f})' for d in shap_list[:3]])}. " + \
+                    f"Régimen macro: Riesgo={macro_regime.risk}, " + \
+                    f"Política={macro_regime.policy}, " + \
+                    f"Crecimiento={macro_regime.growth}, " + \
+                    f"Inflación={macro_regime.inflation}."
     
     return DriversResponse(
         pair=pair,
@@ -92,7 +131,7 @@ async def get_drivers(
         shap=shap_list,
         macro_regime=macro_regime,
         rag=rag,
-        narrative=drivers_data.get('narrative', 'No narrative available'),
+        narrative=narrative,
         risks=[],
         event_sensitivity=[]
     )

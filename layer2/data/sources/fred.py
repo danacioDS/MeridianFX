@@ -255,6 +255,7 @@ class FredDataSource:
         # Datos simulados según tipo de serie
         values = {
             "FEDFUNDS": [5.25, 5.25, 5.00, 5.00, 4.75],
+            "DFF": [5.25, 5.25, 5.00, 5.00, 4.75],
             "CPIAUCSL": [310.0, 312.0, 313.5, 315.0, 316.2],
             "UNRATE": [3.8, 3.7, 3.8, 3.9, 3.8],
             "GDPC1": [22000, 22150, 22300, 22450, 22600],
@@ -346,7 +347,7 @@ class FredDataSource:
             if series_id in ["FEDFUNDS", "DFF"]:
                 summary["fed_funds"] = latest_value
             
-            elif series_id in ["CPIAUCSL", "CORESTICKM159SFRBATL"]:
+            elif series_id == "CORESTICKM159SFRBATL":
                 summary["inflation"] = latest_value
             
             elif series_id == "UNRATE":

@@ -82,9 +82,9 @@ describe("getStatusColor", () => {
 
 describe("getSignalStrengthLabel", () => {
   it("maps backend signal strength values to labels", () => {
-    expect(getSignalStrengthLabel("weak")).toBe("Weak Signal");
-    expect(getSignalStrengthLabel("moderate")).toBe("Moderate Signal");
-    expect(getSignalStrengthLabel("strong")).toBe("Strong Signal");
+    expect(getSignalStrengthLabel(0.2)).toBe("Weak Signal");
+    expect(getSignalStrengthLabel(0.5)).toBe("Moderate Signal");
+    expect(getSignalStrengthLabel(0.8)).toBe("Strong Signal");
   });
 });
 

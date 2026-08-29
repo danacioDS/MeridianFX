@@ -135,64 +135,49 @@ class MacroTransformer:
         else:
             return "LOW"
 
-    def to_regime(self, macro_data: Dict[str, Any]) -> Dict[str, str]:
-        """
-        Convierte datos macro a régimen (risk, policy, growth, inflation).
-
-        Extrae los valores desde ``summary``. Si falta algún dato,
-        el régimen correspondiente se marca como ``UNKNOWN``.
-        No se inventan valores por defecto.
-        """
-        summary = macro_data.get("summary", {})
-
-        fed_funds = summary.get("fed_funds")
-        inflation = summary.get("inflation")
-        gdp_growth = summary.get("gdp_growth")
-        unemployment = summary.get("unemployment")
-
-        # Régimen de riesgo basado en condiciones monetarias.
-        if fed_funds is None:
-            risk = "UNKNOWN"
-        elif fed_funds > 5.0:
+    def to_regime(self, macro_data: dict) -> dict:
+        """Convierte datos macro a régimen (risk, policy, growth, inflation)."""
+        # Extraer indicadores
+        fed_funds = macro_data.get('fed_funds', 4.5)
+        inflation = macro_data.get('inflation', 3.0)
+        gdp_growth = macro_data.get('gdp_growth', 2.0)
+        unemployment = macro_data.get('unemployment', 4.0)
+        
+        # Determinar régimen de riesgo
+        if fed_funds > 5.0:
             risk = "RESTRICTIVE"
         elif fed_funds < 3.0:
             risk = "ACCOMMODATIVE"
         else:
             risk = "MODERATE"
-
-        # Régimen de política monetaria.
-        if fed_funds is None:
-            policy = "UNKNOWN"
-        elif fed_funds > 4.5:
+        
+        # Determinar régimen de política
+        if fed_funds > 4.5:
             policy = "RESTRICTIVE"
         elif fed_funds < 3.5:
             policy = "ACCOMMODATIVE"
         else:
             policy = "NEUTRAL"
-
-        # Régimen de crecimiento.
-        if gdp_growth is None:
-            growth = "UNKNOWN"
-        elif gdp_growth > 3.0:
+        
+        # Determinar régimen de crecimiento
+        if gdp_growth > 3.0:
             growth = "STRONG"
         elif gdp_growth > 1.5:
             growth = "STABLE"
         else:
             growth = "WEAK"
-
-        # Régimen de inflación.
-        if inflation is None:
-            inflation_regime = "UNKNOWN"
-        elif inflation > 4.0:
+        
+        # Determinar régimen de inflación
+        if inflation > 4.0:
             inflation_regime = "HIGH"
         elif inflation > 2.5:
             inflation_regime = "MODERATE"
         else:
             inflation_regime = "LOW"
-
+        
         return {
-            "risk": risk,
-            "policy": policy,
-            "growth": growth,
-            "inflation": inflation_regime,
+            'risk': risk,
+            'policy': policy,
+            'growth': growth,
+            'inflation': inflation_regime
         }

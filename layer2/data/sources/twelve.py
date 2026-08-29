@@ -54,5 +54,14 @@ class TwelveDataSource:
         # Eliminar NaN extremos
         df = df.dropna(subset=['Close'])
         
+        # Contrato canónico del DataProvider:
+        # índice datetime, timezone-naive, orden cronológico ascendente
+        df.index = pd.to_datetime(df.index)
+        
+        if getattr(df.index, "tz", None) is not None:
+            df.index = df.index.tz_localize(None)
+        
+        df = df.sort_index()
+        
         print(f"   Twelve: {len(df)} filas obtenidas")
         return df

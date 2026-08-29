@@ -21,7 +21,7 @@ export function RankingTable({
 
   const getReturn = (edge: number, direction: string) => {
     const baseReturn = edge * 0.3;
-    const sign = direction === 'UP' ? 1 : -1;
+    const sign = direction === 'UP' as any ? 1 : -1;
     return sign * baseReturn;
   };
 
@@ -58,7 +58,7 @@ export function RankingTable({
         </div>
 
         {opportunities.map((opp) => {
-          const isUp = opp.direction === 'UP';
+          const isUp = opp.direction === 'UP' as any;
           const scorePercent = Math.round((opp.opportunity_score || 0) * 100);
           const edge = opp.edge_ratio || 0;
           const isActionable = opp.actionable;

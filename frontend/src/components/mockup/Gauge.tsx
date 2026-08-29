@@ -19,7 +19,7 @@ export function Gauge({ probability, label = 'Probabilidad', size = 'large' }: G
     large: { width: 280, height: 100, fontSize: 48 }
   };
   
-  const { width, height, fontSize } = sizes[size];
+  const { width, height } = sizes[size];
   const centerX = width / 2;
   const centerY = height - 10;
   const radius = Math.min(width, height * 2) * 0.38;

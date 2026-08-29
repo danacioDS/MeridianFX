@@ -1,4 +1,4 @@
-import { useState } from 'react';
+
 
 interface UniverseSelectorProps {
   currencies: string[];
@@ -7,7 +7,6 @@ interface UniverseSelectorProps {
 }
 
 export function UniverseSelector({ currencies, selected, onChange }: UniverseSelectorProps): JSX.Element {
-  const [isOpen, setIsOpen] = useState(false);
 
   if (!currencies || currencies.length === 0) {
     return <div className="text-sm text-muted">No currencies available</div>;

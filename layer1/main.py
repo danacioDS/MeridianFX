@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from layer1.routers import ranking, drivers, forecast, performance, status, historical, interpretation
+from layer1.routers import ranking, drivers, forecast, performance, status, historical, interpretation, price
 
 app = FastAPI(title="Meridian FX API", version="1.0.0")
 
@@ -31,3 +31,5 @@ async def health_check():
 @app.get("/")
 async def root():
     return {"message": "Meridian FX API", "version": "1.0.0"}
+
+app.include_router(price.router)

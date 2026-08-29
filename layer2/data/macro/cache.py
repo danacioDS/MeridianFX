@@ -21,6 +21,7 @@ class MacroCache:
     """
     
     CACHE_DIR = "cache/macro"
+    CACHE_VERSION = "v2"  # ← Incrementar cuando cambie el contrato
     DEFAULT_TTL_HOURS = 24  # 1 día
     
     def __init__(self, ttl_hours: int = DEFAULT_TTL_HOURS):
@@ -33,7 +34,7 @@ class MacroCache:
     
     def _get_cache_path(self, key: str) -> str:
         """Obtiene la ruta del archivo de caché."""
-        return os.path.join(self.CACHE_DIR, f"{key}.json")
+        return os.path.join(self.CACHE_DIR, f"{key}_{self.CACHE_VERSION}.json")
     
     def get(self, key: str) -> Optional[Dict[str, Any]]:
         """
@@ -80,6 +81,7 @@ class MacroCache:
         try:
             data = {
                 "cached_at": datetime.now().isoformat(),
+                "schema_version": self.CACHE_VERSION,
                 "value": value
             }
             
