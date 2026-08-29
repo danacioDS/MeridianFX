@@ -33,7 +33,7 @@ export function Header({ subtitle = "Financial Intelligence", version = "v2.0" }
       <div className="flex flex-wrap items-center justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-serif font-bold text-ink">
+            <h1 className="text-3xl md:text-4xl font-serif font-bold text-ink tracking-wide">
               Meridian<span className="text-meridian italic">FX</span>
             </h1>
             <span className="text-xs text-muted border border-line rounded px-2 py-0.5">
