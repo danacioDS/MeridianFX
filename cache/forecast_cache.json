@@ -79,9 +79,9 @@
         "freshness": "FRESH",
         "last_price": 160.03799438476562
       },
-      "timestamp": "2026-08-29T17:46:05.941503"
+      "timestamp": "2026-08-29T18:08:52.136591"
     },
-    "timestamp": "2026-08-29T17:46:05.941513"
+    "timestamp": "2026-08-29T18:08:52.136602"
   },
   "drivers_USD/JPY": {
     "data": {
@@ -139,9 +139,9 @@
         }
       ],
       "narrative": "Top drivers: macd_hist (positive, 0.882), rsi_14 (positive, 0.357), bb_upper (negative, 0.339)",
-      "timestamp": "2026-08-29T17:32:07.278505"
+      "timestamp": "2026-08-29T18:08:52.137593"
     },
-    "timestamp": "2026-08-29T17:32:07.278518"
+    "timestamp": "2026-08-29T18:08:52.137600"
   },
   "forecast_USD/BOB": {
     "data": {
@@ -223,9 +223,9 @@
         "freshness": "FRESH",
         "last_price": 11.779999732971191
       },
-      "timestamp": "2026-08-29T17:09:31.023955"
+      "timestamp": "2026-08-29T18:10:18.597699"
     },
-    "timestamp": "2026-08-29T17:09:31.023968"
+    "timestamp": "2026-08-29T18:10:18.597711"
   },
   "drivers_USD/BOB": {
     "data": {
@@ -283,9 +283,9 @@
         }
       ],
       "narrative": "Top drivers: rsi_14 (negative, 0.795), bb_upper (positive, 0.667), sma_200 (positive, 0.620)",
-      "timestamp": "2026-08-29T17:09:31.024704"
+      "timestamp": "2026-08-29T18:10:18.599310"
     },
-    "timestamp": "2026-08-29T17:09:31.024713"
+    "timestamp": "2026-08-29T18:10:18.599323"
   },
   "forecast_USD/ARS": {
     "data": {
@@ -430,5 +430,293 @@
       "timestamp": "2026-08-29T17:12:27.285838"
     },
     "timestamp": "2026-08-29T17:12:27.285847"
+  },
+  "forecast_GBP/USD": {
+    "data": {
+      "direction": "UP",
+      "probability": 0.9413823485374451,
+      "expected_return": 0.008827646970748901,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0.8827646970748901,
+      "signal_strength": 0.2597578368005742,
+      "edge_ratio": 0.8827646970748901,
+      "net_return": 0.00617935287952423,
+      "position_size": 0,
+      "model": {
+        "version": "xgb-v1.0",
+        "type": "xgboost"
+      },
+      "shap": {
+        "base_value": -0.8113473403289463,
+        "base_probability": 0.30760345998006206,
+        "final_probability": 0.941382333363325,
+        "contributions": [
+          {
+            "feature": "rsi_14",
+            "contribution": 0.9493340844572407,
+            "abs_contribution": 0.9493340844572407
+          },
+          {
+            "feature": "bb_upper",
+            "contribution": 0.9313739191772602,
+            "abs_contribution": 0.9313739191772602
+          },
+          {
+            "feature": "ema_12",
+            "contribution": 0.6492962749077679,
+            "abs_contribution": 0.6492962749077679
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": 0.45965767452540834,
+            "abs_contribution": 0.45965767452540834
+          },
+          {
+            "feature": "sma_20",
+            "contribution": 0.31458402418802023,
+            "abs_contribution": 0.31458402418802023
+          },
+          {
+            "feature": "macd",
+            "contribution": 0.25993575671114644,
+            "abs_contribution": 0.25993575671114644
+          },
+          {
+            "feature": "bb_middle",
+            "contribution": 0.24484117628922192,
+            "abs_contribution": 0.24484117628922192
+          },
+          {
+            "feature": "sma_50",
+            "contribution": -0.1933165171125121,
+            "abs_contribution": 0.1933165171125121
+          },
+          {
+            "feature": "sma_200",
+            "contribution": 0.15929635690651167,
+            "abs_contribution": 0.15929635690651167
+          },
+          {
+            "feature": "volatility",
+            "contribution": -0.12502077344313417,
+            "abs_contribution": 0.12502077344313417
+          }
+        ],
+        "feature_count": 23
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 1.353747844696045
+      },
+      "timestamp": "2026-08-29T18:10:03.650966"
+    },
+    "timestamp": "2026-08-29T18:10:03.651027"
+  },
+  "drivers_GBP/USD": {
+    "data": {
+      "pair": "GBP/USD",
+      "shap": [
+        {
+          "feature": "rsi_14",
+          "contribution": 0.9493340844572407,
+          "abs_contribution": 0.9493340844572407
+        },
+        {
+          "feature": "bb_upper",
+          "contribution": 0.9313739191772602,
+          "abs_contribution": 0.9313739191772602
+        },
+        {
+          "feature": "ema_12",
+          "contribution": 0.6492962749077679,
+          "abs_contribution": 0.6492962749077679
+        },
+        {
+          "feature": "macd_hist",
+          "contribution": 0.45965767452540834,
+          "abs_contribution": 0.45965767452540834
+        },
+        {
+          "feature": "sma_20",
+          "contribution": 0.31458402418802023,
+          "abs_contribution": 0.31458402418802023
+        },
+        {
+          "feature": "macd",
+          "contribution": 0.25993575671114644,
+          "abs_contribution": 0.25993575671114644
+        },
+        {
+          "feature": "bb_middle",
+          "contribution": 0.24484117628922192,
+          "abs_contribution": 0.24484117628922192
+        },
+        {
+          "feature": "sma_50",
+          "contribution": -0.1933165171125121,
+          "abs_contribution": 0.1933165171125121
+        },
+        {
+          "feature": "sma_200",
+          "contribution": 0.15929635690651167,
+          "abs_contribution": 0.15929635690651167
+        },
+        {
+          "feature": "volatility",
+          "contribution": -0.12502077344313417,
+          "abs_contribution": 0.12502077344313417
+        }
+      ],
+      "narrative": "Top drivers: rsi_14 (positive, 0.949), bb_upper (positive, 0.931), ema_12 (positive, 0.649)",
+      "timestamp": "2026-08-29T18:10:03.652266"
+    },
+    "timestamp": "2026-08-29T18:10:03.652274"
+  },
+  "forecast_USD/CHF": {
+    "data": {
+      "direction": "UP",
+      "probability": 0.949208676815033,
+      "expected_return": 0.00898417353630066,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0.8984173536300659,
+      "signal_strength": 0.269051247101217,
+      "edge_ratio": 0.8984173536300659,
+      "net_return": 0.006288921475410461,
+      "position_size": 0,
+      "model": {
+        "version": "xgb-v1.0",
+        "type": "xgboost"
+      },
+      "shap": {
+        "base_value": -0.8113473403289463,
+        "base_probability": 0.30760345998006206,
+        "final_probability": 0.9492086939977866,
+        "contributions": [
+          {
+            "feature": "bb_upper",
+            "contribution": 0.9333702754534366,
+            "abs_contribution": 0.9333702754534366
+          },
+          {
+            "feature": "ema_12",
+            "contribution": 0.6645505888184792,
+            "abs_contribution": 0.6645505888184792
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": 0.5441679739777363,
+            "abs_contribution": 0.5441679739777363
+          },
+          {
+            "feature": "rsi_14",
+            "contribution": 0.502838865404673,
+            "abs_contribution": 0.502838865404673
+          },
+          {
+            "feature": "sma_20",
+            "contribution": 0.32489553317704417,
+            "abs_contribution": 0.32489553317704417
+          },
+          {
+            "feature": "macd",
+            "contribution": 0.3096749188583578,
+            "abs_contribution": 0.3096749188583578
+          },
+          {
+            "feature": "sma_200",
+            "contribution": 0.25162565093022027,
+            "abs_contribution": 0.25162565093022027
+          },
+          {
+            "feature": "bb_middle",
+            "contribution": 0.23167160142703988,
+            "abs_contribution": 0.23167160142703988
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.1789728634419104,
+            "abs_contribution": 0.1789728634419104
+          },
+          {
+            "feature": "volatility",
+            "contribution": 0.13240904850606483,
+            "abs_contribution": 0.13240904850606483
+          }
+        ],
+        "feature_count": 23
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 0.8093000054359436
+      },
+      "timestamp": "2026-08-29T18:10:04.083434"
+    },
+    "timestamp": "2026-08-29T18:10:04.083451"
+  },
+  "drivers_USD/CHF": {
+    "data": {
+      "pair": "USD/CHF",
+      "shap": [
+        {
+          "feature": "bb_upper",
+          "contribution": 0.9333702754534366,
+          "abs_contribution": 0.9333702754534366
+        },
+        {
+          "feature": "ema_12",
+          "contribution": 0.6645505888184792,
+          "abs_contribution": 0.6645505888184792
+        },
+        {
+          "feature": "macd_hist",
+          "contribution": 0.5441679739777363,
+          "abs_contribution": 0.5441679739777363
+        },
+        {
+          "feature": "rsi_14",
+          "contribution": 0.502838865404673,
+          "abs_contribution": 0.502838865404673
+        },
+        {
+          "feature": "sma_20",
+          "contribution": 0.32489553317704417,
+          "abs_contribution": 0.32489553317704417
+        },
+        {
+          "feature": "macd",
+          "contribution": 0.3096749188583578,
+          "abs_contribution": 0.3096749188583578
+        },
+        {
+          "feature": "sma_200",
+          "contribution": 0.25162565093022027,
+          "abs_contribution": 0.25162565093022027
+        },
+        {
+          "feature": "bb_middle",
+          "contribution": 0.23167160142703988,
+          "abs_contribution": 0.23167160142703988
+        },
+        {
+          "feature": "bb_width",
+          "contribution": -0.1789728634419104,
+          "abs_contribution": 0.1789728634419104
+        },
+        {
+          "feature": "volatility",
+          "contribution": 0.13240904850606483,
+          "abs_contribution": 0.13240904850606483
+        }
+      ],
+      "narrative": "Top drivers: bb_upper (positive, 0.933), ema_12 (positive, 0.665), macd_hist (positive, 0.544)",
+      "timestamp": "2026-08-29T18:10:04.084605"
+    },
+    "timestamp": "2026-08-29T18:10:04.084611"
   }
 }
