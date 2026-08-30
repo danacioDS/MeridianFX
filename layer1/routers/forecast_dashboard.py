@@ -66,12 +66,19 @@ def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> d
             return {"direction": "UNKNOWN", "probability": 0.5, "expected_return": 0.0}
         
         pred = engine.xgb_model.predict(latest_features)
-        direction = pred.get('direction', 'UNKNOWN')
         probability = pred.get('probability', 0.5)
         
         # Estimar retorno esperado
         current_price = df['Close'].iloc[-1]
         expected_return = (probability - 0.5) * 0.05 * (horizon_days / 30)
+        
+        # Determinar direction basado en expected_return (consistente)
+        if expected_return > 0.001:
+            direction = "UP"
+        elif expected_return < -0.001:
+            direction = "DOWN"
+        else:
+            direction = "NEUTRAL"
         
         # Intervalo de confianza
         volatility = calculate_volatility(df, 30)

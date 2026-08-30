@@ -5,14 +5,18 @@
 import { Panel, UniverseSelector, LoadingSpinner, ApiError } from "../components/common";
 import { RegimeStrip } from "../components/mockup";
 import { RankingTable } from "../components/global/RankingTable";
+import { ActionableInfo } from "../components/global/ActionableInfo";
+import { ModelExplanation } from "../components/global/ModelExplanation";
 import { PriceChartSignalIQ } from "../components/global/PriceChartSignalIQ";
 import { useRanking, useActivePair, pairUniverseFromRanking } from "../hooks";
 import { useForecastDashboard } from "../hooks/useForecastDashboard";
+import { useInterpretation } from "../hooks/useInterpretation";
 
 export function GlobalPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
   const dashboard = useForecastDashboard(pair);
+  const interpretation = useInterpretation(pair);
   const universe = pairUniverseFromRanking(ranking.data);
 
   if (ranking.isLoading || dashboard.isLoading) {
@@ -115,11 +119,12 @@ export function GlobalPage(): JSX.Element {
               </div>
               <div className="text-xs text-muted mt-2">
                 Modelo: XGBoost v2.1 · Features: 37
+              <div className="text-xs text-muted mt-1"><ModelExplanation /></div>
               </div>
             </Panel>
           )}
 
-          {/* Contexto Macro */}
+          {/* Contexto Macro con interpretación LLM */}
           {data.macro && data.macro.summary && (
             <Panel title="🏛️ Contexto Macro">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -181,6 +186,20 @@ export function GlobalPage(): JSX.Element {
                   )}
                 </div>
               )}
+              {/* Interpretación LLM */}
+              {interpretation.data && interpretation.data.interpretation && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <div className="text-xs text-muted mb-2">🧠 Análisis Económico</div>
+                  <ul className="list-disc pl-4 space-y-1 text-sm text-text-secondary">
+                    {interpretation.data.interpretation.map((bullet: string, i: number) => (
+                      <li key={i}>{bullet}</li>
+                    ))}
+                  </ul>
+                  <div className="text-xs text-muted mt-2">
+                    Fuente: MeridianFX LLM · {interpretation.data.timestamp ? new Date(interpretation.data.timestamp).toLocaleTimeString() : ''}
+                  </div>
+                </div>
+              )}
             </Panel>
           )}
         </>
@@ -188,16 +207,20 @@ export function GlobalPage(): JSX.Element {
 
       {/* Ranking de oportunidades */}
       {rankingData && (
-        <Panel title="📈 Top Opportunities">
-          <RankingTable
-            opportunities={opportunities}
-            topOpportunity={topOpportunity}
-            totalActionable={totalActionable}
-            totalPairs={totalPairs}
-            timestamp={rankingData.snapshot_timestamp}
-          />
-        </Panel>
+        <>
+          <Panel title="📈 Top Opportunities — Predicción basada en Logistic Regression">
+            <RankingTable
+              opportunities={opportunities}
+              topOpportunity={topOpportunity}
+              totalActionable={totalActionable}
+              totalPairs={totalPairs}
+              timestamp={rankingData.snapshot_timestamp}
+            />
+          </Panel>
+          <ActionableInfo />
+        </>
       )}
+          <div className="text-xs text-muted mt-2">🔹 El ranking de oportunidades utiliza <strong>Logistic Regression</strong> para estimar la dirección y probabilidad. XGBoost se usa para el retorno esperado en el forecast.</div>
     </section>
   );
 }

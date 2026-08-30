@@ -76,9 +76,32 @@ Cada bullet debe explicar el significado económico, no solo repetir números.""
         return system_prompt, user_prompt
     
     async def interpret(self, context: dict) -> List[str]:
-        """Interpreta el Decision Context."""
-        # Usar fallback directamente con los datos del contexto
-        return self._fallback_interpretation(context)
+        """Interpreta el Decision Context usando LLM con fallback."""
+        try:
+            system_prompt, user_prompt = self.build_prompt(context)
+            result = await self.llm.generate(system_prompt, user_prompt)
+            
+            if result.get("provider") == "FallbackLLM":
+                return self._fallback_interpretation(context)
+            
+            text = result.get("text", "")
+            lines = [line.strip() for line in text.split("\n") if line.strip()]
+            
+            bullets = []
+            for line in lines:
+                if line.startswith(("-", "•", "1.", "2.", "3.", "4.")):
+                    clean = line.lstrip("-• 0123456789.").strip()
+                    if clean:
+                        bullets.append(clean)
+            
+            if not bullets:
+                return self._fallback_interpretation(context)
+            
+            return bullets[:4]
+            
+        except Exception as e:
+            print(f"⚠️ LLM interpret error: {e}")
+            return self._fallback_interpretation(context)
     
     def _fallback_interpretation(self, context: dict) -> List[str]:
         """Interpretación de fallback usando los datos reales del contexto."""
