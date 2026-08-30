@@ -1,17 +1,16 @@
 services:
   - type: web
     name: MeridianFX
-    runtime: python
+    runtime: docker
     plan: free
-    buildCommand: |
-      pip install --upgrade pip
-      pip install -r requirements.txt
-    startCommand: uvicorn layer1.main:app --host 0.0.0.0 --port 10000
+    dockerfilePath: ./Dockerfile
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.12.0
       - key: FRED_API_KEY
         sync: false
       - key: GROQ_API_KEY
+        sync: false
+      - key: ALPHA_VANTAGE_KEY
+        sync: false
+      - key: TWELVE_DATA_KEY
         sync: false
     healthCheckPath: /health
