@@ -16,9 +16,9 @@
         "type": "xgboost"
       },
       "shap": {
-        "base_value": -0.774031468536367,
+        "base_value": -0.7740314685363671,
         "base_probability": 0.31560766458507294,
-        "final_probability": 0.3637284947138366,
+        "final_probability": 0.36372849471383656,
         "contributions": [
           {
             "feature": "macd_hist",
@@ -77,11 +77,11 @@
         "source": "yahoo",
         "fallback_used": false,
         "freshness": "FRESH",
-        "last_price": 160.05599975585938
+        "last_price": 160.05099487304688
       },
-      "timestamp": "2026-08-30T17:17:34.243227"
+      "timestamp": "2026-08-30T17:22:50.812065"
     },
-    "timestamp": "2026-08-30T17:17:34.243240"
+    "timestamp": "2026-08-30T17:22:50.812103"
   },
   "drivers_USD/JPY": {
     "data": {
@@ -89,59 +89,59 @@
       "shap": [
         {
           "feature": "macd_hist",
-          "contribution": 0.8824791841925677,
-          "abs_contribution": 0.8824791841925677
-        },
-        {
-          "feature": "rsi_14",
-          "contribution": 0.3573033127543012,
-          "abs_contribution": 0.3573033127543012
+          "contribution": 0.7926531526625065,
+          "abs_contribution": 0.7926531526625065
         },
         {
           "feature": "bb_upper",
-          "contribution": -0.3387400512338524,
-          "abs_contribution": 0.3387400512338524
+          "contribution": -0.3767693222275851,
+          "abs_contribution": 0.3767693222275851
         },
         {
-          "feature": "sma_20",
-          "contribution": 0.20545247922572632,
-          "abs_contribution": 0.20545247922572632
-        },
-        {
-          "feature": "adx",
-          "contribution": -0.1308908608067792,
-          "abs_contribution": 0.1308908608067792
-        },
-        {
-          "feature": "macd_signal",
-          "contribution": 0.1221585040180178,
-          "abs_contribution": 0.1221585040180178
-        },
-        {
-          "feature": "macd",
-          "contribution": 0.11955828853673074,
-          "abs_contribution": 0.11955828853673074
-        },
-        {
-          "feature": "bb_width",
-          "contribution": -0.11852581869942745,
-          "abs_contribution": 0.11852581869942745
+          "feature": "rsi_14",
+          "contribution": 0.35501778610742807,
+          "abs_contribution": 0.35501778610742807
         },
         {
           "feature": "aroon_down",
-          "contribution": 0.11182614089295273,
-          "abs_contribution": 0.11182614089295273
+          "contribution": -0.17913163256253922,
+          "abs_contribution": 0.17913163256253922
         },
         {
-          "feature": "ema_12",
-          "contribution": -0.10020171080029862,
-          "abs_contribution": 0.10020171080029862
+          "feature": "macd",
+          "contribution": 0.14205920428474422,
+          "abs_contribution": 0.14205920428474422
+        },
+        {
+          "feature": "volatility",
+          "contribution": -0.13505377779612582,
+          "abs_contribution": 0.13505377779612582
+        },
+        {
+          "feature": "macd_signal",
+          "contribution": 0.11483190850518822,
+          "abs_contribution": 0.11483190850518822
+        },
+        {
+          "feature": "adx",
+          "contribution": -0.1135405453097445,
+          "abs_contribution": 0.1135405453097445
+        },
+        {
+          "feature": "sma_20",
+          "contribution": -0.10960964917217683,
+          "abs_contribution": 0.10960964917217683
+        },
+        {
+          "feature": "bb_width",
+          "contribution": -0.10934902238158035,
+          "abs_contribution": 0.10934902238158035
         }
       ],
-      "narrative": "Top drivers: macd_hist (positive, 0.882), rsi_14 (positive, 0.357), bb_upper (negative, 0.339)",
-      "timestamp": "2026-08-29T18:43:24.918289"
+      "narrative": "Top drivers: macd_hist (positive, 0.793), bb_upper (negative, 0.377), rsi_14 (positive, 0.355)",
+      "timestamp": "2026-08-30T17:22:50.813695"
     },
-    "timestamp": "2026-08-29T18:43:24.918299"
+    "timestamp": "2026-08-30T17:22:50.813704"
   },
   "forecast_USD/BOB": {
     "data": {

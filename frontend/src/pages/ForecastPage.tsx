@@ -1,5 +1,5 @@
 /**
- * Forecast Dashboard — Completo con tendencias, forecast y análisis macro
+ * Forecast Dashboard — Con Fan Chart probabilístico
  */
 import {
   ApiError,
@@ -12,7 +12,9 @@ import { MacroPanel } from "../components/macro";
 import { SpotCard } from "../components/forecast/SpotCard";
 import { TrendCard } from "../components/forecast/TrendCard";
 import { ForecastCard } from "../components/forecast/ForecastCard";
+import { FanChart } from "../components/forecast/FanChart";
 import { useForecastDashboard } from "../hooks/useForecastDashboard";
+import { useFanChartData, transformToFanChartData } from "../hooks/useFanChartData";
 import {
   useRanking,
   useActivePair,
@@ -24,6 +26,7 @@ export function ForecastPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
   const { data, isLoading, error, refetch } = useForecastDashboard(pair);
+  const { data: forecastData } = useFanChartData(pair);
   const macro = useMacroContext();
   const universe = pairUniverseFromRanking(ranking.data);
 
@@ -45,6 +48,11 @@ export function ForecastPage(): JSX.Element {
   }
 
   const { spot, trends, forecasts, volatility, source, last_date, macro: macroData } = data;
+
+  // Preparar datos para Fan Chart
+  const fanChartData = forecastData 
+    ? transformToFanChartData(forecastData, spot.price, last_date)
+    : [];
 
   return (
     <section className="flex flex-col gap-6">
@@ -80,6 +88,16 @@ export function ForecastPage(): JSX.Element {
           </div>
         </Panel>
       )}
+
+      {/* Fan Chart */}
+      <Panel title="📊 Probabilistic Forecast">
+        <FanChart 
+          data={fanChartData}
+          currentPrice={spot.price}
+          currentDate={last_date}
+          title={`${pair} · 90-Day Probabilistic Forecast`}
+        />
+      </Panel>
 
       {/* Forecasts */}
       {forecasts && (
@@ -129,28 +147,16 @@ export function ForecastPage(): JSX.Element {
           </div>
           {macroData.indicators?.monetary_stance && (
             <div className="flex gap-2 mt-2 flex-wrap">
-              <span className={`px-2 py-0.5 text-xs rounded-full ${
-                macroData.indicators.monetary_stance === 'RESTRICTIVE' ? 'bg-bear/20 text-bear' :
-                macroData.indicators.monetary_stance === 'ACCOMMODATIVE' ? 'bg-bull/20 text-bull' :
-                'bg-panel-3 text-muted'
-              }`}>
+              <span className={`px-2 py-0.5 text-xs rounded-full ${macroData.indicators.monetary_stance === 'RESTRICTIVE' ? 'bg-bear/20 text-bear' : macroData.indicators.monetary_stance === 'ACCOMMODATIVE' ? 'bg-bull/20 text-bull' : 'bg-panel-3 text-muted'}`}>
                 Política: {macroData.indicators.monetary_stance}
               </span>
               {macroData.indicators.growth_signal && (
-                <span className={`px-2 py-0.5 text-xs rounded-full ${
-                  macroData.indicators.growth_signal === 'STRONG' ? 'bg-bull/20 text-bull' :
-                  macroData.indicators.growth_signal === 'WEAK' ? 'bg-bear/20 text-bear' :
-                  'bg-panel-3 text-muted'
-                }`}>
+                <span className={`px-2 py-0.5 text-xs rounded-full ${macroData.indicators.growth_signal === 'STRONG' ? 'bg-bull/20 text-bull' : macroData.indicators.growth_signal === 'WEAK' ? 'bg-bear/20 text-bear' : 'bg-panel-3 text-muted'}`}>
                   Crecimiento: {macroData.indicators.growth_signal}
                 </span>
               )}
               {macroData.indicators.inflation_signal && (
-                <span className={`px-2 py-0.5 text-xs rounded-full ${
-                  macroData.indicators.inflation_signal === 'HIGH' ? 'bg-bear/20 text-bear' :
-                  macroData.indicators.inflation_signal === 'LOW' ? 'bg-bull/20 text-bull' :
-                  'bg-panel-3 text-muted'
-                }`}>
+                <span className={`px-2 py-0.5 text-xs rounded-full ${macroData.indicators.inflation_signal === 'HIGH' ? 'bg-bear/20 text-bear' : macroData.indicators.inflation_signal === 'LOW' ? 'bg-bull/20 text-bull' : 'bg-panel-3 text-muted'}`}>
                   Inflación: {macroData.indicators.inflation_signal}
                 </span>
               )}
