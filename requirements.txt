@@ -10,3 +10,6 @@ xgboost>=2.0.0
 shap>=0.44.0
 python-multipart>=0.0.6
 requests>=2.31.0
+twelvedata>=1.4.0
+yfinance>=1.7.0
+alpha_vantage>=3.0.0
