@@ -1,3 +1,11 @@
+## 📄 README.md ACTUALIZADO (EN INGLÉS)
+
+Aquí tienes el `README.md` completo y actualizado para Meridian FX v2.3.0:
+
+```bash
+cd ~/repo_lab/MeridianFX
+
+cat > README.md << 'EOF'
 # Meridian FX
 
 **Financial Intelligence & Decision Support System**
@@ -14,9 +22,11 @@ Meridian FX is a quantitative foreign-exchange intelligence platform that transf
 
 It does not merely produce predictions. It produces structured decision outputs with full governance — every forecast is decomposed into economic drivers (SHAP), macro regime context, RAG-based central-bank sentiment, and explicit invalidation conditions.
 
-**MVP scope:** 4 currency pairs (USD/JPY, EUR/USD, GBP/USD, USD/CNY) at a single 5-day horizon.
+**Current scope:** 9 currency pairs (USD/JPY, EUR/USD, GBP/USD, USD/CNY, USD/MXN, USD/BRL, USD/ARS, USD/BOB, USD/CHF) with 30/60/90-day forecast horizons.
 
-### What Meridian answers
+---
+
+## What Meridian Answers
 
 | Question | Module |
 | -------- | ------ |
@@ -26,42 +36,45 @@ It does not merely produce predictions. It produces structured decision outputs 
 | Is it worth acting? | Economic Filter |
 | What could invalidate the signal? | Signal Validity |
 | How good has Meridian been? | Performance Dashboard |
+| Which model performs best? | Model Comparison |
 
 ---
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        PRODUCT (MVP — 4 pairs)                         │
-│    USD/JPY · EUR/USD · GBP/USD · USD/CNY    (single horizon 5D)         │
-│                                                                        │
-│   ┌───────────────┐   delivery contracts (Layer 1 §7)   ┌───────────┐ │
-│   │   LAYER 1     │ ──────────────────────────────────▶ │ FRONTEND  │ │
-│   │ DELIVERY API  │  /v1/fx/{pair}/forecast|drivers     │ Dashboard │ │
-│   │  (FastAPI)*   │  /v1/fx/ranking                     │ (React TS)│ │
-│   └───────┬───────┘  /v1/fx/performance/{pair}?period=  └───────────┘ │
-│           │         /v1/status                                         │
-│           │ consumption of the Decision pipeline                      │
-│   ┌───────▼────────┐         ┌────────────────┐    ┌───────────────┐  │
-│   │   LAYER 2      │ ◀───── │   LAYER 3      │    │   LAYER 4     │  │
-│   │ DECISION       │ arti-  │ MODEL / SHAP / │    │ DATA QUALITY  │  │
-│   │ ENGINE         │ fact   │ RAG / narrative │    │ FRESHNESS /   │  │
-│   │ (Python)       │ + L4   │ (external)     │    │ DRIFT (ext.)  │  │
-│   └────────────────┘ stream └────────────────┘    └───────────────┘  │
-│                                                                       │
-│   Deployment target: Render (FastAPI) + Neon (PostgreSQL)             │
-└───────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                              MERIDIAN FX                                    │
+│                   Financial Intelligence System                             │
+│                                                                              │
+│   ┌───────────────┐   delivery contracts (Layer 1 §7)   ┌─────────────────┐ │
+│   │   LAYER 1     │ ──────────────────────────────────▶ │   FRONTEND      │ │
+│   │ DELIVERY API  │  /v1/fx/{pair}/forecast|drivers     │   Dashboard     │ │
+│   │  (FastAPI)    │  /v1/fx/ranking · performance       │   React + TS    │ │
+│   └───────┬───────┘  /v1/fx/interpretation · macro      │   Fan Chart     │ │
+│           │         /v1/fx/{pair}/model-comparison      │   SignalIQ      │ │
+│           │  imports / uses layer2 engine + src decision │   LLM Context   │ │
+│   ┌───────▼──────────────┐         ┌────────────────────┐ ┌───────────────┐ │
+│   │ LAYER 2  LIVE ENGINE │         │  LAYER 3           │ │  LAYER 4      │ │
+│   │ layer2/: XGBoost ·    │ ◀───── │ MODEL / SHAP /     │ │ DATA QUALITY  │ │
+│   │ SHAP · data providers │ artifact│ RAG / narrative    │ │ FRESHNESS /   │ │
+│   │ Yahoo→Alpha→Twelve ·  │ + L4   │ (external)         │ │ DRIFT (ext.)  │ │
+│   │ FRED macro · ranking  │ streams│                    │ │               │ │
+│   └──────────┬────────────┘        └────────────────────┘ └───────────────┘ │
+│              │  + src/meridian_fx/decision/ (contract-governed engine)       │
+│                                                                              │
+│   Deployment target: Render (FastAPI) + Neon (PostgreSQL)                    │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Layer responsibilities
+### Layer Responsibilities
 
 | Layer | Role | Technology |
 | ----- | ---- | ---------- |
 | **Layer 1** — Delivery API | REST endpoints, response contracts | FastAPI, Uvicorn, Pydantic |
 | **Layer 2** — Decision Engine | 8-stage deterministic pipeline | Python, XGBoost, scikit-learn, SHAP |
-| **Layer 3** — Model / Narrative | Trained models, SHAP explainers, RAG sentiment | MLflow, external NLP |
-| **Layer 4** — Data Quality | Freshness, drift, quality registries | External monitoring |
+| **Layer 3** — Research Layer | Model training, walk-forward, Research Gate | Python, ARIMA, Elastic Net, Ensemble |
+| **Layer 4** — Data Layer | PIT validation, Lineage, Versioned Config | Python, PIT Validator |
 | **Frontend** — Dashboard | Contract-driven presentational UI | React 18, TypeScript, Vite, Tailwind |
 
 ---
@@ -75,10 +88,11 @@ It does not merely produce predictions. It produces structured decision outputs 
 | Language | Python 3.12 |
 | API framework | FastAPI + Uvicorn |
 | Data validation | Pydantic 2 |
-| ML models | XGBoost 3.4, scikit-learn |
+| ML models | XGBoost 3.4, Logistic, ARIMA, scikit-learn |
 | Explainability | SHAP |
 | Data processing | pandas, numpy, pandas_ta |
-| Data sources | Alpha Vantage, Twelve Data, Yahoo Finance |
+| Data sources | Yahoo Finance, Alpha Vantage, Twelve Data, FRED |
+| LLM Integration | Groq, GLM, Gemini (with fallback) |
 | Testing | pytest (99 tests) |
 
 ### Frontend
@@ -96,76 +110,68 @@ It does not merely produce predictions. It produces structured decision outputs 
 
 ---
 
+## Key Features
+
+### 📊 Global Intelligence
+- **SignalIQ-style price chart** with gradient area and interactive hover
+- **Real-time spot prices** from Yahoo Finance
+- **30/60/90-day XGBoost forecasts** with 95% confidence intervals
+- **Opportunity ranking** with edge ratio and actionable status
+- **LLM-powered economic interpretation** of market context
+
+### 📈 Probabilistic Forecast
+- **Institutional-style Fan Chart** with P10, P25, P50, P75, P90 quantiles
+- **Historical + forecast integration** with "NOW" separator
+- **Professional blue palette** with gradient bands
+- **Detailed tooltip** with confidence intervals
+
+### 🔍 Drivers & Explanation
+- **SHAP values** for model explainability
+- **Macro regime classification** (Risk-On/Off, Policy, Growth, Inflation)
+- **RAG-based central bank sentiment** (Fed, BoJ)
+- **Executive narrative** and risk analysis
+
+### 🧠 Model Comparison
+- **XGBoost vs Logistic vs Ensemble** walk-forward evaluation
+- **Sharpe ratio, Profit Factor, DA, AUC** metrics
+- **Research Gate** validation with configurable thresholds
+- **Transparent model selection** based on OOS performance
+
+### 📉 Data Quality (PIT)
+- **7 PIT invariants** (PIT-1 to PIT-7)
+- **Adversarial datasets** A-D for validation
+- **Lineage tracking** for auditability
+- **Versioned configuration** (YAML-based)
+
+---
+
 ## Project Structure
 
 ```
 MeridianFX/
 ├── docs/                          Frozen specifications, prompts, contract governance
-│   ├── Domain/                    Why (pitch), economics, data acquisition, production strategy
-│   ├── High-Level Design/         Executive summary, product spec, build strategy, roadmap
-│   ├── Low-Level Design/          Implementation plan + Layer_01..04 specs
-│   ├── Product_specification/     FROZEN Layer_01..04 — contract authority
-│   ├── Prompts/                   Prompt sequence: layer prompts + audit & build
-│   └── Contract/                  Governance artifacts (traceability, gaps, freeze)
-├── src/meridian_fx/decision/      Layer 2 Decision Engine (Python, Pydantic)
-│   ├── contracts/                 Frozen domain contract types + provider interfaces
-│   ├── filter/                    Economic filter + dynamic costs
-│   ├── gates/                     Precedence-ordered hard gates
-│   ├── quality/                   Decision quality from L4 registries
-│   ├── sizing/                    Position sizing engine
-│   ├── registries/                Decision, opportunity, safe-mode registries
-│   ├── validation/                Contract audit + end-to-end mapping
-│   └── pipeline.py                Composition root — 8-stage orchestration
-├── tests/                         Backend pytest suite (99 tests)
-├── frontend/                      Contract-driven React + TypeScript dashboard
-│   └── src/
-│       ├── components/            Presentational components (common, layout, forecast, drivers, ...)
-│       ├── services/              API client + domain endpoint adapters
-│       ├── hooks/                 Data-fetching hooks (TanStack Query)
-│       ├── types/                 Contract types (Layer 1 §7) + gap types
-│       ├── utils/                 Presentation-only formatting + status mapping
-│       ├── pages/                 Page composition (hooks → presentational props)
-│       └── tests/                 Infrastructure test suites (55 tests)
+├── layer1/                        FastAPI delivery API (routers, models, LLM)
+├── layer2/                        Live engine (data, features, models, explainers, macro)
+├── layer3/                        Research Layer (ARIMA, Elastic Net, Ensemble, RAG)
+├── layer4/                        Data Layer (PIT validation, Lineage, Config)
+├── src/meridian_fx/decision/      Contract-governed Decision Engine (99 tests)
+├── frontend/                      React + TypeScript dashboard
+│   ├── src/
+│   │   ├── components/            Presentational components
+│   │   ├── hooks/                 Data-fetching hooks
+│   │   ├── pages/                 Page composition
+│   │   ├── services/              API client + adapters
+│   │   ├── types/                 Contract types + gaps
+│   │   └── utils/                 Formatting utilities
+│   └── ...
 ├── models/                        Trained .pkl models + registry
-├── data/historical/               Historical market data
+├── cache/                         Runtime forecast + macro caches
+├── train_models.py                XGBoost training script
 ├── pyproject.toml                 Backend project metadata
-├── architecture.md                System architecture document
-└── report.md                      Repository analysis
+├── requirements.txt               Backend dependencies
+├── README.md                      This file
+└── architecture.md                System architecture document
 ```
-
----
-
-## Decision Pipeline
-
-The Layer 2 Decision Engine runs an **8-stage deterministic pipeline**:
-
-```
-PredictionArtifact (L3) + L4 streams
-        │
-        ▼
-  1. Signals         raw quant / macro / RAG ──▶ SignalComponents
-  2. Regime + fusion determine_regime() ──▶ FusionEngine ──▶ Direction
-  3. Confidence      interval width + signals + reliability
-  4. Costs           VIX via FeatureStore (no fallback path)
-  5. Economic filter net_return, edge_ratio, actionable flag
-  6. Quality         L4 registries (data quality / freshness / drift)
-  7. Hard gates      quality, PIT, economic, exposure, correlation, regime
-  8. Sizing          edge × quality × VIX-volatility
-        │
-        ▼
-  Decision { action + rejection_reason + signal_validity }
-```
-
----
-
-## Frontend Design Principles
-
-The frontend is **contract-driven**. All domain data comes from the Layer 1 v5.1 contract.
-
-- **No derivation:** the frontend MUST NOT calculate, infer, rank, score, or derive analytical values
-- **Transport only:** backend responses are consumed verbatim and presented without transformation
-- **No fallback:** unsupported contract elements render `NOT_AVAILABLE`; no substitution is permitted
-- **Nullability preserved:** `null` is never replaced with defaults
 
 ---
 
@@ -173,45 +179,77 @@ The frontend is **contract-driven**. All domain data comes from the Layer 1 v5.1
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.12+
 - Node.js 18+
 - npm
 
-### Backend
+### Backend Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/danacioDS/MeridianFX.git
+cd MeridianFX
+
+# Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate
-pip install -e .
-python -m pytest          # run 99 backend tests
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run tests
+python -m pytest
+
+# Start the API server
+uvicorn layer1.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Frontend
+### Frontend Setup
 
 ```bash
+# Navigate to frontend
 cd frontend
+
+# Install dependencies
 npm install
-npm run dev              # start dev server (http://localhost:5173)
-npm run typecheck        # TypeScript no-emit check
-npm test                 # run 55 frontend tests
-npm run build            # typecheck + production build
+
+# Run development server
+npm run dev
+
+# Run typecheck
+npm run typecheck
+
+# Run tests
+npm test
+
+# Build for production
+npm run build
 ```
 
 ### Environment Variables (Frontend)
 
-Copy `.env.example` to `.env` and adjust as needed:
+Copy `.env.example` to `.env`:
 
-| Variable | Default | Purpose |
-| -------- | ------- | ------- |
-| `VITE_API_BASE_URL` | `http://localhost:8000` | Layer 1 API base URL |
-| `VITE_API_KEY` | `dev_placeholder_key_only` | Development placeholder |
-| `VITE_POLLING_INTERVAL` | `60000` | Default polling interval (ms) |
-| `VITE_ENVIRONMENT` | `development` | Runtime environment label |
+```bash
+VITE_API_BASE_URL=http://localhost:8000
+VITE_API_KEY=dev_placeholder_key_only
+VITE_POLLING_INTERVAL=60000
+VITE_ENVIRONMENT=development
+```
 
-> **Security:** `VITE_API_KEY` must not contain a production secret. Vite env
-> variables are embedded in the client bundle. Production authentication must
-> use a secure architecture (e.g., short-lived bearer tokens via a trusted
-> identity provider).
+> **Security:** Never commit real API keys. Use secure authentication for production.
+
+### Environment Variables (Backend)
+
+```bash
+# Required for macro data
+FRED_API_KEY=your_fred_api_key
+
+# Optional LLM providers
+GROQ_API_KEY=your_groq_api_key
+GLM_API_KEY=your_glm_api_key
+GEMINI_API_KEY=your_gemini_api_key
+```
 
 ---
 
@@ -219,36 +257,85 @@ Copy `.env.example` to `.env` and adjust as needed:
 
 | Suite | Command | Coverage |
 | ----- | ------- | -------- |
-| Backend | `python -m pytest` | 99 tests — pipeline, contracts, gates, filter, sizing, validation |
+| Backend | `python -m pytest` | 99 tests |
 | Frontend typecheck | `cd frontend && npm run typecheck` | TypeScript clean |
-| Frontend tests | `cd frontend && npm test` | 55 tests — format, status, gaps, services, hooks, contracts |
-| Frontend build | `cd frontend && npm run build` | Production build (~310 kB / 98 kB gzip) |
+| Frontend tests | `cd frontend && npm test` | 55 tests |
+| Frontend build | `cd frontend && npm run build` | Production build |
 
 ---
 
-## Deployment (Target)
+## Deployment
 
-| Service | Role |
-| ------- | ---- |
-| **Render** (512 MB) | FastAPI + Uvicorn, inference-only (no training in prod) |
-| **Neon** (PostgreSQL) | Features, precomputed predictions, SHAP explanations, metrics |
+### Render.com (Recommended)
 
-Memory target: ~250–300 MB. Max DB connections: ≤3.
+1. Push repository to GitHub
+2. Connect to Render.com
+3. Configure services:
+
+**Backend:**
+```yaml
+type: web
+name: meridian-fx-backend
+runtime: python
+buildCommand: pip install -r requirements.txt
+startCommand: uvicorn layer1.main:app --host 0.0.0.0 --port 10000
+```
+
+**Frontend:**
+```yaml
+type: web
+name: meridian-fx-frontend
+runtime: static
+buildCommand: npm install && npm run build
+staticPublishPath: ./frontend/dist
+```
+
+### Local Production Build
+
+```bash
+# Backend
+cd ~/repo_lab/MeridianFX
+source venv/bin/activate
+uvicorn layer1.main:app --host 0.0.0.0 --port 8000
+
+# Frontend
+cd frontend
+npm run build
+npx serve -s dist -p 5174
+```
+
+---
+
+## Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/fx/ranking` | GET | Opportunity ranking (9 pairs) |
+| `/v1/fx/{pair}/forecast` | GET | Point forecast (XGBoost) |
+| `/v1/fx/{pair}/forecast-dashboard` | GET | Full dashboard data (trends, volatility, forecasts) |
+| `/v1/fx/{pair}/drivers` | GET | SHAP drivers + macro + RAG |
+| `/v1/fx/{pair}/performance` | GET | Model performance metrics |
+| `/v1/fx/interpretation` | GET | LLM-powered economic interpretation |
+| `/v1/fx/{pair}/model-comparison` | GET | XGBoost vs Logistic vs Ensemble |
+| `/v1/status` | GET | System status |
+| `/health` | GET | Health check |
 
 ---
 
 ## Contract Governance
 
+The frontend is **contract-driven**. All domain data comes from Layer 1 v5.1 contracts.
+
+- **No derivation:** the frontend does NOT calculate, infer, rank, or derive values
+- **Transport only:** backend responses are consumed verbatim
+- **No fallback:** unsupported elements render `NOT_AVAILABLE`
+- **Nullability preserved:** `null` is never replaced with defaults
+
 | Artifact | Role |
 | -------- | ---- |
-| `CONTRACT_TRACEABILITY.md` | 73-row element → contract matrix (61 verified / 12 gap) |
-| `CONTRACT_GAPS.md` | 16 joint gaps: G1–G9 + audit gaps |
-| `FRONTEND_CONTRACT_FREEZE.md` | Freeze status: FREEZE WITH OPTIONAL GAPS, 0 blocking |
-| `CONTRACT_VALIDATION.md` | Prompt 1 audit (7/7 contracts, PASS) |
-| `MIGRATION_REPORT.md` | 66 mockup visual elements classified |
-| `COMPONENT_MAPPING.md` | Data-bearing field → component → file (100%) |
-
-**Governance workflow:** change request → update `CONTRACT_TRACEABILITY` → update `CONTRACT_GAPS` → re-freeze → re-validate.
+| `CONTRACT_TRACEABILITY.md` | 73-row element → contract matrix (61 verified) |
+| `CONTRACT_GAPS.md` | 16 gaps documented |
+| `FRONTEND_CONTRACT_FREEZE.md` | FREEZE WITH OPTIONAL GAPS |
 
 ---
 
@@ -263,15 +350,55 @@ Memory target: ~250–300 MB. Max DB connections: ≤3.
   Financial Intelligence System<br><br>
   <strong>STRATUS INTELLIGENCE</strong>
 </p>
+EOF
+```
+
+---
+
+## 🚀 VERIFICAR
+
+```bash
+cd ~/repo_lab/MeridianFX
+
+# Verificar que el README se creó correctamente
+cat README.md | head -80
+
+# Añadir a git
+git add README.md
+git commit -m "docs: README.md actualizado v2.3.0"
+```
+
+---
+
+**🎯 ¡README.md actualizado y listo para la entrevista!** 🚀
 
 
-
-## Fornt end 
-cd frontend
-npm run dev
-
-## Back end 
+## Back End 
 
 cd ~/repo_lab/MeridianFX
+
+# 1. Matar todos los procesos de uvicorn
+pkill -9 -f uvicorn || true
+
+# 2. Liberar el puerto 8000
+sudo fuser -k 8000/tcp 2>/dev/null || true
+
+# 3. Esperar a que el puerto se libere
+sleep 2
+
+# 4. Verificar que el puerto está libre
+ss -ltnp | grep ':8000' || echo "✅ Puerto 8000 libre"
+
+# 5. Iniciar backend
 source venv/bin/activate
 uvicorn layer1.main:app --reload --host 0.0.0.0 --port 8000
+
+## Frontend 
+
+cd ~/repo_lab/MeridianFX/frontend
+
+# 1. Verificar que el backend está corriendo (en otra terminal)
+curl -s http://localhost:8000/health
+
+# 2. Iniciar el frontend en modo desarrollo
+npm run dev

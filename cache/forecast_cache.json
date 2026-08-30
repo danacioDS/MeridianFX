@@ -77,11 +77,11 @@
         "source": "yahoo",
         "fallback_used": false,
         "freshness": "FRESH",
-        "last_price": 160.13299560546875
+        "last_price": 160.1179962158203
       },
-      "timestamp": "2026-08-30T18:13:11.446203"
+      "timestamp": "2026-08-30T18:51:00.687352"
     },
-    "timestamp": "2026-08-30T18:13:11.446217"
+    "timestamp": "2026-08-30T18:51:00.687368"
   },
   "drivers_USD/JPY": {
     "data": {
