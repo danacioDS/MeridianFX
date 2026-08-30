@@ -8,6 +8,7 @@ import { EvaluationPage } from "./pages/EvaluationPage";
 import { StatusPage } from "./pages/StatusPage";
 import { AboutPage } from "./pages/AboutPage";
 import { PricePage } from "./pages/PricePage";
+import { ModelComparisonPage } from "./pages/ModelComparisonPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,7 @@ function App() {
             <Route path="/status" element={<StatusPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/price" element={<PricePage />} />
+            <Route path="/models" element={<ModelComparisonPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

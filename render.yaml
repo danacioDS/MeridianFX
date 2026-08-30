@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: meridian-fx-backend
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn layer1.main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: FRED_API_KEY
+        sync: false

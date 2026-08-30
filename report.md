@@ -1,6 +1,6 @@
 # Meridian FX — Repository Report
 
-**Date:** 2026-08-29 · **Branch:** `main` (ahead of `origin/main` by 10 commits) · **History:** 27 commits (2026-08-25 → 2026-08-28) · **Latest tag:** `v2.3.0-macro-panel`
+**Date:** 2026-08-30 · **Branch:** `main` (in sync with `origin/main`) · **History:** 31 commits (2026-08-25 → 2026-08-29) · **Latest tag:** `v2.3.0`
 
 This is an analysis of the repository as it stands today: what it is, what it contains, how it is governed, its verification status, and its known gaps and risks.
 
@@ -23,7 +23,9 @@ It answers six product questions in its MVP (4 core pairs — USD/JPY, EUR/USD, 
 | 5 | What could invalidate the signal? | Signal Validity |
 | 6 | How good has Meridian been? | Performance Dashboard |
 
-Since the previous report (2026-08-27), the repo has moved from a **specification + decision-engine-only** state to a **working multi-layer application**: a real FastAPI delivery service (`layer1/`), a live Layer 2 engine wired to XGBoost/SHAP/multi-source market data/FRED macro (`layer2/`), and a rebuilt bilingual frontend with a FRED macro dashboard. It is now much closer to a *runnable* system, albeit with several live endpoints still served by hardcoded or simulated data.
+Since the previous report (2026-08-29), the repo shipped **FASE 7 + `v2.3.0`**: a SignalIQ-style Global Intelligence page (currency selector, live spot, interactive price chart), a rebuilt Forecast Dashboard, and two new **real-data** Layer 1 endpoints — `GET /v1/fx/{pair}/price` and `GET /v1/fx/{pair}/forecast-dashboard` (trends, volatility, XGBoost 30/60/90-day forecasts, FRED macro context). Crucially, the **frontend is green again**: TypeScript clean, 55/55 tests, and a passing production build (previously red). `requirements.txt` went from empty to a full backend dependency manifest.
+
+The repo remains a working multi-layer application: a real FastAPI delivery service (`layer1/`), a live Layer 2 engine wired to XGBoost/SHAP/multi-source market data/FRED macro (`layer2/`), and a bilingual rebuilt frontend. Several live endpoints are still served by hardcoded or simulated data.
 
 ---
 
@@ -36,24 +38,26 @@ MeridianFX/
 ├── layer1/                      FastAPI delivery API — implemented (routers, models, adapters, LLM, decision)
 ├── layer2/                      Live engine — XGBoost, SHAP, data providers (Yahoo/Alpha Vantage/Twelve/FRED), macro, ranking
 ├── tests/                       Backend pytest suite (11 files)
-├── frontend/                    React + TypeScript + Vite contract-driven dashboard
+├── frontend/                    React + TypeScript + Vite contract-driven dashboard (+ Recharts)
 ├── models/                      Trained XGBoost (.pkl) + logistic models and registry.json
 ├── cache/                       Runtime forecast + macro caches
 ├── train_models.py              XGBoost training script (registers into ModelRegistry)
 ├── test_macro.py                MacroService tests
 ├── pyproject.toml               Backend project config (pydantic, pytest)
-├── requirements.txt             (empty)
+├── requirements.txt             Backend dependencies — POPULATED (2026-08-30 update)
 ├── vite.config.ts               Frontend Vite config (port 5174)
 ├── README.md                    Product overview + quickstart
 ├── report.md                    This document
 └── architecture.md              System architecture
 ```
 
+> **Working-tree hygiene:** `cache/forecast_cache.json` is modified (uncommitted runtime cache). An untracked stray file `ión estable 2.3.0 - Global Intelligence con gráfico SignalIQ, ...` sits at the repo root — an accidental file created from a copy-pasted commit message (contains the `v2.3.0` commit body); it should be deleted.
+
 ---
 
 ## 3. Backend — the two engines
 
-The backend now has **two cooperating codebases** with distinct roles:
+The backend has **two cooperating codebases** with distinct roles:
 
 ### 3.1 `src/meridian_fx/decision/` — the contract-governed Decision Engine
 
@@ -92,7 +96,7 @@ Package root: `layer2/`. This is the *wired* engine that actually fetches data, 
 
 ## 4. Backend — Layer 1 FastAPI delivery API (implemented)
 
-`layer1/` is now a **real FastAPI app** (`main.py`, title "Meridian FX API" v1.0.0), with CORS restricted to `localhost:5174`, 7 routers, `/` and `/health`.
+`layer1/` is a **real FastAPI app** (`main.py`, title "Meridian FX API" v1.0.0), with CORS restricted to `localhost:5174` / `127.0.0.1:5174`, **9 routers**, `/` and `/health`.
 
 ### 4.1 Endpoints
 
@@ -108,6 +112,10 @@ Package root: `layer2/`. This is the *wired* engine that actually fetches data, 
 | GET | `/v1/fx/interpretation?pair=` | Layer 1 `DecisionContext` + `EconomicInterpreter` + `MacroService` (FRED) |
 | GET | `/v1/fx/macro/status` | FRED macro cache status |
 | POST | `/v1/fx/macro/refresh` | force FRED refresh |
+| GET | `/v1/fx/{pair}/price?period=` | **live** — spot, 100-point history, XGBoost signal (`layer1/routers/price.py`) |
+| GET | `/v1/fx/{pair}/forecast-dashboard` | **live** — spot, trends 1m/3m/6m/1y, volatility, XGBoost 30/60/90d, macro (`layer1/routers/forecast_dashboard.py`) |
+
+The two newest endpoints (`price`, `forecast-dashboard`) are the only forecast-flavored routes backed by **real market + ML data** (via `layer2.DataProvider` + `TechnicalFeatures` + `DecisionEngine.xgb_model` + `MacroService`); the legacy `/forecast` route remains hardcoded.
 
 ### 4.2 Supporting modules
 
@@ -118,7 +126,7 @@ Package root: `layer2/`. This is the *wired* engine that actually fetches data, 
 
 **Observations:**
 - There are **two classes both named `DecisionEngine`** — Layer 1's `decision/decision_context.py` (interpretation context) vs Layer 2's `engine.py` (forecasting). They are distinct by purpose.
-- `ForecastResponse`/`DecisionAdapter` exist but the live `/forecast` route returns a raw dict, not the model.
+- `ForecastResponse`/`DecisionAdapter` exist but `/forecast`, `/price`, and `/forecast-dashboard` return **raw dicts**, not the Pydantic response models.
 - `EconomicInterpreter.interpret()` currently **always** uses the rule-based fallback — the Groq chain is built but not invoked.
 - Performance/status are hardcoded/mock; the drivers macro-regime & RAG sections are placeholders.
 
@@ -126,45 +134,53 @@ Package root: `layer2/`. This is the *wired* engine that actually fetches data, 
 
 ## 5. Frontend — contract-driven dashboard (React + TypeScript)
 
-Stack: **React 18 + TypeScript + Vite (port 5174) + Tailwind + TanStack Query + axios + date-fns + React Router**. Contract root `frontend/src/types/contracts.ts` mirrors Layer 1 v5.1 §7; gaps live in `types/gaps.ts` (G1–G5).
+Stack: **React 18 + TypeScript + Vite (port 5174) + Tailwind + TanStack Query + axios + date-fns + React Router + Recharts** (Recharts added in `v2.3.0` for the interactive charts). Contract root `frontend/src/types/contracts.ts` mirrors Layer 1 v5.1 §7; gaps live in `types/gaps.ts` (G1–G5).
 
 ### 5.1 Routes & composition
 
 | Path | Page | Hooks → data |
 | --- | --- | --- |
-| `/` | GlobalPage | `useRanking`, `useDrivers`, `useActivePair` |
-| `/forecast` | ForecastPage | `useForecast`, `useRanking`, `useActivePair`, `useInterpretation`, `useMacroContext` |
+| `/` | GlobalPage | `useRanking`, `useForecastDashboard`, `useActivePair` |
+| `/forecast` | ForecastPage | `useForecastDashboard`, `useRanking`, `useActivePair`, `useMacroContext` |
 | `/drivers` | DriversPage | `useDrivers`, `useRanking`, `useActivePair` |
 | `/evaluation` | EvaluationPage | `usePerformance`, `usePerformancePeriod`, `useActivePair` |
 | `/status` | StatusPage | `useStatus` |
-| `/historical` | HistoricalPage | (placeholder) |
+| `/price` | PricePage | `usePrice`, `useRanking`, `useActivePair` |
 | `/about` | AboutPage | (narrative) |
 
-Navigation state is URL-shared via `?pair=` and `?period=`. Two data-access styles coexist: the older contract-driven `services/*` (axios, retry+backoff) used by `usePerformance`/`useStatus`, and the newer direct-`fetch` hooks using `import.meta.env.VITE_API_URL` (`useForecast`/`useRanking`/`useDrivers`/`useInterpretation`/`useMacro`).
+Notes since the last report: `/historical` is **no longer routed** (`HistoricalPage.tsx` is now orphaned); a new `/price` route (PricePage) was added. The old `/forecast` data hooks were superseded: both GlobalPage and ForecastPage now consume the live `/forecast-dashboard` endpoint via `useForecastDashboard`, which replaced the contract-driven `useForecast`/`useInterpretation` wiring on those pages.
 
-### 5.2 Macro dashboard (FRED) — most recent addition (FASE 5.4)
+Navigation state is URL-shared via `?pair=` and `?period=`. Two data-access styles coexist: the older contract-driven `services/*` (axios, retry+backoff) used by `usePerformance`/`useStatus`, and the newer direct-`fetch` hooks using `import.meta.env.VITE_API_URL` (`useForecastDashboard`, `usePrice`, `useForecast`, `useRanking`, `useDrivers`, `useInterpretation`, `useMacro`).
 
-`components/macro/MacroPanel.tsx` + `hooks/useMacro.ts` (added in tag `v2.3.0-macro-panel`). Renders an 8-indicator macro grid (Fed Funds, inflation, unemployment, GDP, 10Y/2Y yields, 10-2 spread, confidence), policy/growth/inflation signal badges, and FX-relevance, fed by `GET /v1/fx/interpretation?pair=USD/JPY&include_macro=true` and `GET /v1/fx/macro/status`. Wired into `ForecastPage` (5-min refetch, 4-min staleTime).
+### 5.2 SignalIQ-style Global Intelligence + rebuilt Forecast Dashboard (v2.3.0)
 
-### 5.3 Presentational surface (~29 components)
+- `GlobalPage` — SignalIQ-inspired layout: currency `UniverseSelector`, live spot header (price, Δ day, forecast badge), `PriceChartSignalIQ` (area chart with gradient, hover tooltip, 30d/90d/6m/1y range), 30/60/90-day XGBoost prediction cards, FRED macro context, and the ranking table.
+- `ForecastPage` — rebuilt around the live `/forecast-dashboard` payload: `SpotCard`, `TrendCard` (1m/3m/6m/1y returns), `ForecastCard` (30/60/90d), `MacroPanel`, plus the FRED macro grid.
+- New shared components: `PriceChartSignalIQ`, `PriceChartWithHover`, `ForecastCard`, `SpotCard`, `TrendCard`.
+- Both pages reuse `RegimeStrip` (mockup) with **hardcoded inputs** (`regime="UNKNOWN"`, `vix={16.8}`, `riskAppetite={0.72}`).
 
-`common/*` (Panel, StatusBadge, RegimeBar, UniverseSelector, TabNav, NotAvailable, ApiError, LoadingSpinner, ErrorBoundary, ThemeProvider, MetricsHelp), `global/*` (RankingTable, RankingCard, EarlyWarnings), `forecast/*` (ForecastHero, ProbabilityGauge, ProbabilityChart, EconomicFilter, SignalValidity, + unexported mockup WhyNow/DataTimestamps), `drivers/*` (ShapBars, MacroRegime, RagPanel, NarrativePanel, RisksPanel), `evaluation/*` (PerformanceTable, CalibrationChart, CumulativeChart, DriftIndicator), `status/*` (SystemStatus, InfrastructureStatus), `layout/*` (Header, Footer, MainLayout), `macro/*` (MacroPanel), `mockup/*` (Gauge, PipelineStepper, RegimeStrip, SHAPBar).
+### 5.3 Macro dashboard (FRED) — FASE 5.4
 
-### 5.4 Verification — ⚠️ current failures
+`components/macro/MacroPanel.tsx` + `hooks/useMacro.ts` (tag `v2.3.0-macro-panel`). Renders an 8-indicator macro grid (Fed Funds, inflation, unemployment, GDP, 10Y/2Y yields, 10-2 spread, confidence), policy/growth/inflation signal badges, and FX-relevance, fed by `GET /v1/fx/interpretation?pair=USD/JPY&include_macro=true` and `GET /v1/fx/macro/status`. Wired into `ForecastPage` (5-min refetch, 4-min staleTime).
+
+### 5.4 Presentational surface (~34 components)
+
+`common/*` (Panel, StatusBadge, RegimeBar, UniverseSelector, TabNav, NotAvailable, ApiError, LoadingSpinner, ErrorBoundary, ThemeProvider, MetricsHelp, Header), `global/*` (RankingTable, RankingCard, EarlyWarnings, PriceChartSignalIQ, PriceChartWithHover), `forecast/*` (ForecastHero, ForecastCard, SpotCard, TrendCard, ProbabilityGauge, ProbabilityChart, EconomicFilter, SignalValidity, + unexported mockup WhyNow/DataTimestamps), `drivers/*` (ShapBars, MacroRegime, RagPanel, NarrativePanel, RisksPanel), `evaluation/*` (PerformanceTable, CalibrationChart, CumulativeChart, DriftIndicator), `status/*` (SystemStatus, InfrastructureStatus), `layout/*` (Header, Footer, MainLayout), `macro/*` (MacroPanel), `mockup/*` (Gauge, PipelineStepper, RegimeStrip, SHAPBar). `Header` now lives under `layout/` (nav includes Price).
+
+### 5.5 Verification — ✅ all green again
 
 | Check | Previous report | Now |
 | --- | --- | --- |
 | Backend pytest | 99 passed | **99 passed** ✅ |
-| Frontend typecheck (`npm run typecheck`) | clean | **FAILS** ❌ |
-| Frontend build (`npm run build`) | OK | **FAILS** ❌ |
-| Frontend tests | 55 passed | not re-verified (see below) |
+| Frontend typecheck (`npm run typecheck`) | FAILS | **clean** ✅ |
+| Frontend tests (`npm test`) | not re-verified | **55 passed** ✅ |
+| Frontend build (`npm run build`) | FAILS | **OK** ✅ |
 
-The frontend is now **red** due to type errors:
-- `src/components/status/SystemStatus.tsx:52-54` — reads `intelligence.model_performance?.status`, `model_drift?.status`, `decision_validity?.status`, but `ModelPerformanceHealth`, `ModelDriftHealth`, and `DecisionValidity` are **string enums in the contract** (the `.status` accessor is invalid).
-- `src/tests/utils/status.test.ts:11` — imports `DEFAULT_STATUS_COLOR`, which is **not exported** by `src/utils/status.ts`.
-- `src/tests/utils/status.test.ts:85-87` — passes string arguments to `getSignalStrengthLabel`, which takes a `number`.
+The previous red items were repaired:
+- `SystemStatus.tsx` no longer reads `.status` on the string-enum health types (`model_performance`, `model_drift`, `decision_validity` rendered verbatim via `Row`).
+- `DEFAULT_STATUS_COLOR` is exported from `utils/status.ts`; `getSignalStrengthLabel` now accepts `number | string` (matches the corrected tests).
 
-These are contract/shape-drift issues introduced as pages were rebuilt in the FASE iterations; they should be repaired (align `SystemStatus` to the string-enum types, export the color default, fix the test signatures) before the next release.
+One build warning remains (non-blocking): the main bundle is > 500 kB (722 kB minified) — chunking/code-splitting suggested.
 
 ---
 
@@ -186,29 +202,29 @@ The repo is **prompt-first**: `docs/Prompts/` drives each layer, and `docs/Contr
 
 **Green**
 - Backend pytest: **99/99** (contract fidelity + PIT/D2 validation enforced).
-- Layer 1 FastAPI app implemented and integrated with Layer 2 (`ranking`, `historical`, `drivers`, `interpretation`/macro) — closes the biggest gap flagged in the previous report.
+- Frontend: typecheck clean, **55/55 tests**, production build OK — previously red, now repaired.
+- Layer 1 FastAPI app integrated with Layer 2 (`ranking`, `historical`, `drivers`, `price`, `forecast-dashboard`, `interpretation`/macro) — the last two are the first **real-data** forecast/price routes.
 - Full live engine: multi-source market data failover, XGBoost + ModelRegistry, SHAP explainers, FRED macro subsystem, ranking over 9 pairs.
-- Frontend gained the FRED macro dashboard; bilingual (ES/EN) UI.
+- Frontend gained the FRED macro dashboard + SignalIQ-style Global Intelligence; bilingual (ES/EN) UI; `requirements.txt` populated.
 
 **Red / attention**
-1. **Frontend typecheck & build fail** (SystemStatus enum `.status` access; `status.test.ts` `DEFAULT_STATUS_COLOR` + `getSignalStrengthLabel` signature). Must be repaired.
-2. **Live endpoints are largely hardcoded/mock/simulated**: `/forecast` uses static `FORECAST_DATA` (+ random fallback), `/performance` is mock, `/status` hardcoded HEALTHY, drivers macro/RAG are placeholders, and FRED returns **simulated** data because `FRED_API_KEY` is not set. Only `ranking`, `historical`, and `drivers` (SHAP) fetch real market/ML data.
+1. **Live endpoints are largely hardcoded/mock/simulated**: `/forecast` uses static `FORECAST_DATA` (+ random fallback), `/performance` is mock, `/status` hardcoded HEALTHY, drivers macro/RAG are placeholders, and FRED returns **simulated** data because `FRED_API_KEY` is not set. Real-data routes: `ranking`, `historical`, `drivers` (SHAP), and the new `price`/`forecast-dashboard`.
+2. **Duplicate `FORECAST_DATA`** maintained in `forecast.py` and `interpretation.py` — no single source of truth (and `/forecast` still bypasses the live engine).
 3. **Two `DecisionEngine` classes** with the same name in Layer 1 vs Layer 2 — confusing; consider renaming.
 4. **`EconomicInterpreter` never invokes the LLM chain** (always rule-based fallback).
-5. **Duplicate `FORECAST_DATA`** maintained in `forecast.py` and `interpretation.py` — no single source of truth.
-6. **Contract-shape drift in active pages** vs `contracts.ts` (e.g., `ForecastPage` checks `direction === 'UP'` vs contract `BULLISH/BEARISH`; `DriversPage` reads non-contract `features[]`/`policy_signal.*`; `RankingTable` locally derives returns — the no-derivation guardrail is not consistently honored by the newer pages).
-7. **Env-key mismatch**: services use `VITE_API_BASE_URL`, direct-fetch hooks use `VITE_API_URL`; `.env` sets only the latter (works by coincidence of defaults).
-8. **Dead/stale artifacts**: `*.bak` files (`forecast.py.bak`, `engine.py.bak`, `Sidebar.tsx.bak`, `UniverseSelector.tsx.bak`), unused `WhyNow`/`DataTimestamps`, unused `mockup/*` components, empty `requirements.txt`, empty `data/historical/`.
-9. **Git hygiene**: working tree otherwise clean (only `cache/forecast_cache.json` modified); branch ahead of `origin/main` by 10 commits (unpushed).
+5. **Contract-shape drift in active pages** vs `contracts.ts` (GlobalPage/ForecastPage check `direction === 'UP'`; hardcoded `vix={16.8}`/`riskAppetite`/`regime="UNKNOWN"` in `RegimeStrip`; `RankingTable` locally derives returns — the no-derivation guardrail is not consistently honored by the newer pages).
+6. **Env-key mismatch**: services use `VITE_API_BASE_URL`, direct-fetch hooks use `VITE_API_URL`; `.env` sets only the latter (works by coincidence of defaults).
+7. **Dead/stale artifacts**: `*.bak` ×5 (`transformer.py.bak`, `engine.py.bak`, `UniverseSelector.tsx.bak`, `Sidebar.tsx.bak`, `forecast.py.bak`), orphaned `HistoricalPage.tsx` (route removed), unused `WhyNow`/`DataTimestamps`/`ForecastHero`, unused `mockup/*` (`Gauge`, `PipelineStepper`, `SHAPBar`), empty `data/historical/`.
+8. **Git hygiene**: stray untracked file at repo root (copy-pasted `v2.3.0` commit message); `cache/forecast_cache.json` modified (uncommitted). Branch is in sync with `origin/main`.
 
 ---
 
 ## 9. Recommendations
 
-1. **Fix the frontend build now** (highest priority, it's red): align `SystemStatus` to the string-enum health types, export `DEFAULT_STATUS_COLOR`, correct `getSignalStrengthLabel` calls; then re-run `typecheck`, `npm test`, and `build`.
-2. **Centralize forecast data**: extract a single source of truth for the 9-pair `FORECAST_DATA` (config/module shared by `forecast.py` and `interpretation.py`), or better, route `/forecast` through `layer2` ML like `ranking`/`drivers` do.
-3. **Invoke the LLM chain** in `EconomicInterpreter.interpret()` (currently bypassed), with the rule-based fallback retained as the safety net.
-4. **Resolve the dual-`DecisionEngine` naming** and document the relationship between `src/meridian_fx/decision/` (contract-governed) and `layer2/` (live engine) — they are currently unconnected.
-5. **Tidy governance docs** for the new pages (macro, Global/Forecast/Drivers rebuild) so the traceability/gap registry stays in sync with what ships.
-6. **Populate `requirements.txt`** and prune `.bak`/dead components; land the 10 unpushed commits with a reviewed PR.
-7. **Re-run the audit loop** if contract shape changes are made during frontend repair (traceability → gaps → freeze → validation), per the established governance model.
+1. **Route `/forecast` through the live engine** — `forecast-dashboard` already computes real trends/forecasts; reuse it (or share a single 9-pair data module) so `/forecast` and `/interpretation` stop duplicating `FORECAST_DATA`.
+2. **Invoke the LLM chain** in `EconomicInterpreter.interpret()` (currently bypassed), with the rule-based fallback retained as the safety net.
+3. **Resolve the dual-`DecisionEngine` naming** and document the relationship between `src/meridian_fx/decision/` (contract-governed) and `layer2/` (live engine) — they are currently unconnected.
+4. **Align the newer pages to the contract discipline** (Global/Forecast): remove hardcoded `VIX`/`riskAppetite` and the `direction === 'UP'` derivation; consume `contracts.ts` enums.
+5. **Tidy governance docs** for the new pages (Global Intelligence, Forecast rebuild, `price`/`forecast-dashboard` endpoints) so traceability/gap registries stay in sync with what ships.
+6. **Clean up**: delete the stray root file and the `.bak`/orphaned/unused components, remove or populate `data/historical/`, and align env keys (`VITE_API_BASE_URL` vs `VITE_API_URL`).
+7. **Re-run the audit loop** if contract shape changes are made during frontend work (traceability → gaps → freeze → validation), per the established governance model.

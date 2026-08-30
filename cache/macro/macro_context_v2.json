@@ -1,125 +1,125 @@
 {
-  "cached_at": "2026-08-29T16:39:36.629917",
+  "cached_at": "2026-08-30T17:19:19.507742",
   "schema_version": "v2",
   "value": {
-    "timestamp": "2026-08-29T16:39:36.629422",
+    "timestamp": "2026-08-30T17:19:10.987301",
     "source": "FRED",
     "summary": {
-      "fed_funds": 4.75,
-      "inflation": 4.1,
-      "unemployment": 3.8,
-      "gdp_growth": 2.03,
-      "yield_10y": 4.4,
-      "yield_2y": 4.9,
-      "yield_spread": -0.5,
-      "consumer_sentiment": 97.5
+      "fed_funds": 3.63,
+      "inflation": 2.715835582,
+      "unemployment": 4.1,
+      "gdp_growth": 1.01,
+      "yield_10y": 4.67,
+      "yield_2y": 4.2,
+      "yield_spread": 0.39,
+      "consumer_sentiment": 98.91297
     },
     "series": {
       "fed_funds": {
-        "latest_value": 4.75,
-        "latest_date": "2026-08-29",
-        "previous_value": 5.0,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 3.63,
+        "latest_date": "2026-07-01",
+        "previous_value": 3.63,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "Fed Funds Rate",
           "unit": "%"
         }
       },
       "cpi": {
-        "latest_value": 316.2,
-        "latest_date": "2026-08-29",
-        "previous_value": 315.0,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 332.813,
+        "latest_date": "2026-07-01",
+        "previous_value": 332.568,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "CPI All Urban Consumers",
           "unit": "index"
         }
       },
       "unemployment": {
-        "latest_value": 3.8,
-        "latest_date": "2026-08-29",
-        "previous_value": 3.9,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 4.1,
+        "latest_date": "2026-07-01",
+        "previous_value": 4.2,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "Unemployment Rate",
           "unit": "%"
         }
       },
       "gdp": {
-        "latest_value": 22600,
-        "latest_date": "2026-08-29",
-        "previous_value": 22450,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 24269.613,
+        "latest_date": "2026-04-01",
+        "previous_value": 24180.419,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "Real GDP",
           "unit": "billions USD"
         }
       },
       "yield_10y": {
-        "latest_value": 4.4,
-        "latest_date": "2026-08-29",
-        "previous_value": 4.2,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 4.67,
+        "latest_date": "2026-08-27",
+        "previous_value": 4.66,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "10-Year Treasury Yield",
           "unit": "%"
         }
       },
       "yield_2y": {
-        "latest_value": 4.9,
-        "latest_date": "2026-08-29",
-        "previous_value": 4.7,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 4.2,
+        "latest_date": "2026-08-27",
+        "previous_value": 4.19,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "2-Year Treasury Yield",
           "unit": "%"
         }
       },
       "yield_spread": {
-        "latest_value": -0.5,
-        "latest_date": "2026-08-29",
-        "previous_value": -0.5,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 0.39,
+        "latest_date": "2026-08-28",
+        "previous_value": 0.47,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "10Y-2Y Yield Spread",
           "unit": "%"
         }
       },
       "consumer_sentiment": {
-        "latest_value": 67.5,
-        "latest_date": "2026-08-29",
-        "previous_value": 68.0,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 55.2,
+        "latest_date": "2026-07-01",
+        "previous_value": 49.5,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "Consumer Sentiment",
           "unit": "index"
         }
       },
       "core_cpi": {
-        "latest_value": 4.1,
-        "latest_date": "2026-08-29",
-        "previous_value": 4.2,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 2.715835582,
+        "latest_date": "2026-07-01",
+        "previous_value": 2.806860184,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "Core CPI (Sticky)",
           "unit": "%"
         }
       },
       "payrolls": {
-        "latest_value": 158000,
-        "latest_date": "2026-08-29",
-        "previous_value": 157500,
-        "source": "SIMULATED",
-        "warning": "FRED_API_KEY not set",
+        "latest_value": 158858.0,
+        "latest_date": "2026-07-01",
+        "previous_value": 158881.0,
+        "source": "FRED",
+        "warning": null,
         "series_info": {
           "name": "Nonfarm Payrolls",
           "unit": "thousands"
@@ -127,10 +127,10 @@
       }
     },
     "indicators": {
-      "real_rate": 0.65,
-      "monetary_stance": "RESTRICTIVE",
-      "growth_signal": "STRONG",
-      "inflation_signal": "HIGH"
+      "real_rate": 0.91,
+      "monetary_stance": "NEUTRAL",
+      "growth_signal": "MODERATE",
+      "inflation_signal": "ELEVATED"
     },
     "fx_relevance": "HIGH"
   }

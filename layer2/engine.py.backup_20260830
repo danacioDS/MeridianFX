@@ -7,6 +7,7 @@ from .data.provider import DataProvider
 from .features.technical import TechnicalFeatures
 from .models.xgboost_model import XGBoostModel
 from .models.logistic_model import LogisticModel
+from .models.registry import ModelRegistry
 from .explainers.shap_explainer import SHAPExplainer
 from .decision.filter import EconomicFilter
 from .config import MODEL_PATH
@@ -22,6 +23,7 @@ class DecisionEngine:
         self.xgb_model = None
         self.logistic_model = None
         self.shap_explainer = None
+        self.registry = ModelRegistry()
         self.economic_filter = EconomicFilter()
         self.is_trained = False
         
@@ -32,35 +34,37 @@ class DecisionEngine:
         # Cargar caché desde disco
         self._load_cache()
         
-        # Cargar modelos aprobados desde Layer 3 Registry
-        #
-        # Layer 2 no interpreta directamente models/registry.json.
-        # ModelSelector + RegistryAdapter proporcionan el contrato de consumo.
-        self.load_model_from_registry("USD/JPY", "xgboost")
-
-        if self.xgb_model is not None and self.xgb_model.model is not None:
-            try:
-                result = self.data_provider.get_historical(
-                    "USD/JPY",
-                    period="1y"
-                )
-                df = result["data"]
-                df_feat = TechnicalFeatures.generate(df)
-                feature_cols = TechnicalFeatures.get_feature_names()
-                X_background = df_feat[feature_cols].dropna()
-
-                if len(X_background) > 0:
-                    self.shap_explainer = SHAPExplainer(
-                        self.xgb_model.model,
-                        self.xgb_model.feature_names,
-                        X_background
-                    )
-                    print("✅ SHAP Explainer inicializado")
-            except Exception as e:
-                print(f"⚠️ SHAP no inicializado: {e}")
-
-        self.load_model_from_registry("USD/JPY", "logistic")
-
+        # Cargar modelos activos
+        active_xgb = self.registry.get_active('USD/JPY', 'xgboost')
+        if active_xgb:
+            self.xgb_model = XGBoostModel(active_xgb['path'])
+            if self.xgb_model.model is not None:
+                self.is_trained = True
+                print(f"✅ XGBoost cargado: {active_xgb['version']}")
+                
+                try:
+                    result = self.data_provider.get_historical('USD/JPY', period='1y')
+                    df = result['data']
+                    df_feat = TechnicalFeatures.generate(df)
+                    feature_cols = TechnicalFeatures.get_feature_names()
+                    X_background = df_feat[feature_cols].dropna()
+                    
+                    if len(X_background) > 0:
+                        self.shap_explainer = SHAPExplainer(
+                            self.xgb_model.model,
+                            self.xgb_model.feature_names,
+                            X_background
+                        )
+                        print("✅ SHAP Explainer inicializado")
+                except Exception as e:
+                    print(f"⚠️ SHAP no inicializado: {e}")
+        
+        active_log = self.registry.get_active('USD/JPY', 'logistic')
+        if active_log:
+            self.logistic_model = LogisticModel(active_log['path'])
+            if self.logistic_model.model is not None:
+                print(f"✅ Logistic cargado: {active_log['version']}")
+        
         # Pre-cargar forecast en caché
         print("🔄 Pre-cargando forecast en caché...")
         self.get_forecast('USD/JPY')
@@ -333,101 +337,45 @@ class DecisionEngine:
         return forecast
 
     # ========== Model Selector Integration ==========
-
-    def get_model_from_registry(
-        self,
-        pair: str,
-        model_type: str = "xgboost"
-    ) -> Optional[Dict[str, Any]]:
+    
+    def get_model_from_registry(self, pair: str, model_type: str = "xgboost") -> Optional[Any]:
         """
-        Get the best model selected through the Layer 3 registry contract.
-
-        Layer 2 consumes the artifact through ModelSelector and does not
-        access the underlying registry format directly.
+        Get the best approved model from Layer 3 registry.
+        
+        Falls back to local models if no approved model is found.
         """
         from .models.model_selector import ModelSelector
-
+        
         selector = ModelSelector()
         model_artifact = selector.get_best_model(pair, model_type)
-
+        
         if model_artifact:
-            print(
-                f"✅ Model selected from registry: "
-                f"{model_artifact.get('model_id')} "
-                f"({model_artifact.get('model_version')})"
-            )
-            return model_artifact
-
-        print(
-            f"⚠️ No model available for "
-            f"{pair} / {model_type}"
-        )
+            print(f"✅ Model from Layer 3 registry: {model_artifact.model_id} (v{model_artifact.model_version})")
+            return model_artifact.model_file
         return None
-
-    def load_model_from_registry(
-        self,
-        pair: str,
-        model_type: str = "xgboost"
-    ) -> bool:
+    
+    def load_model_from_registry(self, pair: str, model_type: str = "xgboost") -> bool:
         """
-        Load the best selected model.
-
-        Returns True if the model loads successfully.
+        Load the best approved model from Layer 3 registry.
+        
+        Returns True if loaded successfully, False otherwise.
         """
-        model_artifact = self.get_model_from_registry(
-            pair,
-            model_type
-        )
-
-        if not model_artifact:
-            return False
-
-        model_path = model_artifact.get("model_file")
-
-        if not model_path:
-            print(
-                f"⚠️ Model artifact has no model_file: "
-                f"{model_artifact.get('model_id')}"
-            )
-            return False
-
-        try:
-            if model_type == "xgboost":
-                model = XGBoostModel(model_path)
-
-                if model.model is None:
-                    return False
-
-                self.xgb_model = model
-                self.is_trained = True
-
-                print(
-                    f"✅ XGBoost cargado desde registry: "
-                    f"{model_path}"
-                )
-                return True
-
-            if model_type == "logistic":
-                model = LogisticModel(model_path)
-
-                if model.model is None:
-                    return False
-
-                self.logistic_model = model
-
-                print(
-                    f"✅ Logistic cargado desde registry: "
-                    f"{model_path}"
-                )
-                return True
-
-            print(f"⚠️ Unsupported model type: {model_type}")
-            return False
-
-        except Exception as e:
-            print(
-                f"⚠️ Error cargando {model_type} "
-                f"desde registry: {e}"
-            )
-            return False
-
+        model_path = self.get_model_from_registry(pair, model_type)
+        
+        if model_path:
+            try:
+                if model_type == "xgboost":
+                    self.xgb_model = XGBoostModel(model_path)
+                    if self.xgb_model.model is not None:
+                        self.is_trained = True
+                        print(f"✅ XGBoost cargado desde Layer 3: {model_path}")
+                        return True
+                elif model_type == "logistic":
+                    self.logistic_model = LogisticModel(model_path)
+                    if self.logistic_model.model is not None:
+                        print(f"✅ Logistic cargado desde Layer 3: {model_path}")
+                        return True
+            except Exception as e:
+                print(f"⚠️ Error cargando modelo desde Layer 3: {e}")
+        
+        return False

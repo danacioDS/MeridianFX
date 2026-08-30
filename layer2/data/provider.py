@@ -11,7 +11,7 @@ Contrato canónico:
 """
 
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
 
 from .sources.twelve import TwelveDataSource
 from .sources.alpha_vantage import AlphaVantageSource
@@ -106,7 +106,7 @@ class DataProvider:
                     )
 
                 self.last_provider = source_name
-                self.last_success = datetime.now()
+                self.last_success = datetime.now(timezone.utc)
                 self.fallback_used = (
                     source_name != self.sources[0][0]
                 )
@@ -114,7 +114,7 @@ class DataProvider:
                 last_date = df.index[-1]
 
                 # Compare using date only to avoid timezone issues
-                today = datetime.now().date()
+                today = datetime.now(timezone.utc).date()
                 last_day = last_date.date()
 
                 days_ago = (today - last_day).days
@@ -139,7 +139,7 @@ class DataProvider:
                     "data": df,
                     "provider": source_name,
                     "fallback_used": self.fallback_used,
-                    "timestamp": datetime.now(),
+                    "timestamp": datetime.now(timezone.utc),
                     "freshness": freshness,
                     "last_price": last_price,
                     "last_date": last_date,
