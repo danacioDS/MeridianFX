@@ -13,6 +13,7 @@ app.add_middleware(
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
         "https://meridianfx.onrender.com",
+        "https://meridianfx-1.onrender.com",
         "https://meridian-fx-frontend.vercel.app",
         "https://meridian-fx-frontend-git-main.vercel.app",
     ],
