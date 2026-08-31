@@ -4,7 +4,7 @@ from layer1.routers import ranking, drivers, forecast, performance, status, hist
 
 app = FastAPI(title="Meridian FX API", version="1.0.0")
 
-# Configurar CORS
+# Configurar CORS - ACTUALIZADO CON DOMINIO DE CLOUDFLARE
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -16,6 +16,10 @@ app.add_middleware(
         "https://meridianfx-1.onrender.com",
         "https://meridian-fx-frontend.vercel.app",
         "https://meridian-fx-frontend-git-main.vercel.app",
+        # 👇 NUEVOS DOMINIOS DE CLOUDFLARE
+        "https://main.meridianfx.pages.dev",
+        "https://meridianfx.pages.dev",
+        "https://*.pages.dev",
     ],
     allow_credentials=True,
     allow_methods=["*"],
