@@ -54,37 +54,56 @@ def calculate_volatility(df: pd.DataFrame, days: int = 30) -> float:
     return round(annual_vol * 100, 2)
 
 def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> dict:
-    """Calcula forecast usando XGBoost."""
+    """Calcula forecast usando el modelo registrado para el par."""
     try:
         df_feat = TechnicalFeatures.generate(df)
         feature_cols = TechnicalFeatures.get_feature_names()
-        
-        # Usar últimas features para predicción
+
         latest_features = df_feat[feature_cols].iloc[-1:].dropna()
-        
-        if latest_features.empty or not engine.xgb_model or not engine.xgb_model.model:
-            return {"direction": "UNKNOWN", "probability": 0.5, "expected_return": 0.0}
-        
-        pred = engine.xgb_model.predict(latest_features)
-        probability = pred.get('probability', 0.5)
-        
-        # Estimar retorno esperado
-        current_price = df['Close'].iloc[-1]
+
+        if latest_features.empty:
+            return {
+                "direction": "UNKNOWN",
+                "probability": 0.5,
+                "expected_return": 0.0,
+            }
+
+        # Obtener el modelo correcto desde el Registry según el par.
+        model = engine._get_model_for_pair(pair, "xgboost")
+
+        if model is None or not getattr(model, "model", None):
+            return {
+                "direction": "UNKNOWN",
+                "probability": 0.5,
+                "expected_return": 0.0,
+            }
+
+        pred = model.predict(latest_features)
+
+        probability = float(pred.get("probability", 0.5))
+        probability = max(0.0, min(1.0, probability))
+
+        current_price = float(df["Close"].iloc[-1])
+
+        # Estimación simple del retorno esperado a partir de la probabilidad.
         expected_return = (probability - 0.5) * 0.05 * (horizon_days / 30)
-        
-        # Determinar direction basado en expected_return (consistente)
+
         if expected_return > 0.001:
             direction = "UP"
         elif expected_return < -0.001:
             direction = "DOWN"
         else:
             direction = "NEUTRAL"
-        
-        # Intervalo de confianza
+
         volatility = calculate_volatility(df, 30)
-        ci_95_lower = current_price * (1 - 0.02 * (horizon_days / 30) * (volatility / 20))
-        ci_95_upper = current_price * (1 + 0.02 * (horizon_days / 30) * (volatility / 20))
-        
+
+        ci_95_lower = current_price * (
+            1 - 0.02 * (horizon_days / 30) * (volatility / 20)
+        )
+        ci_95_upper = current_price * (
+            1 + 0.02 * (horizon_days / 30) * (volatility / 20)
+        )
+
         return {
             "direction": direction,
             "probability": round(probability, 4),
@@ -92,10 +111,20 @@ def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> d
             "current_price": round(current_price, 4),
             "volatility": volatility,
             "ci_95_lower": round(ci_95_lower, 4),
-            "ci_95_upper": round(ci_95_upper, 4)
+            "ci_95_upper": round(ci_95_upper, 4),
+            "model": {
+                "type": "xgboost",
+                "version": "v1.0",
+            },
         }
+
     except Exception as e:
-        return {"direction": "UNKNOWN", "probability": 0.5, "expected_return": 0.0}
+        print(f"⚠️ Forecast error for {pair}: {e}")
+        return {
+            "direction": "UNKNOWN",
+            "probability": 0.5,
+            "expected_return": 0.0,
+        }
 
 @router.get("/{pair:path}/forecast-dashboard")
 async def get_forecast_dashboard(
