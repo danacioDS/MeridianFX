@@ -10,6 +10,7 @@ from .models.logistic_model import LogisticModel
 from .explainers.shap_explainer import SHAPExplainer
 from .decision.filter import EconomicFilter
 from .config import MODEL_PATH
+from .models.registry import ModelRegistry
 
 CACHE_DIR = "cache"
 os.makedirs(CACHE_DIR, exist_ok=True)
@@ -19,52 +20,46 @@ class DecisionEngine:
     
     def __init__(self):
         self.data_provider = DataProvider()
-        self.xgb_model = None
-        self.logistic_model = None
-        self.shap_explainer = None
         self.economic_filter = EconomicFilter()
-        self.is_trained = False
+        self.registry = ModelRegistry()
         
         # Caché en memoria
         self.cache = {}
-        self.cache_ttl = 300  # 5 minutos
+        self.cache_ttl = 300
+        
+        # Modelos por par
+        self.xgb_models = {}
+        self.logistic_models = {}
+        self.shap_explainers = {}
         
         # Cargar caché desde disco
         self._load_cache()
+    
+    def _get_model_for_pair(self, pair: str, model_type: str = "xgboost"):
+        """Obtiene el modelo específico para un par, cargándolo bajo demanda."""
+        cache_key = f"{pair}_{model_type}"
         
-        # Cargar modelos aprobados desde Layer 3 Registry
-        #
-        # Layer 2 no interpreta directamente models/registry.json.
-        # ModelSelector + RegistryAdapter proporcionan el contrato de consumo.
-        self.load_model_from_registry("USD/JPY", "xgboost")
-
-        if self.xgb_model is not None and self.xgb_model.model is not None:
-            try:
-                result = self.data_provider.get_historical(
-                    "USD/JPY",
-                    period="1y"
-                )
-                df = result["data"]
-                df_feat = TechnicalFeatures.generate(df)
-                feature_cols = TechnicalFeatures.get_feature_names()
-                X_background = df_feat[feature_cols].dropna()
-
-                if len(X_background) > 0:
-                    self.shap_explainer = SHAPExplainer(
-                        self.xgb_model.model,
-                        self.xgb_model.feature_names,
-                        X_background
-                    )
-                    print("✅ SHAP Explainer inicializado")
-            except Exception as e:
-                print(f"⚠️ SHAP no inicializado: {e}")
-
-        self.load_model_from_registry("USD/JPY", "logistic")
-
-        # Pre-cargar forecast en caché
-        print("🔄 Pre-cargando forecast en caché...")
-        self.get_forecast('USD/JPY')
-        print("✅ Caché pre-cargado")
+        if cache_key in self.xgb_models:
+            return self.xgb_models[cache_key]
+        
+        try:
+            # Buscar modelo activo en el registry
+            active = self.registry.get_active(pair, model_type)
+            if active:
+                model_path = active.get('path')
+                if model_path and os.path.exists(model_path):
+                    if model_type == "xgboost":
+                        model = XGBoostModel(model_path)
+                    else:
+                        model = LogisticModel(model_path)
+                    
+                    self.xgb_models[cache_key] = model
+                    print(f"✅ Modelo {model_type} cargado para {pair}")
+                    return model
+        except Exception as e:
+            print(f"⚠️ Error cargando modelo {model_type} para {pair}: {e}")
+        
+        return None
     
     def _load_cache(self):
         """Carga caché desde disco."""
@@ -114,7 +109,7 @@ class DecisionEngine:
         self._save_cache()
     
     def get_forecast(self, pair: str) -> dict:
-        """Obtiene forecast completo con caché persistente."""
+        """Obtiene forecast completo para un par específico."""
         cache_key = f"forecast_{pair}"
         
         cached = self._get_cached(cache_key)
@@ -125,48 +120,73 @@ class DecisionEngine:
         print(f"📊 Generando forecast para {pair}...")
         
         try:
+            # 1. Obtener datos
             result = self.data_provider.get_historical(pair, period="1y")
             df = result['data']
             
+            # 2. Generar features
             df_feat = TechnicalFeatures.generate(df)
             feature_cols = TechnicalFeatures.get_feature_names()
             latest = df_feat.iloc[-1:][feature_cols].dropna()
             
             if latest.empty:
-                print("⚠️ No hay datos suficientes, usando fallback")
+                print("⚠️ No hay datos suficientes")
                 return self._fallback_forecast(pair)
             
-            if self.is_trained and self.xgb_model:
+            # 3. Cargar modelo específico para el par
+            xgb_model = self._get_model_for_pair(pair, "xgboost")
+            is_trained = xgb_model is not None and xgb_model.model is not None
+            
+            if is_trained:
                 try:
-                    xgb_pred = self.xgb_model.predict(latest)
-                except:
+                    xgb_pred = xgb_model.predict(latest)
+                    probability = xgb_pred.get('probability', 0.5)
+                    print(f"✅ XGBoost predijo para {pair}: {xgb_pred}")
+                except Exception as e:
+                    print(f"⚠️ XGBoost falló: {e}")
                     xgb_pred = self._heuristic_forecast(latest)
+                    probability = xgb_pred.get('probability', 0.5)
             else:
                 xgb_pred = self._heuristic_forecast(latest)
+                probability = xgb_pred.get('probability', 0.5)
+                print(f"⚠️ Usando heuristic para {pair}")
             
+            # 4. SHAP explicación
             shap_explanation = None
-            if self.shap_explainer is not None:
+            if is_trained and xgb_model is not None:
                 try:
-                    shap_explanation = self.shap_explainer.explain(latest)
+                    X_background = df_feat[feature_cols].dropna()
+                    if len(X_background) > 0:
+                        shap_explainer = SHAPExplainer(
+                            xgb_model.model,
+                            xgb_model.feature_names,
+                            X_background
+                        )
+                        shap_explanation = shap_explainer.explain(latest)
                 except Exception as e:
                     print(f"⚠️ SHAP falló: {e}")
             
+            # 5. Economic filter
             filtered = self.economic_filter.apply(xgb_pred)
             
+            # 6. Determinar dirección
+            direction = "UP" if probability > 0.55 else "DOWN" if probability < 0.45 else "NEUTRAL"
+            expected_return = (probability - 0.5) * 0.02
+            
             response = {
-                'direction': filtered.get('direction'),
-                'probability': filtered.get('probability'),
-                'expected_return': filtered.get('expected_return'),
-                'expected_volatility': filtered.get('expected_volatility'),
-                'actionable': filtered.get('actionable'),
-                'confidence': filtered.get('confidence'),
-                'signal_strength': filtered.get('signal_strength'),
-                'edge_ratio': filtered.get('edge_ratio'),
-                'net_return': filtered.get('net_return'),
-                'position_size': filtered.get('position_size'),
+                'direction': direction,
+                'probability': probability,
+                'expected_return': expected_return,
+                'expected_volatility': 0.12,
+                'actionable': filtered.get('actionable', False),
+                'confidence': filtered.get('confidence', probability),
+                'signal_strength': filtered.get('signal_strength', 'moderate'),
+                'edge_ratio': filtered.get('edge_ratio', 0.0),
+                'net_return': filtered.get('net_return', 0.0),
+                'position_size': filtered.get('position_size', 0.0),
                 'model': {
-                    'version': 'xgb-v1.0' if self.is_trained else 'heuristic-v1.0',
-                    'type': 'xgboost' if self.is_trained else 'heuristic'
+                    'version': 'xgb-v1.0' if is_trained else 'heuristic-v1.0',
+                    'type': 'xgboost' if is_trained else 'heuristic'
                 },
                 'shap': shap_explanation,
                 'data_provider': {
@@ -185,67 +205,6 @@ class DecisionEngine:
             print(f"❌ Error: {e}")
             return self._fallback_forecast(pair)
     
-    def get_drivers(self, pair: str) -> dict:
-        """Obtiene drivers (SHAP) con caché persistente."""
-        cache_key = f"drivers_{pair}"
-        
-        cached = self._get_cached(cache_key)
-        if cached:
-            return cached
-        
-        try:
-            forecast = self.get_forecast(pair)
-            shap_data = forecast.get('shap', {})
-            
-            if not shap_data or 'contributions' not in shap_data:
-                response = {
-                    'pair': pair,
-                    'shap': [],
-                    'narrative': 'No SHAP explanation available',
-                    'timestamp': datetime.now().isoformat()
-                }
-                self._set_cache(cache_key, response)
-                return response
-            
-            contributions = shap_data['contributions']
-            
-            if not contributions:
-                response = {
-                    'pair': pair,
-                    'shap': [],
-                    'narrative': 'No SHAP explanation available',
-                    'timestamp': datetime.now().isoformat()
-                }
-                self._set_cache(cache_key, response)
-                return response
-            
-            top_drivers = contributions[:3]
-            narrative_parts = []
-            for d in top_drivers:
-                direction = "positive" if d['contribution'] > 0 else "negative"
-                narrative_parts.append(f"{d['feature']} ({direction}, {abs(d['contribution']):.3f})")
-            
-            narrative = f"Top drivers: " + ", ".join(narrative_parts)
-            
-            response = {
-                'pair': pair,
-                'shap': contributions,
-                'narrative': narrative,
-                'timestamp': datetime.now().isoformat()
-            }
-            
-            self._set_cache(cache_key, response)
-            return response
-            
-        except Exception as e:
-            print(f"⚠️ get_drivers error: {e}")
-            return {
-                'pair': pair,
-                'shap': [],
-                'narrative': f'Error generating SHAP: {str(e)}',
-                'timestamp': datetime.now().isoformat()
-            }
-    
     def _heuristic_forecast(self, latest: pd.DataFrame) -> dict:
         rsi = latest['rsi_14'].iloc[-1] if 'rsi_14' in latest else 50
         macd = latest['macd'].iloc[-1] if 'macd' in latest else 0
@@ -259,7 +218,7 @@ class DecisionEngine:
     
     def _fallback_forecast(self, pair: str) -> dict:
         return {
-            'direction': 'UP',
+            'direction': 'NEUTRAL',
             'probability': 0.5,
             'expected_return': 0.0,
             'expected_volatility': 0.0,
@@ -274,160 +233,3 @@ class DecisionEngine:
             'data_provider': {'source': 'none', 'fallback_used': True, 'freshness': 'UNKNOWN'},
             'timestamp': datetime.now().isoformat()
         }
-
-    # ========== PIT Integration ==========
-    
-    def validate_pit(self, pair: str, prediction_timestamp: Optional[datetime] = None) -> Dict[str, Any]:
-        """
-        Validate PIT compliance for a pair before prediction.
-        
-        Ensures all features used for prediction respect PIT invariants.
-        """
-        from .quality.pit_adapter import PITAdapter
-        
-        adapter = PITAdapter()
-        
-        # Get historical data with timestamps
-        result = self.data_provider.get_historical(pair, period="1y")
-        df = result['data']
-        
-        # Build feature dictionary with available_time
-        feature = {
-            'feature_id': f'{pair}_prediction',
-            'available_time': result['timestamp'],
-            'source': result.get('provider', 'unknown'),
-            'is_interpolated': False,
-        }
-        
-        if prediction_timestamp is None:
-            prediction_timestamp = datetime.now(timezone.utc)
-        
-        return adapter.validate_prediction_inputs(feature, prediction_timestamp)
-    
-    def get_forecast_with_pit(self, pair: str) -> dict:
-        """
-        Obtiene forecast con validación PIT.
-        
-        Si PIT falla, retorna un error en lugar de una predicción no confiable.
-        """
-        # 1. Validate PIT
-        pit_result = self.validate_pit(pair)
-        
-        if not pit_result['passed']:
-            return {
-                'direction': 'NEUTRAL',
-                'probability': 0.5,
-                'expected_return': 0.0,
-                'expected_volatility': 0.0,
-                'actionable': False,
-                'error': 'PIT_VALIDATION_FAILED',
-                'pit_report': pit_result,
-                'timestamp': datetime.now().isoformat()
-            }
-        
-        # 2. Generate forecast (existing logic)
-        forecast = self.get_forecast(pair)
-        forecast['pit_validated'] = True
-        forecast['pit_timestamp'] = pit_result['prediction_timestamp']
-        
-        return forecast
-
-    # ========== Model Selector Integration ==========
-
-    def get_model_from_registry(
-        self,
-        pair: str,
-        model_type: str = "xgboost"
-    ) -> Optional[Dict[str, Any]]:
-        """
-        Get the best model selected through the Layer 3 registry contract.
-
-        Layer 2 consumes the artifact through ModelSelector and does not
-        access the underlying registry format directly.
-        """
-        from .models.model_selector import ModelSelector
-
-        selector = ModelSelector()
-        model_artifact = selector.get_best_model(pair, model_type)
-
-        if model_artifact:
-            print(
-                f"✅ Model selected from registry: "
-                f"{model_artifact.get('model_id')} "
-                f"({model_artifact.get('model_version')})"
-            )
-            return model_artifact
-
-        print(
-            f"⚠️ No model available for "
-            f"{pair} / {model_type}"
-        )
-        return None
-
-    def load_model_from_registry(
-        self,
-        pair: str,
-        model_type: str = "xgboost"
-    ) -> bool:
-        """
-        Load the best selected model.
-
-        Returns True if the model loads successfully.
-        """
-        model_artifact = self.get_model_from_registry(
-            pair,
-            model_type
-        )
-
-        if not model_artifact:
-            return False
-
-        model_path = model_artifact.get("model_file")
-
-        if not model_path:
-            print(
-                f"⚠️ Model artifact has no model_file: "
-                f"{model_artifact.get('model_id')}"
-            )
-            return False
-
-        try:
-            if model_type == "xgboost":
-                model = XGBoostModel(model_path)
-
-                if model.model is None:
-                    return False
-
-                self.xgb_model = model
-                self.is_trained = True
-
-                print(
-                    f"✅ XGBoost cargado desde registry: "
-                    f"{model_path}"
-                )
-                return True
-
-            if model_type == "logistic":
-                model = LogisticModel(model_path)
-
-                if model.model is None:
-                    return False
-
-                self.logistic_model = model
-
-                print(
-                    f"✅ Logistic cargado desde registry: "
-                    f"{model_path}"
-                )
-                return True
-
-            print(f"⚠️ Unsupported model type: {model_type}")
-            return False
-
-        except Exception as e:
-            print(
-                f"⚠️ Error cargando {model_type} "
-                f"desde registry: {e}"
-            )
-            return False
-
