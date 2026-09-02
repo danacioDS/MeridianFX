@@ -2,43 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MeridianFX</title>
-    <script>
-      // Polyfill para RegExp flag 'd' y otros flags modernos
-      (function() {
-        if (typeof RegExp === 'undefined') return;
-        if ('indices' in RegExp.prototype) return;
-        
-        console.log('[MeridianFX] Aplicando polyfill para RegExp');
-        
-        // Guardar el exec original
-        const originalExec = RegExp.prototype.exec;
-        
-        RegExp.prototype.exec = function(str) {
-          const result = originalExec.call(this, str);
-          if (result && this.hasIndices !== undefined) {
-            // Simular la propiedad 'indices'
-            result.indices = {
-              groups: {},
-              length: 0
-            };
-          }
-          return result;
-        };
-        
-        // Si el flag 'd' está presente, procesarlo
-        const originalCompile = RegExp.prototype.compile;
-        RegExp.prototype.compile = function(pattern, flags) {
-          // Eliminar flag 'd' si está presente
-          if (flags && flags.includes('d')) {
-            flags = flags.replace(/d/g, '');
-          }
-          return originalCompile.call(this, pattern, flags);
-        };
-      })();
-    </script>
-    <script type="module" crossorigin src="/assets/index-vhIE-MuO.js"></script>
+    <title>MeridianFX - Forex Intelligence Platform</title>
+    <script type="module" crossorigin src="/assets/index-CzSBITsy.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-D5smjG46.css">
   </head>
   <body>
