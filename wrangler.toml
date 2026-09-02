@@ -7,6 +7,3 @@ command = "cd frontend && npm install && npm run build"
 
 [vars]
 VITE_API_URL = "https://tu-backend.onrender.com"
-
-[env.production.vars]
-VITE_API_URL = "https://tu-backend.onrender.com"
