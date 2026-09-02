@@ -1,0 +1,12 @@
+name = "meridianfx"
+compatibility_date = "2024-08-31"
+pages_build_output_dir = "frontend/dist"
+
+[build]
+command = "cd frontend && npm install && npm run build"
+
+[vars]
+VITE_API_URL = "https://tu-backend.onrender.com"
+
+[env.production.vars]
+VITE_API_URL = "https://tu-backend.onrender.com"
