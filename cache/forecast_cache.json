@@ -2,73 +2,73 @@
   "forecast_USD/JPY": {
     "data": {
       "direction": "DOWN",
-      "probability": 0.6575225591659546,
-      "expected_return": -0.003150451183319092,
+      "probability": 0.6258913278579712,
+      "expected_return": -0.002517826557159424,
       "expected_volatility": 0.12,
       "actionable": false,
-      "confidence": 0.3150451183319092,
-      "signal_strength": 0.03308447552825555,
-      "edge_ratio": 0.3150451183319092,
-      "net_return": -0.002205315828323364,
+      "confidence": 0.2517826557159424,
+      "signal_strength": 0.021131501906457593,
+      "edge_ratio": 0.2517826557159424,
+      "net_return": -0.0017624785900115967,
       "position_size": 0,
       "model": {
         "version": "xgb-v1.0",
         "type": "xgboost"
       },
       "shap": {
-        "base_value": -0.7755323663293462,
-        "base_probability": 0.31528356122006873,
-        "final_probability": 0.3424774294187972,
+        "base_value": -0.7964165606400445,
+        "base_probability": 0.3107925726586558,
+        "final_probability": 0.37410872031730785,
         "contributions": [
           {
             "feature": "macd_hist",
-            "contribution": 0.7926531526625065,
-            "abs_contribution": 0.7926531526625065
+            "contribution": 0.8060319308508909,
+            "abs_contribution": 0.8060319308508909
           },
           {
             "feature": "bb_upper",
-            "contribution": -0.3767693222275851,
-            "abs_contribution": 0.3767693222275851
+            "contribution": -0.3830511392509236,
+            "abs_contribution": 0.3830511392509236
           },
           {
             "feature": "rsi_14",
-            "contribution": 0.32309417355084574,
-            "abs_contribution": 0.32309417355084574
+            "contribution": 0.3641416910614644,
+            "abs_contribution": 0.3641416910614644
           },
           {
             "feature": "aroon_down",
-            "contribution": -0.18635498187887103,
-            "abs_contribution": 0.18635498187887103
-          },
-          {
-            "feature": "volatility",
-            "contribution": -0.16348859104274263,
-            "abs_contribution": 0.16348859104274263
+            "contribution": -0.16552049707931757,
+            "abs_contribution": 0.16552049707931757
           },
           {
             "feature": "macd",
-            "contribution": 0.1327773624329733,
-            "abs_contribution": 0.1327773624329733
+            "contribution": 0.14260469870844827,
+            "abs_contribution": 0.14260469870844827
+          },
+          {
+            "feature": "volatility",
+            "contribution": -0.14007916635105105,
+            "abs_contribution": 0.14007916635105105
           },
           {
             "feature": "macd_signal",
-            "contribution": 0.11483190850518822,
-            "abs_contribution": 0.11483190850518822
-          },
-          {
-            "feature": "bb_width",
-            "contribution": -0.11371091086661082,
-            "abs_contribution": 0.11371091086661082
-          },
-          {
-            "feature": "adx",
-            "contribution": -0.11354054526034137,
-            "abs_contribution": 0.11354054526034137
+            "contribution": 0.11566802683386554,
+            "abs_contribution": 0.11566802683386554
           },
           {
             "feature": "sma_20",
-            "contribution": -0.10960964917217683,
-            "abs_contribution": 0.10960964917217683
+            "contribution": -0.11170022234942646,
+            "abs_contribution": 0.11170022234942646
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.1051502060469554,
+            "abs_contribution": 0.1051502060469554
+          },
+          {
+            "feature": "ema_12",
+            "contribution": -0.10381772977929031,
+            "abs_contribution": 0.10381772977929031
           }
         ],
         "feature_count": 23
@@ -77,11 +77,11 @@
         "source": "yahoo",
         "fallback_used": false,
         "freshness": "FRESH",
-        "last_price": 160.1179962158203
+        "last_price": 160.03500366210938
       },
-      "timestamp": "2026-08-30T18:51:00.687352"
+      "timestamp": "2026-08-30T20:25:46.078985"
     },
-    "timestamp": "2026-08-30T18:51:00.687368"
+    "timestamp": "2026-08-30T20:25:46.079007"
   },
   "drivers_USD/JPY": {
     "data": {
@@ -146,73 +146,73 @@
   "forecast_USD/BOB": {
     "data": {
       "direction": "UP",
-      "probability": 0.544303297996521,
-      "expected_return": 0.00088606595993042,
+      "probability": 0.7314360737800598,
+      "expected_return": 0.004628721475601196,
       "expected_volatility": 0.12,
       "actionable": false,
-      "confidence": 0.08860659599304199,
-      "signal_strength": 0.002617042951158055,
-      "edge_ratio": 0.08860659599304199,
-      "net_return": 0.000620246171951294,
+      "confidence": 0.46287214756011963,
+      "signal_strength": 0.07141687499563905,
+      "edge_ratio": 0.46287214756011963,
+      "net_return": 0.003240105032920837,
       "position_size": 0,
       "model": {
         "version": "xgb-v1.0",
         "type": "xgboost"
       },
       "shap": {
-        "base_value": -0.7755323663293462,
-        "base_probability": 0.31528356122006873,
-        "final_probability": 0.5443033658161862,
+        "base_value": -0.7964165606400445,
+        "base_probability": 0.3107925726586558,
+        "final_probability": 0.7314361155707948,
         "contributions": [
           {
-            "feature": "rsi_14",
-            "contribution": -0.8172553738025714,
-            "abs_contribution": 0.8172553738025714
+            "feature": "sma_200",
+            "contribution": 0.7352607144731961,
+            "abs_contribution": 0.7352607144731961
           },
           {
             "feature": "bb_upper",
-            "contribution": 0.65854858777255,
-            "abs_contribution": 0.65854858777255
+            "contribution": 0.638568815358777,
+            "abs_contribution": 0.638568815358777
           },
           {
-            "feature": "sma_200",
-            "contribution": 0.5963043514917618,
-            "abs_contribution": 0.5963043514917618
-          },
-          {
-            "feature": "bb_width",
-            "contribution": -0.44722194123397463,
-            "abs_contribution": 0.44722194123397463
+            "feature": "rsi_14",
+            "contribution": -0.6166292897780526,
+            "abs_contribution": 0.6166292897780526
           },
           {
             "feature": "ema_12",
-            "contribution": 0.29269061731148904,
-            "abs_contribution": 0.29269061731148904
-          },
-          {
-            "feature": "sma_20",
-            "contribution": 0.2029289772702053,
-            "abs_contribution": 0.2029289772702053
-          },
-          {
-            "feature": "macd",
-            "contribution": 0.19334373029005153,
-            "abs_contribution": 0.19334373029005153
+            "contribution": 0.32256165728285024,
+            "abs_contribution": 0.32256165728285024
           },
           {
             "feature": "bb_middle",
-            "contribution": 0.17777435327992674,
-            "abs_contribution": 0.17777435327992674
+            "contribution": 0.23403239754509472,
+            "abs_contribution": 0.23403239754509472
           },
           {
-            "feature": "macd_signal",
-            "contribution": 0.16379177931915148,
-            "abs_contribution": 0.16379177931915148
+            "feature": "sma_20",
+            "contribution": 0.1873506465975884,
+            "abs_contribution": 0.1873506465975884
+          },
+          {
+            "feature": "macd",
+            "contribution": 0.1749650579355238,
+            "abs_contribution": 0.1749650579355238
           },
           {
             "feature": "sma_50",
-            "contribution": -0.14895054302517113,
-            "abs_contribution": 0.14895054302517113
+            "contribution": -0.15824620097594963,
+            "abs_contribution": 0.15824620097594963
+          },
+          {
+            "feature": "adx",
+            "contribution": -0.13911756641456183,
+            "abs_contribution": 0.13911756641456183
+          },
+          {
+            "feature": "macd_signal",
+            "contribution": 0.13904810154443537,
+            "abs_contribution": 0.13904810154443537
           }
         ],
         "feature_count": 23
@@ -220,12 +220,12 @@
       "data_provider": {
         "source": "yahoo",
         "fallback_used": false,
-        "freshness": "FRESH",
-        "last_price": 11.779999732971191
+        "freshness": "STALE",
+        "last_price": 11.403312683105469
       },
-      "timestamp": "2026-08-30T15:35:07.943436"
+      "timestamp": "2026-08-30T20:27:59.735767"
     },
-    "timestamp": "2026-08-30T15:35:07.943449"
+    "timestamp": "2026-08-30T20:27:59.735779"
   },
   "drivers_USD/BOB": {
     "data": {

@@ -1,0 +1,8 @@
+backend/
+venv/
+*.py
+requirements.txt
+runtime.txt
+pyproject.toml
+Dockerfile
+docker-compose.yml

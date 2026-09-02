@@ -88,6 +88,13 @@ class DataProvider:
         interval: str = "1d",
     ) -> dict:
 
+        # Canonical period aliases.
+        # Yahoo Finance uses "6mo", not "6m".
+        period_aliases = {
+            "6m": "6mo",
+        }
+        period = period_aliases.get(period, period)
+
         for source_name, source_func in self.sources:
             try:
                 print(f"📥 Intentando {source_name}...")
