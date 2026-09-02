@@ -2,8 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// Función para obtener interpretación + macro para un par específico
-export const fetchMacro = async (pair: string) => {
+// Función para obtener el contexto macro para un par específico
+export const fetchMacroContext = async (pair: string) => {
   const response = await fetch(`${API_URL}/v1/fx/interpretation?pair=${encodeURIComponent(pair)}&include_macro=true`);
   if (!response.ok) {
     throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -11,11 +11,11 @@ export const fetchMacro = async (pair: string) => {
   return response.json();
 };
 
-// Hook para usar el análisis macro de un par específico
-export const useMacro = (pair: string) => {
+// Hook para usar el contexto macro de un par específico
+export const useMacroContext = (pair: string) => {
   return useQuery({
-    queryKey: ['macro', pair],
-    queryFn: () => fetchMacro(pair),
+    queryKey: ['macro', 'context', pair],
+    queryFn: () => fetchMacroContext(pair),
     enabled: !!pair,
     refetchInterval: 300000, // 5 minutos
     staleTime: 240000, // 4 minutos

@@ -1,3 +1,4 @@
+import { safeToFixed } from "../utils/safeFormat";
 /**
  * Model Comparison Page — Compara XGBoost, Logistic y Ensemble.
  */
@@ -80,23 +81,23 @@ export function ModelComparisonPage(): JSX.Element {
                     </td>
                     <td className="text-right py-2 px-3 font-mono">
                       <span className={m.sharpe > 0.3 ? 'text-bull' : 'text-bear'}>
-                        {m.sharpe.toFixed(3)}
+                        {safeToFixed(m.sharpe, 3)}
                       </span>
                     </td>
                     <td className="text-right py-2 px-3 font-mono">
                       <span className={m.profit_factor > 1.2 ? 'text-bull' : 'text-bear'}>
-                        {m.profit_factor.toFixed(3)}
+                        {safeToFixed(m.profit_factor, 3)}
                       </span>
                     </td>
                     <td className="text-right py-2 px-3 font-mono">
-                      {(m.da * 100).toFixed(1)}%
+                      {safeToFixed(m.da * 100, 1)}%
                     </td>
                     <td className="text-right py-2 px-3 font-mono">
-                      {m.auc.toFixed(3)}
+                      {safeToFixed(m.auc, 3)}
                     </td>
                     <td className="text-right py-2 px-3 font-mono">
                       <span className={m.net_return > 0 ? 'text-bull' : 'text-bear'}>
-                        {(m.net_return * 100).toFixed(2)}%
+                        {safeToFixed(m.net_return * 100, 2)}%
                       </span>
                     </td>
                     <td className="text-right py-2 px-3 font-mono">

@@ -1,19 +1,47 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Meridian FX — Foreign exchange intelligence dashboard." />
-    <title>Meridian FX</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <title>MeridianFX</title>
+    <script>
+      // Polyfill para RegExp flag 'd' y otros flags modernos
+      (function() {
+        if (typeof RegExp === 'undefined') return;
+        if ('indices' in RegExp.prototype) return;
+        
+        console.log('[MeridianFX] Aplicando polyfill para RegExp');
+        
+        // Guardar el exec original
+        const originalExec = RegExp.prototype.exec;
+        
+        RegExp.prototype.exec = function(str) {
+          const result = originalExec.call(this, str);
+          if (result && this.hasIndices !== undefined) {
+            // Simular la propiedad 'indices'
+            result.indices = {
+              groups: {},
+              length: 0
+            };
+          }
+          return result;
+        };
+        
+        // Si el flag 'd' está presente, procesarlo
+        const originalCompile = RegExp.prototype.compile;
+        RegExp.prototype.compile = function(pattern, flags) {
+          // Eliminar flag 'd' si está presente
+          if (flags && flags.includes('d')) {
+            flags = flags.replace(/d/g, '');
+          }
+          return originalCompile.call(this, pattern, flags);
+        };
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-BshNhuaL.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-D5smjG46.css">
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

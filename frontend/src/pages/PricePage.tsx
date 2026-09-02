@@ -1,3 +1,4 @@
+import { safeToFixed } from "../utils/safeFormat";
 /**
  * Price Page — Cotización actual, histórico y predicción
  */
@@ -60,15 +61,15 @@ export function PricePage(): JSX.Element {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 bg-panel rounded-lg p-6 border border-line">
         <div>
           <div className="text-sm text-muted">Precio Actual</div>
-          <div className="text-3xl font-bold text-ink">{current_price.toFixed(4)}</div>
+          <div className="text-3xl font-bold text-ink">{safeToFixed(current_price, 4)}</div>
           <div className="text-sm text-muted">{info}</div>
         </div>
         <div>
           <div className="text-sm text-muted">Cambio (24h)</div>
           <div className={`text-2xl font-bold ${change_percent >= 0 ? 'text-bull' : 'text-bear'}`}>
-            {change_percent >= 0 ? '+' : ''}{change_percent.toFixed(2)}%
+            {change_percent >= 0 ? '+' : ''}{safeToFixed(change_percent, 2)}%
           </div>
-          <div className="text-sm text-muted">{change_abs >= 0 ? '+' : ''}{change_abs.toFixed(4)}</div>
+          <div className="text-sm text-muted">{change_abs >= 0 ? '+' : ''}{safeToFixed(change_abs, 4)}</div>
         </div>
         <div>
           <div className="text-sm text-muted">Predicción XGBoost</div>
@@ -103,7 +104,7 @@ export function PricePage(): JSX.Element {
                     key={i}
                     className={`flex-1 ${isLast ? 'bg-meridian' : 'bg-meridian/40'} rounded-t transition-all hover:bg-meridian/80`}
                     style={{ height: `${Math.max(height, 2)}%` }}
-                    title={`${point.date}: ${point.close.toFixed(4)}`}
+                    title={`${point.date}: ${safeToFixed(point.close, 4)}`}
                   />
                 );
               })}
@@ -120,19 +121,19 @@ export function PricePage(): JSX.Element {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 bg-panel rounded-lg p-6 border border-line">
         <div className="text-center">
           <div className="text-xs text-muted">Máximo (30d)</div>
-          <div className="text-lg font-mono font-semibold text-ink">{maxPrice.toFixed(4)}</div>
+          <div className="text-lg font-mono font-semibold text-ink">{safeToFixed(maxPrice, 4)}</div>
         </div>
         <div className="text-center">
           <div className="text-xs text-muted">Mínimo (30d)</div>
-          <div className="text-lg font-mono font-semibold text-ink">{minPrice.toFixed(4)}</div>
+          <div className="text-lg font-mono font-semibold text-ink">{safeToFixed(minPrice, 4)}</div>
         </div>
         <div className="text-center">
           <div className="text-xs text-muted">Volatilidad (30d)</div>
-          <div className="text-lg font-mono font-semibold text-ink">{volatility.toFixed(2)}%</div>
+          <div className="text-lg font-mono font-semibold text-ink">{safeToFixed(volatility, 2)}%</div>
         </div>
         <div className="text-center">
           <div className="text-xs text-muted">Rango</div>
-          <div className="text-lg font-mono font-semibold text-ink">{(maxPrice - minPrice).toFixed(4)}</div>
+          <div className="text-lg font-mono font-semibold text-ink">{safeToFixed(maxPrice - minPrice, 4)}</div>
         </div>
       </div>
 
@@ -147,7 +148,7 @@ export function PricePage(): JSX.Element {
               : `No hay suficiente información para una predicción confiable.`}
           </p>
           <p className="text-xs text-muted">
-            Precio actual: 1 {base_name} = {current_price.toFixed(4)} {quote_name}
+            Precio actual: 1 {base_name} = {safeToFixed(current_price, 4)} {quote_name}
           </p>
           <p className="text-xs text-muted">
             Datos históricos: {history?.length || 0} días · Fuente: {source || 'yahoo'}

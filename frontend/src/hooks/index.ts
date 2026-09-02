@@ -11,3 +11,4 @@ export * from "./useInterpretation";
 export * from "./useMacro";
 export * from "./usePrice";
 export * from "./useForecastDashboard";
+export * from "./useMacroContext";  // 👈 Añadir esta línea
