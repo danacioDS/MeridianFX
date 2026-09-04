@@ -718,5 +718,89 @@
       "timestamp": "2026-08-29T18:10:04.084605"
     },
     "timestamp": "2026-08-29T18:10:04.084611"
+  },
+  "forecast_USD/CNY": {
+    "data": {
+      "direction": "UP",
+      "probability": 0.5733673572540283,
+      "expected_return": 0.0014673471450805664,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0.14673471450805664,
+      "signal_strength": 0.007177025480586963,
+      "edge_ratio": 0.14673471450805664,
+      "net_return": -0.0010271430015563964,
+      "position_size": 0,
+      "model": {
+        "version": "xgb-v1.0",
+        "type": "xgboost"
+      },
+      "shap": {
+        "base_value": -1.5375433734338413,
+        "base_probability": 0.1768926798128388,
+        "final_probability": 0.4266326438538465,
+        "contributions": [
+          {
+            "feature": "adx",
+            "contribution": 0.9807208452297945,
+            "abs_contribution": 0.9807208452297945
+          },
+          {
+            "feature": "rsi_14",
+            "contribution": 0.320034340593612,
+            "abs_contribution": 0.320034340593612
+          },
+          {
+            "feature": "macd",
+            "contribution": -0.2579853656508484,
+            "abs_contribution": 0.2579853656508484
+          },
+          {
+            "feature": "macd_signal",
+            "contribution": 0.25291558470315256,
+            "abs_contribution": 0.25291558470315256
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.08083763449200576,
+            "abs_contribution": 0.08083763449200576
+          },
+          {
+            "feature": "stoch_k",
+            "contribution": 0.057568476326470816,
+            "abs_contribution": 0.057568476326470816
+          },
+          {
+            "feature": "momentum",
+            "contribution": 0.0527418820578503,
+            "abs_contribution": 0.0527418820578503
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": -0.048801072341381584,
+            "abs_contribution": 0.048801072341381584
+          },
+          {
+            "feature": "volatility",
+            "contribution": -0.03939282422991763,
+            "abs_contribution": 0.03939282422991763
+          },
+          {
+            "feature": "aroon_down",
+            "contribution": -0.035377419948990366,
+            "abs_contribution": 0.035377419948990366
+          }
+        ],
+        "feature_count": 23
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 6.701300144195557
+      },
+      "timestamp": "2026-09-04T18:30:00.330546"
+    },
+    "timestamp": "2026-09-04T18:30:00.330556"
   }
 }

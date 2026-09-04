@@ -1,0 +1,108 @@
+{
+  "models": [
+    {
+      "model_id": "USD/CNY_xgboost_v1.0_20260904_173624",
+      "pair": "USD/CNY",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_CNY_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.734375,
+        "auc": 0.2884114583333333,
+        "brier": 0.24538961052894592,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-09-04T17:36:24.358330",
+      "active": true
+    },
+    {
+      "model_id": "USD/MXN_xgboost_v1.0_20260904_173626",
+      "pair": "USD/MXN",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_MXN_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.53125,
+        "auc": 0.5625,
+        "brier": 0.270296573638916,
+        "n_samples": 320,
+        "n_features": 23
+      },
+      "created_at": "2026-09-04T17:36:26.491899",
+      "active": true
+    },
+    {
+      "model_id": "USD/BRL_xgboost_v1.0_20260904_173628",
+      "pair": "USD/BRL",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_BRL_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.515625,
+        "auc": 0.538235294117647,
+        "brier": 0.28667402267456055,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-09-04T17:36:28.109267",
+      "active": true
+    },
+    {
+      "model_id": "USD/ARS_xgboost_v1.0_20260904_173629",
+      "pair": "USD/ARS",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_ARS_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.453125,
+        "auc": 0.593103448275862,
+        "brier": 0.4339742958545685,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-09-04T17:36:29.373376",
+      "active": true
+    },
+    {
+      "model_id": "USD/BOB_xgboost_v1.0_20260904_173631",
+      "pair": "USD/BOB",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_BOB_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.46875,
+        "auc": 0.4117948717948718,
+        "brier": 0.39265140891075134,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-09-04T17:36:31.173176",
+      "active": true
+    },
+    {
+      "model_id": "USD/CHF_xgboost_v1.0_20260904_173635",
+      "pair": "USD/CHF",
+      "model_type": "xgboost",
+      "version": "v1.0",
+      "path": "models/xgboost_USD_CHF_v1.0.pkl",
+      "metrics": {
+        "accuracy": 0.484375,
+        "auc": 0.7598039215686274,
+        "brier": 0.3998458981513977,
+        "n_samples": 319,
+        "n_features": 23
+      },
+      "created_at": "2026-09-04T17:36:35.691931",
+      "active": true
+    }
+  ],
+  "current": {
+    "USD/CNY_xgboost": "USD/CNY_xgboost_v1.0_20260904_173624",
+    "USD/MXN_xgboost": "USD/MXN_xgboost_v1.0_20260904_173626",
+    "USD/BRL_xgboost": "USD/BRL_xgboost_v1.0_20260904_173628",
+    "USD/ARS_xgboost": "USD/ARS_xgboost_v1.0_20260904_173629",
+    "USD/BOB_xgboost": "USD/BOB_xgboost_v1.0_20260904_173631",
+    "USD/CHF_xgboost": "USD/CHF_xgboost_v1.0_20260904_173635"
+  }
+}

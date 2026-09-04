@@ -45,7 +45,7 @@ function wait(delayMs: number): Promise<void> {
 }
 
 export const apiClient = axios.create({
-  baseURL: config.apiBaseUrl,
+  baseURL: "http://localhost:8000",
   timeout: REQUEST_TIMEOUT_MS,
   headers: {
     "Content-Type": "application/json",

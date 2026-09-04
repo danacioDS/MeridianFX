@@ -1,90 +1,70 @@
-import logging
-from typing import List, Optional
-from fastapi import APIRouter, Depends, Query
-from pydantic import BaseModel
-from datetime import datetime
+"""
+Interpretation Router - Economic interpretation of FX signals
+"""
+from fastapi import APIRouter, HTTPException, Query
+from typing import Dict, Any
+import pandas as pd
 
-from layer1.llm.interpreter import EconomicInterpreter
-from layer1.data.forecast_data import FORECAST_DATA
-
-logger = logging.getLogger(__name__)
+from layer2.engine import DecisionEngine
 
 router = APIRouter(prefix="/v1/fx", tags=["interpretation"])
 
-class InterpretationResponse(BaseModel):
-    pair: str
-    interpretation: List[str]
-    context: Optional[dict] = None
-    macro: Optional[dict] = None
-    timestamp: str
+_engine = None
 
-# Interpreter global
-_interpreter = None
-
-def get_interpreter():
-    global _interpreter
-    if _interpreter is None:
-        _interpreter = EconomicInterpreter()
-    return _interpreter
+def get_engine():
+    global _engine
+    if _engine is None:
+        _engine = DecisionEngine()
+    return _engine
 
 @router.get("/interpretation")
 async def get_interpretation(
-    pair: str = Query(..., description="Par de divisas, ej: USD/JPY"),
-    include_macro: bool = Query(False, description="Incluir datos macro en la respuesta"),
-    interpreter: EconomicInterpreter = Depends(get_interpreter),
-):
+    pair: str = Query(..., description="Currency pair, e.g. USD/JPY"),
+    include_macro: bool = Query(False, description="Include macro context")
+) -> Dict[str, Any]:
     """
-    Obtiene interpretación del mercado para un par de divisas.
+    Obtiene interpretación económica de señales FX
     """
     try:
-        # Obtener datos de forecast para el par
-        data = FORECAST_DATA.get(pair, FORECAST_DATA.get("USD/JPY", {})).copy()
-        data["pair"] = pair
+        engine = get_engine()
         
-        # Construir contexto para el interpretador
-        context = {
+        # Obtener forecast
+        forecast = engine.get_forecast(pair)
+        
+        # Construir interpretación básica
+        direction = forecast.get("direction", "NEUTRAL")
+        probability = forecast.get("probability", 0.5)
+        confidence = forecast.get("confidence", 0.5)
+        
+        # Interpretación simple
+        if probability > 0.6:
+            strength = "strong"
+        elif probability > 0.55:
+            strength = "moderate"
+        else:
+            strength = "weak"
+        
+        interpretation = {
             "pair": pair,
-            "direction": data.get("direction", "NEUTRAL"),
-            "probability": data.get("probability", 0.5),
-            "spot_price": data.get("spot", {}).get("price", 0),
-            "change_pct": data.get("spot", {}).get("change_pct", 0),
-            "forecasts": data.get("forecasts", {}),
-            "volatility": data.get("volatility", 0),
-            "regime": data.get("regime", "NEUTRAL"),
-            "economic_filter": data.get("economic_filter", {}),
+            "timestamp": pd.Timestamp.now().isoformat(),
+            "signal": {
+                "direction": direction,
+                "probability": probability,
+                "confidence": confidence,
+                "strength": strength
+            },
+            "narrative": f"El modelo indica una señal {direction.lower()} con {strength} convicción ({probability:.1%}) para {pair}.",
+            "risks": [],
+            "event_sensitivity": []
         }
         
-        # Generar interpretación usando el LLM
-        bullets = interpreter.interpret(context)
-        
-        # Respuesta
-        response = {
-            "pair": pair,
-            "interpretation": bullets,
-            "context": context,
-            "timestamp": datetime.now().isoformat(),
-        }
-        
-        # Incluir macro si se solicita
         if include_macro:
-            try:
-                from layer1.services.macro_service import get_macro_context
-                macro_data = get_macro_context()
-                response["macro"] = macro_data
-            except Exception as e:
-                logger.warning(f"Error getting macro data: {e}")
+            interpretation["macro_context"] = {
+                "regime": "NEUTRAL",
+                "summary": "Contexto macro no disponible"
+            }
         
-        return response
+        return interpretation
         
     except Exception as e:
-        logger.error(f"Error generating interpretation: {e}")
-        return {
-            "pair": pair,
-            "interpretation": [
-                f"Análisis en proceso para {pair}.",
-                "El sistema está generando la interpretación.",
-                "Por favor, intenta nuevamente en unos momentos."
-            ],
-            "context": {"pair": pair},
-            "timestamp": datetime.now().isoformat()
-        }
+        raise HTTPException(status_code=500, detail=str(e))
