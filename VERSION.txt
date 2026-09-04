@@ -1,0 +1,37 @@
+Meridian FX - Version Estable
+================================
+Fecha: 2026-09-04
+Versión: v2.3.1-estable-20260904
+
+Estado: HEALTHY
+Endpoints: 8/8 funcionales
+Modelos XGBoost: 9 activos
+Modelos Logistic: 1 activo (USD/JPY)
+Tests Backend: 103/103 pasando
+Tests Frontend: 45/55 pasando (10 pendientes)
+SHAP: Funcional con 23 features
+
+Arquitectura:
+- Layer 1: FastAPI (port 8000)
+- Layer 2: DecisionEngine con modelos por par
+- SHAP: Explicabilidad en /drivers
+- Frontend: React (port 5174)
+
+Endpoints disponibles:
+- /health
+- /v1/status
+- /v1/fx/ranking
+- /v1/fx/{pair}/price
+- /v1/fx/{pair}/drivers (con SHAP real)
+- /v1/fx/{pair}/forecast
+- /v1/fx/{pair}/model-comparison
+- /v1/fx/{pair}/forecast-dashboard
+
+Deployment:
+- Backend: Render (localhost:8000)
+- Frontend: Cloudflare Pages + Vercel (localhost:5174)
+
+Próximos pasos:
+1. Corregir tests frontend (format.test.ts)
+2. Entrenar Logistic para más pares
+3. Implementar Ensemble en model-comparison

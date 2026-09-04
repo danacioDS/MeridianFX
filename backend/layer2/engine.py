@@ -35,32 +35,63 @@ class DecisionEngine:
         # Cargar caché desde disco
         self._load_cache()
     
-    def _get_model_for_pair(self, pair: str, model_type: str = "xgboost"):
-        """Obtiene el modelo específico para un par, cargándolo bajo demanda."""
+    def _get_model_for_pair(
+        self,
+        pair: str,
+        model_type: str = "xgboost"
+    ):
+        """Obtiene el modelo específico para un par."""
+        
+        from layer1.utils.pair_normalizer import normalize_pair
+        
+        pair = normalize_pair(pair)
+        
+        if model_type == "xgboost":
+            models = self.xgb_models
+        elif model_type == "logistic":
+            models = self.logistic_models
+        else:
+            raise ValueError(
+                f"Unsupported model type: {model_type}"
+            )
+        
         cache_key = f"{pair}_{model_type}"
         
-        if cache_key in self.xgb_models:
-            return self.xgb_models[cache_key]
+        if cache_key in models:
+            return models[cache_key]
         
         try:
-            # Buscar modelo activo en el registry
-            active = self.registry.get_active(pair, model_type)
+            active = self.registry.get_active(
+                pair,
+                model_type
+            )
+            
             if active:
-                model_path = active.get('path')
+                model_path = active.get("path")
+                
                 if model_path and os.path.exists(model_path):
+                    
                     if model_type == "xgboost":
                         model = XGBoostModel(model_path)
                     else:
                         model = LogisticModel(model_path)
                     
-                    self.xgb_models[cache_key] = model
-                    print(f"✅ Modelo {model_type} cargado para {pair}")
+                    models[cache_key] = model
+                    
+                    print(
+                        f"✅ Modelo {model_type} "
+                        f"cargado para {pair}"
+                    )
+                    
                     return model
+                    
         except Exception as e:
-            print(f"⚠️ Error cargando modelo {model_type} para {pair}: {e}")
+            print(
+                f"⚠️ Error cargando modelo "
+                f"{model_type} para {pair}: {e}"
+            )
         
         return None
-    
     def _load_cache(self):
         """Carga caché desde disco."""
         cache_file = os.path.join(CACHE_DIR, "forecast_cache.json")

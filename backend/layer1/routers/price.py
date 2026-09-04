@@ -10,11 +10,19 @@ from layer2.data.provider import DataProvider
 from layer2.features.technical import TechnicalFeatures
 from layer2.engine import DecisionEngine
 
+_engine = None
+
+def get_engine():
+    global _engine
+    if _engine is None:
+        _engine = DecisionEngine()
+    return _engine
+from layer1.utils.pair_normalizer import normalize_pair
+
 
 router = APIRouter(prefix="/v1/fx", tags=["price"])
 
 data_provider = DataProvider()
-engine = DecisionEngine()
 
 
 CURRENCY_NAMES = {
@@ -86,6 +94,10 @@ async def get_price(
     """Obtiene cotización, histórico y señal del modelo."""
 
     pair = pair.upper()
+    # Normalizar par para operaciones internas
+    normalized_pair = normalize_pair(pair)
+    # Para CURRENCY_NAMES, usar el formato original (con barra)
+    display_pair = normalized_pair
 
     result = data_provider.get_historical(
         pair,
@@ -98,7 +110,7 @@ async def get_price(
     if df.empty:
         return {
             "error": "No data available",
-            "pair": pair,
+            "pair": display_pair,
         }
 
     # DataProvider canonical contract:
@@ -138,6 +150,9 @@ async def get_price(
     # XGBoost prediction
     # ---------------------------------------------------------
 
+    
+    # Obtener modelo XGBoost para el par normalizado
+    xgb_model = get_engine()._get_model_for_pair(normalized_pair, "xgboost")
     direction = "UNKNOWN"
     probability = 0.5
 
@@ -154,10 +169,10 @@ async def get_price(
 
         if (
             not latest_features.empty
-            and engine.xgb_model
-            and engine.xgb_model.model
+            and xgb_model
+            and xgb_model.model
         ):
-            prediction = engine.xgb_model.predict(
+            prediction = xgb_model.predict(
                 latest_features
             )
 
@@ -179,25 +194,25 @@ async def get_price(
             f"{type(exc).__name__}: {exc}"
         )
 
-    info = CURRENCY_NAMES.get(pair, {})
+    info = CURRENCY_NAMES.get(display_pair, {})
 
     return {
-        "pair": pair,
+        "pair": display_pair,
         "base": info.get(
             "base",
-            pair.split("/")[0],
+            display_pair.split("/")[0],
         ),
         "quote": info.get(
             "quote",
-            pair.split("/")[1],
+            display_pair.split("/")[1],
         ),
         "base_name": info.get(
             "base_name",
-            pair.split("/")[0],
+            display_pair.split("/")[0],
         ),
         "quote_name": info.get(
             "quote_name",
-            pair.split("/")[1],
+            display_pair.split("/")[1],
         ),
         "current_price": current_price,
         "previous_price": previous_price,
@@ -230,6 +245,6 @@ async def get_price(
         "info": (
             f"1 {info.get('base_name', 'USD')} = "
             f"{current_price:.4f} "
-            f"{info.get('quote_name', pair.split('/')[1])}"
+            f"{info.get('quote_name', display_pair.split("/")[1])}"
         ),
     }
