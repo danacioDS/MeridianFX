@@ -73,3 +73,12 @@ site/
 
 # MLflow
 mlruns/
+# Archivos de respaldo
+*.bak
+*.backup_*
+*.tmp
+*.swp
+
+# Archivos fantasma
+ión\ estable*
+
