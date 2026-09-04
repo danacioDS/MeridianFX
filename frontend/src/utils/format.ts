@@ -37,7 +37,10 @@ export function formatDate(value: string | null | undefined): string {
 
 export function formatNumber(value: number | null | undefined, decimals: number = 2): string {
   if (value == null) return "N/A";
-  return value.toFixed(decimals);
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 }
 
 export function formatDirection(value: string | null | undefined): string {
@@ -48,13 +51,15 @@ export function formatDirection(value: string | null | undefined): string {
     "NEUTRAL": "Neutral",
     "UP": "Up",
     "DOWN": "Down",
+    "BULLISH": "Bullish",
+    "BEARISH": "Bearish",
   };
   return map[value.toUpperCase()] || value;
 }
 
 export function formatEdgeRatio(value: number | null | undefined): string {
   if (value == null) return "N/A";
-  return `${value.toFixed(2)}x`;
+  return `${value.toFixed(1)}x`;
 }
 
 export function formatSharpe(value: number | null | undefined): string {
@@ -78,4 +83,38 @@ export function formatStatus(value: string | null | undefined): string {
     "ERROR": "Error",
   };
   return map[value.toUpperCase()] || value;
+}
+
+export function formatEnum(value: string | null | undefined): string {
+  if (!value) return "N/A";
+  return value
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+export function formatCurrency(
+  value: number | null | undefined,
+  currency: string = "USD"
+): string {
+  if (value == null || !isFinite(value)) return "N/A";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4,
+  }).format(value);
+}
+
+export function getDirectionArrow(direction: string | null | undefined): string {
+  if (!direction) return "—";
+  const map: Record<string, string> = {
+    "UP": "▲",
+    "DOWN": "▼",
+    "LONG": "▲",
+    "SHORT": "▼",
+    "BULLISH": "▲",
+    "BEARISH": "▼",
+  };
+  return map[direction.toUpperCase()] || "—";
 }
