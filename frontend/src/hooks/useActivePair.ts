@@ -16,7 +16,7 @@ export const DEFAULT_PAIR = "USD/JPY";
  * Used only as a fallback list for navigation when the ranking stream is not
  * available yet; the authoritative universe comes from the ranking response.
  */
-export const DEFAULT_PAIR_UNIVERSE: string[] = ["USD/JPY", "EUR/USD", "GBP/USD", "USD/CNY"];
+export const DEFAULT_PAIR_UNIVERSE: string[] = ["USD/JPY", "EUR/USD", "GBP/USD", "USD/CNY", "USD/MXN", "USD/BRL", "USD/ARS", "USD/BOB", "USD/CHF"];
 
 /** Returns the pairs surfaced by the ranking stream, or the MVP fallback. */
 export function pairUniverseFromRanking(ranking: RankingResponse | null | undefined): string[] {
