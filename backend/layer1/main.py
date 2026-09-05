@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from layer1.routers import ranking, drivers, forecast, performance, status, historical, interpretation, price, model_comparison, forecast_dashboard
+from backend.layer1.routers import ranking, drivers, forecast, performance, status, historical, interpretation, price, model_comparison, forecast_dashboard
 
 app = FastAPI(title="Meridian FX API", version="1.0.0")
 
