@@ -1,20 +1,11 @@
 import { useSearchParams } from "react-router-dom";
-import type { RankingResponse } from "../types";
+import { FX_PAIRS } from "../constants/fxPairs";
 
-export const DEFAULT_PAIR = "USD/CNY";
+export const DEFAULT_PAIR = "EUR/USD";
 
-// Todos los 9 pares disponibles
-export const ALL_PAIRS: string[] = [
-  "USD/JPY", "EUR/USD", "GBP/USD",
-  "USD/CNY", "USD/MXN", "USD/BRL",
-  "USD/ARS", "USD/BOB", "USD/CHF"
-];
-
-export const DEFAULT_PAIR_UNIVERSE: string[] = ALL_PAIRS;
-
-export function pairUniverseFromRanking(ranking: RankingResponse | null | undefined): string[] {
-  // Siempre devolver todos los pares
-  return ALL_PAIRS;
+export function pairUniverseFromRanking(): string[] {
+  // Siempre devolver el orden fijo, no depender del ranking
+  return FX_PAIRS;
 }
 
 interface ActivePair {
