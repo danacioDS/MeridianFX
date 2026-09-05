@@ -70,7 +70,7 @@ async def get_status():
     # Infraestructura
     infrastructure = InfrastructureStatus(
         api="HEALTHY",
-        database="HEALTHY",  # TODO: conectar a DB real
+        database="NOT_CONFIGURED",  # TODO: conectar a DB real
         pipeline="HEALTHY",
         cache=full_status.get("cache", {}).get("status", "HEALTHY")
     )
