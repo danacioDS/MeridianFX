@@ -49,6 +49,7 @@ export const apiClient = axios.create({
   timeout: REQUEST_TIMEOUT_MS,
   headers: {
     "Content-Type": "application/json",
+  "ngrok-skip-browser-warning": "true",
     ...(config.apiKey ? { authorization: `Bearer ${config.apiKey}` } : {}),
   },
 });
