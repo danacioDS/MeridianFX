@@ -1,0 +1,28 @@
+[
+  {
+    "pair": "USD/BOB",
+    "horizon": 20,
+    "status": "CANDIDATE",
+    "reasons": [],
+    "val_auc": 0.6741854636591478,
+    "test_auc": 0.9166666666666666,
+    "test_brier": 0.6158356342458816,
+    "test_bal_acc": 0.625,
+    "cal_brier": 0.6355514489268255,
+    "cal_bal_acc": 0.625
+  },
+  {
+    "pair": "EUR/USD",
+    "horizon": 10,
+    "status": "REJECTED",
+    "reasons": [
+      "balanced accuracy 0.500 < 0.55"
+    ],
+    "val_auc": 0.7796101949025487,
+    "test_auc": 0.86875,
+    "test_brier": 0.3446008209343223,
+    "test_bal_acc": 0.5,
+    "cal_brier": 0.2372928595754856,
+    "cal_bal_acc": 0.625
+  }
+]
