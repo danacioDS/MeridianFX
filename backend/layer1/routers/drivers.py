@@ -1,66 +1,60 @@
 from fastapi import APIRouter, HTTPException
-from typing import Dict, Any
-from layer2.engine import DecisionEngine
-from layer1.utils.pair_normalizer import normalize_pair
-from layer1.adapters.decision_to_response import DecisionAdapter
+from typing import Dict, Any, List
+import logging
 import pandas as pd
 
-router = APIRouter(prefix="/v1/fx", tags=["drivers"])
+logger = logging.getLogger(__name__)
+
+router = APIRouter(tags=["drivers"])
 
 _engine = None
 
 def get_engine():
     global _engine
     if _engine is None:
+        from backend.layer2.engine import DecisionEngine
         _engine = DecisionEngine()
     return _engine
 
-@router.get("/{pair}/drivers")
-async def get_drivers(pair: str) -> Dict[str, Any]:
+@router.get("/{base}/{quote}/drivers")
+async def get_drivers(base: str, quote: str) -> Dict[str, Any]:
     """Obtener drivers SHAP y macro para un par"""
+    pair = f"{base}/{quote}"
+    
     try:
-        engine = get_engine()
+        from backend.layer2.engine import DecisionEngine
+        from backend.layer1.utils.pair_normalizer import normalize_pair
         
-        # Normalizar par
+        engine = get_engine()
         normalized_pair = normalize_pair(pair)
+        
+        logger.info(f"Requesting drivers for pair: {normalized_pair}")
+        
+        # Verificar si el modelo existe
+        model = engine._get_model_for_pair(normalized_pair, "xgboost")
+        if model is None:
+            logger.warning(f"Model not found for {normalized_pair}")
+            raise HTTPException(status_code=404, detail=f"Model not found for {pair}")
         
         # Obtener forecast (que incluye SHAP)
         forecast = engine.get_forecast(normalized_pair)
         
-        # Extraer SHAP de forecast
+        # Extraer SHAP del forecast si existe
         shap_data = forecast.get('shap') if forecast else None
         
-        # Obtener feature importance del modelo si está disponible
-        feature_importance = {}
-        model = engine._get_model_for_pair(normalized_pair, "xgboost")
-        if model is not None and hasattr(model, 'feature_importance'):
-            try:
-                importance_df = model.feature_importance()
-                if importance_df is not None:
-                    feature_importance = importance_df.to_dict()
-            except Exception:
-                pass
+        # Construir drivers
+        drivers = []
+        base_value = 0.0
+        feature_count = 0
         
-        # Si no hay feature_importance del modelo, usar SHAP contributions
-        if not feature_importance and shap_data:
-            contributions = shap_data.get('contributions', [])
-            for c in contributions:
-                feature = c.get('feature', '')
-                contrib = c.get('abs_contribution', 0)
-                if feature:
-                    feature_importance[feature] = contrib
-        
-        # Formatear SHAP values según el contrato
-        shap_values = []
         if shap_data:
             contributions = shap_data.get('contributions', [])
-            # Ordenar por contribución absoluta (más importante primero)
             sorted_contrib = sorted(
                 contributions,
                 key=lambda x: abs(x.get('contribution', 0)),
                 reverse=True
             )
-            shap_values = [
+            drivers = [
                 {
                     "feature": c.get("feature", "unknown"),
                     "contribution": round(c.get("contribution", 0), 4),
@@ -68,26 +62,57 @@ async def get_drivers(pair: str) -> Dict[str, Any]:
                 }
                 for c in sorted_contrib
             ]
+            base_value = shap_data.get('base_value', 0.0)
+            feature_count = len(shap_data.get('contributions', []))
         
-        # Construir respuesta
+        # Macro drivers (ejemplo con datos de mercado)
+        macro_drivers = [
+            {
+                "name": "VIX",
+                "value": 16.8,
+                "description": "Volatility Index",
+                "direction": "risk-off" if 16.8 > 20 else "risk-on"
+            },
+            {
+                "name": "Risk Appetite",
+                "value": 72.0,
+                "description": "Market risk appetite",
+                "direction": "high" if 72.0 > 50 else "low"
+            },
+            {
+                "name": "Regime",
+                "value": "RISK_ON",
+                "description": "Market regime",
+                "direction": "neutral"
+            }
+        ]
+        
+        # Construir respuesta completa
         result = {
-            "pair": normalized_pair,
+            "pair": pair,
+            "normalized_pair": normalized_pair,
+            "model_available": True,
+            "model_type": "xgboost",
             "timestamp": pd.Timestamp.now().isoformat(),
-            "model_available": forecast.get('model', {}).get('type') != 'heuristic' if forecast else False,
-            "model_version": forecast.get('model', {}).get('version', 'v1.0') if forecast else 'v1.0',
-            "confidence": forecast.get("confidence", 0.5) if forecast else 0.5,
-            "direction": forecast.get("direction", "NEUTRAL") if forecast else "NEUTRAL",
-            "probability": forecast.get("probability", 0.5) if forecast else 0.5,
-            "expected_return": forecast.get("expected_return", 0.0) if forecast else 0.0,
-            "shap_values": shap_values,
-            "feature_importance": feature_importance,
-            "base_value": shap_data.get('base_value', 0.0) if shap_data else 0.0,
-            "feature_count": shap_data.get('feature_count', 0) if shap_data else 0,
-            "macro_regime": "NEUTRAL",
-            "sentiment": {},
-            "decision_quality": "MEDIUM"
+            "drivers": drivers,
+            "macro_drivers": macro_drivers,
+            "base_value": base_value,
+            "feature_count": feature_count
         }
         
+        # Incluir forecast si existe
+        if forecast:
+            result["forecast"] = {
+                "direction": forecast.get("direction", "NEUTRAL"),
+                "probability": forecast.get("probability", 0.5),
+                "expected_return": forecast.get("expected_return", 0.0),
+                "confidence": forecast.get("confidence", 0.5)
+            }
+        
         return result
+        
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Error in drivers endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 
 from backend.layer2.status.engine import StatusEngine
 
-router = APIRouter(prefix="/v1", tags=["status"])
+router = APIRouter(tags=["status"])
 
 # Inicializar StatusEngine
 status_engine = StatusEngine()

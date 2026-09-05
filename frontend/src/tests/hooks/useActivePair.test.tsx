@@ -2,7 +2,7 @@
  * useActivePair / usePerformancePeriod — composition (navigation) tests.
  *
  * Requirements:
- *  - Pair defaults to USD/JPY and reads/writes the `pair` search param.
+ *  - Pair defaults to USD/CNY and reads/writes the `pair` search param.
  *  - Period defaults to 6M and rejects values outside the contract enum.
  *  - pairUniverseFromRanking uses ranking pairs, falling back to the MVP list.
  */
@@ -32,7 +32,7 @@ function setup<T>(hook: () => T, initialEntries?: string[]) {
 }
 
 describe("useActivePair", () => {
-  it("defaults to USD/JPY when the pair param is absent", () => {
+  it("defaults to USD/CNY when the pair param is absent", () => {
     const { result } = setup(useActivePair);
     expect(result.current.pair).toBe(DEFAULT_PAIR);
   });

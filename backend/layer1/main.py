@@ -4,7 +4,7 @@ from backend.layer1.routers import ranking, drivers, forecast, performance, stat
 
 app = FastAPI(title="Meridian FX API", version="1.0.0")
 
-# Configurar CORS - ACTUALIZADO CON DOMINIO DE CLOUDFLARE
+# Configurar CORS - ACTUALIZADO CON DOMINIOS DE CLOUDFLARE
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -16,32 +16,34 @@ app.add_middleware(
         "https://meridianfx-1.onrender.com",
         "https://meridian-fx-frontend.vercel.app",
         "https://meridian-fx-frontend-git-main.vercel.app",
-        # 👇 NUEVOS DOMINIOS DE CLOUDFLARE
         "https://main.meridianfx.pages.dev",
         "https://meridianfx.pages.dev",
+        "https://*.pages.dev",
+        "https://preset-cost-freehand.ngrok-free.dev",
+        "https://*.ngrok-free.dev",
+        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Registrar todos los routers
-app.include_router(ranking.router)
-app.include_router(drivers.router)
-app.include_router(forecast.router)
-app.include_router(performance.router)
-app.include_router(status.router)
-app.include_router(historical.router)
-app.include_router(interpretation.router)
-app.include_router(price.router)
-app.include_router(model_comparison.router)
-app.include_router(forecast_dashboard.router)
+# Incluir routers - CORREGIDO
+app.include_router(ranking.router, prefix="/v1/fx", tags=["ranking"])
+app.include_router(drivers.router, prefix="/v1/fx", tags=["drivers"])
+app.include_router(forecast.router, prefix="/v1/fx", tags=["forecast"])
+app.include_router(performance.router, prefix="/v1/fx", tags=["performance"])
+app.include_router(status.router, prefix="/v1", tags=["status"])
+app.include_router(historical.router, prefix="/v1/fx", tags=["historical"])
+app.include_router(interpretation.router, prefix="/v1/fx", tags=["interpretation"])
+app.include_router(price.router, prefix="/v1/fx", tags=["price"])
+app.include_router(model_comparison.router, prefix="/v1/fx", tags=["model_comparison"])
+app.include_router(forecast_dashboard.router, prefix="/v1/fx", tags=["forecast-dashboard"])
 
 @app.get("/")
 async def root():
-    return {"message": "Meridian FX API", "version": "1.0.0"}
+    return {"message": "Meridian FX API is running", "version": "1.0.0"}
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "message": "Meridian FX API is running"}
-

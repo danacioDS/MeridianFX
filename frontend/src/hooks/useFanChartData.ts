@@ -4,7 +4,7 @@ import type { ForecastResponse } from '../types/contracts';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 async function fetchForecast(pair: string): Promise<ForecastResponse> {
-  // Construir URL con el formato correcto: /v1/fx/USD/JPY/forecast
+  // Construir URL con el formato correcto: /v1/fx/{base}/{quote}/forecast
   const [base, quote] = pair.split('/');
   const response = await fetch(`${API_URL}/v1/fx/${base}/${quote}/forecast`);
   if (!response.ok) {

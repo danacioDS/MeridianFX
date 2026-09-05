@@ -9,14 +9,14 @@ import { useSearchParams } from "react-router-dom";
 import type { RankingResponse } from "../types";
 
 /** Default pair shown when no `pair` param is present (mockup primary). */
-export const DEFAULT_PAIR = "USD/JPY";
+export const DEFAULT_PAIR = "USD/CNY";
 
 /**
  * MVP currency universe (spec §MVP: 4 pairs).
  * Used only as a fallback list for navigation when the ranking stream is not
  * available yet; the authoritative universe comes from the ranking response.
  */
-export const DEFAULT_PAIR_UNIVERSE: string[] = ["USD/JPY", "EUR/USD", "GBP/USD", "USD/CNY", "USD/MXN", "USD/BRL", "USD/ARS", "USD/BOB", "USD/CHF"];
+export const DEFAULT_PAIR_UNIVERSE: string[] = ["USD/CNY", "USD/MXN", "USD/BRL", "USD/ARS", "USD/BOB", "USD/CHF"];
 
 /** Returns the pairs surfaced by the ranking stream, or the MVP fallback. */
 export function pairUniverseFromRanking(ranking: RankingResponse | null | undefined): string[] {
