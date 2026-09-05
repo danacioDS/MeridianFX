@@ -331,9 +331,9 @@
         "freshness": "FRESH",
         "last_price": 12.399999618530273
       },
-      "timestamp": "2026-09-04T19:22:02.893217"
+      "timestamp": "2026-09-04T19:27:10.624281"
     },
-    "timestamp": "2026-09-04T19:22:02.893229"
+    "timestamp": "2026-09-04T19:27:10.624293"
   },
   "forecast_USD/CHF": {
     "data": {
@@ -418,5 +418,89 @@
       "timestamp": "2026-09-04T19:22:30.868083"
     },
     "timestamp": "2026-09-04T19:22:30.868096"
+  },
+  "forecast_USD/MXN": {
+    "data": {
+      "direction": "UP",
+      "probability": 0.8212719559669495,
+      "expected_return": 0.006425439119338989,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0.6425439119338989,
+      "signal_strength": 0.13762089292110602,
+      "edge_ratio": 0.6425439119338989,
+      "net_return": 0.004497807383537292,
+      "position_size": 0,
+      "model": {
+        "version": "xgb-v1.0",
+        "type": "xgboost"
+      },
+      "shap": {
+        "base_value": 0.5432353984432262,
+        "base_probability": 0.632564732380436,
+        "final_probability": 0.8212719791124192,
+        "contributions": [
+          {
+            "feature": "bb_upper",
+            "contribution": 0.4493896016405619,
+            "abs_contribution": 0.4493896016405619
+          },
+          {
+            "feature": "rsi_14",
+            "contribution": 0.24107352223549902,
+            "abs_contribution": 0.24107352223549902
+          },
+          {
+            "feature": "macd",
+            "contribution": 0.12214643347170913,
+            "abs_contribution": 0.12214643347170913
+          },
+          {
+            "feature": "momentum",
+            "contribution": 0.10981166511978936,
+            "abs_contribution": 0.10981166511978936
+          },
+          {
+            "feature": "adx",
+            "contribution": 0.10104388029454044,
+            "abs_contribution": 0.10104388029454044
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": -0.0958939839148044,
+            "abs_contribution": 0.0958939839148044
+          },
+          {
+            "feature": "ema_26",
+            "contribution": 0.08932054491859065,
+            "abs_contribution": 0.08932054491859065
+          },
+          {
+            "feature": "bb_width",
+            "contribution": 0.08068729168038416,
+            "abs_contribution": 0.08068729168038416
+          },
+          {
+            "feature": "atr",
+            "contribution": -0.08058333649812899,
+            "abs_contribution": 0.08058333649812899
+          },
+          {
+            "feature": "volatility",
+            "contribution": -0.0696926915944244,
+            "abs_contribution": 0.0696926915944244
+          }
+        ],
+        "feature_count": 23
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 16.89900016784668
+      },
+      "timestamp": "2026-09-04T19:25:02.106460"
+    },
+    "timestamp": "2026-09-04T19:25:02.106473"
   }
 }

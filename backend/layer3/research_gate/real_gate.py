@@ -4,7 +4,7 @@ Real Research Gate — Layer 3 v5.0 §8
 Evaluates models using real data and enforces strict criteria.
 """
 from typing import Dict, Any, Optional
-from layer3.evaluation.model_evaluator import ModelEvaluator
+from backend.layer3.evaluation.model_evaluator import ModelEvaluator
 
 
 class RealResearchGate:

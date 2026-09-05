@@ -11,12 +11,12 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from layer2.data.provider import DataProvider
-from layer2.features.technical import TechnicalFeatures
-from layer2.engine import DecisionEngine
-from layer2.data.macro.service import MacroService
+from backend.layer2.data.provider import DataProvider
+from backend.layer2.features.technical import TechnicalFeatures
+from backend.layer2.engine import DecisionEngine
+from backend.layer2.data.macro.service import MacroService
 
-router = APIRouter(prefix="/v1/fx", tags=["forecast-dashboard"])
+router = APIRouter(tags=["forecast-dashboard"])
 
 data_provider = DataProvider()
 engine = DecisionEngine()

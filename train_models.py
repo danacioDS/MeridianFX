@@ -1,10 +1,10 @@
 """
 Script para entrenar modelos XGBoost para todos los pares.
 """
-from layer2.models.xgboost_model import XGBoostModel
-from layer2.data.provider import DataProvider
-from layer2.features.technical import TechnicalFeatures
-from layer2.models.registry import ModelRegistry
+from backend.layer2.models.xgboost_model import XGBoostModel
+from backend.layer2.data.provider import DataProvider
+from backend.layer2.features.technical import TechnicalFeatures
+from backend.layer2.models.registry import ModelRegistry
 
 data_provider = DataProvider()
 registry = ModelRegistry()
@@ -19,9 +19,14 @@ for pair in pairs:
         df_feat = TechnicalFeatures.generate(df)
         feature_cols = TechnicalFeatures.get_feature_names()
         y = TechnicalFeatures.create_target(df_feat)
-        X = df_feat[feature_cols].dropna()
-        y = y[X.index]
-        
+        X = df_feat[feature_cols]
+
+        # Eliminar filas con features incompletas o sin horizonte futuro válido.
+        valid = X.notna().all(axis=1) & y.notna()
+
+        X = X.loc[valid]
+        y = y.loc[valid].astype(int)
+
         if len(X) < 50:
             print(f'⚠️ Datos insuficientes para {pair}: {len(X)} muestras')
             continue

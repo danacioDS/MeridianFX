@@ -5,8 +5,8 @@ Bridge entre Layer 2 (datos) y DecisionPipeline (decisión)
 from typing import Optional
 from src.meridian_fx.decision.pipeline import DecisionPipeline, PipelineInputs
 from src.meridian_fx.decision.contracts import PredictionArtifact
-from layer2.data.provider import DataProvider
-from layer2.features.technical import TechnicalFeatures
+from backend.layer2.data.provider import DataProvider
+from backend.layer2.features.technical import TechnicalFeatures
 
 class PipelineBridge:
     """Conecta Layer 2 con el DecisionPipeline"""

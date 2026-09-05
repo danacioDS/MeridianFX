@@ -389,16 +389,37 @@ sleep 2
 # 4. Verificar que el puerto está libre
 ss -ltnp | grep ':8000' || echo "✅ Puerto 8000 libre"
 
-# 5. Iniciar backend
+cd ~/repo_lab/MeridianFX
+
+
+## 5. levantar backend
+
+# Matar procesos antiguos
+pkill -9 -f uvicorn || true
+sudo fuser -k 8000/tcp 2>/dev/null || true
+sleep 2
+
+# Verificar puerto libre
+ss -ltnp | grep ':8000' || echo "✅ Puerto 8000 libre"
+
+# Activar entorno virtual
 source venv/bin/activate
+
+# Verificar dependencias
+pip list | grep -E "(fastapi|uvicorn|xgboost|shap)"
+
+# Iniciar backend
 uvicorn layer1.main:app --reload --host 0.0.0.0 --port 8000
 
-## Frontend 
+## 6. levantar frontend
 
 cd ~/repo_lab/MeridianFX/frontend
 
-# 1. Verificar que el backend está corriendo (en otra terminal)
+# Verificar que el backend responde
 curl -s http://localhost:8000/health
 
-# 2. Iniciar el frontend en modo desarrollo
+# Instalar dependencias si no están
+npm install
+
+# Iniciar frontend
 npm run dev

@@ -9,7 +9,7 @@ Combines all four gates:
 """
 from typing import Dict, Any, Optional
 from .gate import ResearchGate, ResearchGateReport
-from layer3.evaluation.walk_forward import WalkForwardEvaluator
+from backend.layer3.evaluation.walk_forward import WalkForwardEvaluator
 
 
 class FullResearchGate:

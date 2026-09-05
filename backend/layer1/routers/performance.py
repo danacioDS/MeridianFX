@@ -9,7 +9,7 @@ import json
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-router = APIRouter(prefix="/v1/fx", tags=["performance"])
+router = APIRouter(tags=["performance"])
 
 def load_model_metrics(pair: str) -> dict:
     """Carga métricas del modelo desde registry.json."""

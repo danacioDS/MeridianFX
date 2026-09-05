@@ -1,0 +1,52 @@
+MeridianFX - Versión Estable
+============================
+Fecha: 2026-09-05
+Versión: v2.3.2-estable-20260905
+Commit: (ver git log)
+
+ESTADO DEL SISTEMA
+------------------
+✅ Backend FastAPI      :8000
+✅ Frontend Vite        :5174
+✅ 6 modelos XGBoost    Activos
+✅ SHAP drivers         Funcionales
+✅ Macro drivers        Implementados
+✅ Routing corregido    /{base}/{quote}/drivers
+✅ Par por defecto      USD/CNY
+✅ Tests pasando        8/8
+✅ Google Fonts         Configuradas
+✅ CORS                 Configurado
+
+ENDPOINTS FUNCIONALES
+---------------------
+✅ /health
+✅ /v1/status
+✅ /v1/fx/ranking
+✅ /v1/fx/{base}/{quote}/forecast
+✅ /v1/fx/{base}/{quote}/drivers (SHAP + macro)
+✅ /v1/fx/{base}/{quote}/price
+
+MODELOS ACTIVOS
+---------------
+✅ USD/CNY
+✅ USD/MXN
+✅ USD/BRL
+✅ USD/ARS
+✅ USD/BOB
+✅ USD/CHF
+
+PENDIENTES
+----------
+⬜ USD/JPY - Entrenar modelo
+⬜ EUR/USD - Entrenar modelo
+⬜ GBP/USD - Entrenar modelo
+
+NOTAS
+-----
+- El error 'Invalid regular expression flags' es causado por extensiones del navegador
+- Los errores de fuentes son por fallback SPA de Vite en desarrollo
+- La aplicación es 100% funcional en producción
+
+PARA RESTAURAR
+--------------
+git checkout v2.3.2-estable-20260905

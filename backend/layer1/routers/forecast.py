@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from datetime import datetime
 import numpy as np
 
-router = APIRouter(prefix="/v1/fx", tags=["forecast"])
+router = APIRouter(tags=["forecast"])
 
 # Datos de forecast alineados con el ranking
 FORECAST_DATA = {

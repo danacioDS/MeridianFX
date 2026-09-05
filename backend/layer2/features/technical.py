@@ -182,7 +182,23 @@ class TechnicalFeatures:
     
     @staticmethod
     def create_target(df: pd.DataFrame, forward_days: int = 5) -> pd.Series:
-        """Crea target: 1 si el precio sube en los próximos N días."""
+        """Crea target: 1 si el precio sube en los próximos N días.
+
+        Las observaciones sin horizonte futuro completo se conservan como
+        NaN y deben excluirse del entrenamiento/evaluación.
+        """
         future_price = df['Close'].shift(-forward_days)
-        target = (future_price > df['Close']).astype(int)
+
+        target = pd.Series(
+            np.nan,
+            index=df.index,
+            dtype="float64"
+        )
+
+        valid = future_price.notna()
+
+        target.loc[valid] = (
+            future_price.loc[valid] > df.loc[valid, 'Close']
+        ).astype(int)
+
         return target

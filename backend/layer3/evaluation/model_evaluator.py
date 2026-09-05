@@ -74,7 +74,7 @@ class ModelEvaluator:
             return {'error': 'No data available', 'metrics': {}}
         
         # Prepare features and target
-        from layer2.features.technical import TechnicalFeatures
+        from backend.layer2.features.technical import TechnicalFeatures
         
         df_feat = TechnicalFeatures.generate(df)
         returns = self._calculate_log_returns(df)

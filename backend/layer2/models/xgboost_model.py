@@ -46,7 +46,7 @@ class XGBoostModel:
             colsample_bytree=0.8,
             random_state=42,
             eval_metric='logloss',
-            enable_categorical=False  # Forzar que no use categorical
+            enable_categorical=False
         )
         
         self.model.fit(
@@ -75,7 +75,13 @@ class XGBoostModel:
         return metrics
     
     def predict(self, X: pd.DataFrame) -> dict:
-        """Predice dirección y probabilidad."""
+        """
+        Predice dirección y probabilidad.
+        
+        Para el contrato canónico:
+        - probability_up = P(class=1) = P(UP)
+        - direction = "UP" if pred == 1 else "DOWN"
+        """
         if self.model is None:
             raise ValueError("Modelo no entrenado")
         
@@ -88,12 +94,18 @@ class XGBoostModel:
         proba = self.model.predict_proba(X)[0]
         pred = self.model.predict(X)[0]
         
+        # CORREGIDO: probability_up = proba[1] (clase 1 = UP)
+        probability_up = float(proba[1])
+        probability_down = float(proba[0])
+        
         direction = "UP" if pred == 1 else "DOWN"
-        probability = float(max(proba))
         
         return {
             'direction': direction,
-            'probability': probability,
+            'probability_up': probability_up,
+            'probability_down': probability_down,
+            # Compatibilidad legacy (se eliminará progresivamente)
+            'probability': probability_up,
             'raw_prediction': int(pred),
             'probabilities': proba.tolist()
         }

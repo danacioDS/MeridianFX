@@ -298,13 +298,6 @@ class WalkForwardEvaluator:
             X_test = X.iloc[test_start:test_end]
             y_test = y.iloc[test_start:test_end]
             returns_test = returns_aligned.iloc[test_start:test_end]
-
-            # Retorno futuro del mismo horizonte utilizado por el target.
-            # t -> t+1 ... t+horizon.
-            future_returns_test = sum(
-                returns_aligned.shift(-i).iloc[test_start:test_end]
-                for i in range(1, horizon + 1)
-            )
             
             # Clonar y entrenar modelo en esta ventana
             try:

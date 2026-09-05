@@ -4,9 +4,9 @@ Ejecuta benchmarks reales sobre los datos OOS de walk-forward.
 """
 import numpy as np
 import pandas as pd
-from layer2.engine import DecisionEngine
-from layer3.evaluation.walk_forward import WalkForwardEvaluator
-from layer3.evaluation.benchmarks import BenchmarkEvaluator
+from backend.layer2.engine import DecisionEngine
+from backend.layer3.evaluation.walk_forward import WalkForwardEvaluator
+from backend.layer3.evaluation.benchmarks import BenchmarkEvaluator
 
 
 def run_benchmarks():

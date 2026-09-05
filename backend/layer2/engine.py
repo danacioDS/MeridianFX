@@ -42,7 +42,7 @@ class DecisionEngine:
     ):
         """Obtiene el modelo específico para un par."""
         
-        from layer1.utils.pair_normalizer import normalize_pair
+        from backend.layer1.utils.pair_normalizer import normalize_pair
         
         pair = normalize_pair(pair)
         
@@ -171,15 +171,15 @@ class DecisionEngine:
             if is_trained:
                 try:
                     xgb_pred = xgb_model.predict(latest)
-                    probability = xgb_pred.get('probability', 0.5)
+                    probability = xgb_pred.get('probability_up', 0.5)
                     print(f"✅ XGBoost predijo para {pair}: {xgb_pred}")
                 except Exception as e:
                     print(f"⚠️ XGBoost falló: {e}")
                     xgb_pred = self._heuristic_forecast(latest)
-                    probability = xgb_pred.get('probability', 0.5)
+                    probability = xgb_pred.get('probability_up', 0.5)
             else:
                 xgb_pred = self._heuristic_forecast(latest)
-                probability = xgb_pred.get('probability', 0.5)
+                probability = xgb_pred.get('probability_up', 0.5)
                 print(f"⚠️ Usando heuristic para {pair}")
             
             # 4. SHAP explicación

@@ -5,9 +5,9 @@ from fastapi import APIRouter, HTTPException, Query
 from typing import Dict, Any
 import pandas as pd
 
-from layer2.engine import DecisionEngine
+from backend.layer2.engine import DecisionEngine
 
-router = APIRouter(prefix="/v1/fx", tags=["interpretation"])
+router = APIRouter(tags=["interpretation"])
 
 _engine = None
 

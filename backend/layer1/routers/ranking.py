@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from datetime import datetime
 from ..models.responses import RankingResponse, RankedOpportunity
-from layer2.ranking.engine import RankingEngine
+from backend.layer2.ranking.engine import RankingEngine
 
-router = APIRouter(prefix="/v1/fx", tags=["ranking"])
+router = APIRouter(tags=["ranking"])
 ranking_engine = RankingEngine()
 
 @router.get("/ranking", response_model=RankingResponse)

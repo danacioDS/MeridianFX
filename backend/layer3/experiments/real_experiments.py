@@ -4,7 +4,7 @@ Real Experiments — Layer 3 v5.0 §3
 Runs sequential experiments E0-E7 with real data evaluation.
 """
 from typing import Dict, Any
-from layer3.evaluation.walk_forward import WalkForwardEvaluator
+from backend.layer3.evaluation.walk_forward import WalkForwardEvaluator
 
 
 class RealExperimentRunner:

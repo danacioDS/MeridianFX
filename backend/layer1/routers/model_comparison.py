@@ -8,11 +8,11 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from layer2.engine import DecisionEngine
-from layer1.utils.pair_normalizer import normalize_pair
-from layer3.evaluation.walk_forward import WalkForwardEvaluator
+from backend.layer2.engine import DecisionEngine
+from backend.layer1.utils.pair_normalizer import normalize_pair
+from backend.layer3.evaluation.walk_forward import WalkForwardEvaluator
 
-router = APIRouter(prefix="/v1/fx", tags=["model_comparison"])
+router = APIRouter(tags=["model_comparison"])
 
 # Cache de resultados de comparación
 _comparison_cache = {}

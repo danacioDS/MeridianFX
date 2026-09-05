@@ -3,11 +3,11 @@ from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
 from ..models.responses import DriversResponse
-from layer2.engine import DecisionEngine
-from layer2.data.provider import DataProvider
-from layer2.features.technical import TechnicalFeatures
+from backend.layer2.engine import DecisionEngine
+from backend.layer2.data.provider import DataProvider
+from backend.layer2.features.technical import TechnicalFeatures
 
-router = APIRouter(prefix="/v1/fx", tags=["historical"])
+router = APIRouter(tags=["historical"])
 engine = DecisionEngine()
 data_provider = DataProvider()
 

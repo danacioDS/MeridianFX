@@ -6,9 +6,9 @@ from datetime import datetime
 
 from fastapi import APIRouter, Path, Query
 
-from layer2.data.provider import DataProvider
-from layer2.features.technical import TechnicalFeatures
-from layer2.engine import DecisionEngine
+from backend.layer2.data.provider import DataProvider
+from backend.layer2.features.technical import TechnicalFeatures
+from backend.layer2.engine import DecisionEngine
 
 _engine = None
 
@@ -17,10 +17,10 @@ def get_engine():
     if _engine is None:
         _engine = DecisionEngine()
     return _engine
-from layer1.utils.pair_normalizer import normalize_pair
+from backend.layer1.utils.pair_normalizer import normalize_pair
 
 
-router = APIRouter(prefix="/v1/fx", tags=["price"])
+router = APIRouter(tags=["price"])
 
 data_provider = DataProvider()
 
