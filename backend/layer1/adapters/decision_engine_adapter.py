@@ -3,12 +3,15 @@ DecisionEngineAdapter - Convierte DecisionEngine legacy en PredictionArtifact ca
 """
 
 import uuid
+import logging
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional
 
 from backend.layer2.engine import DecisionEngine
+from backend.layer2.data.macro.service import MacroService
+from backend.layer2.data.macro.transformer import MacroTransformer
+from backend.layer2.data.macro.canonical_adapter import CanonicalMacroAdapter
 
-# Importar desde la ubicación correcta
 from backend.src.meridian_fx.decision.contracts.prediction import (
     PredictionArtifact,
     ConfidenceInterval,
@@ -16,6 +19,8 @@ from backend.src.meridian_fx.decision.contracts.prediction import (
     ShapValue,
     Reproducibility
 )
+
+logger = logging.getLogger(__name__)
 
 
 class DecisionEngineAdapter:
@@ -26,14 +31,38 @@ class DecisionEngineAdapter:
     
     def __init__(self, engine: Optional[DecisionEngine] = None):
         self._engine = engine or DecisionEngine()
+        self._macro_service = MacroService()
         self.git_commit = "unknown"
         self.docker_image = "meridianfx:latest"
         self.mlflow_run_id = "unknown"
     
+    def _get_macro_regime(self) -> MacroRegime:
+        """Obtiene el régimen macro desde MacroService."""
+        try:
+            import asyncio
+            macro_context = asyncio.run(self._macro_service.get_macro_context())
+            macro_regime_dict = MacroTransformer().to_regime(macro_context)
+            canonical_values = CanonicalMacroAdapter.to_canonical(macro_regime_dict)
+            return MacroRegime(
+                risk=canonical_values["risk"],
+                policy=canonical_values["policy"],
+                growth=canonical_values["growth"],
+                inflation=canonical_values["inflation"],
+            )
+        except Exception as e:
+            logger.warning(f"Failed to get macro regime: {e}")
+            return MacroRegime(
+                risk="UNKNOWN",
+                policy="UNKNOWN",
+                growth="UNKNOWN",
+                inflation="UNKNOWN",
+            )
+    
     def get_prediction_artifact(
         self,
         pair: str,
-        horizon_days: int = 30
+        horizon_days: int = 30,
+        macro_regime: Optional[MacroRegime] = None,
     ) -> Optional[PredictionArtifact]:
         """
         Obtiene un PredictionArtifact canónico para un par.
@@ -43,7 +72,11 @@ class DecisionEngineAdapter:
         if not forecast:
             return None
         
-        # 2. Extraer datos
+        # 2. Obtener régimen macro (real o proporcionado)
+        if macro_regime is None:
+            macro_regime = self._get_macro_regime()
+        
+        # 3. Extraer datos
         probability = forecast.get('probability', 0.5)
         direction = forecast.get('direction', 'NEUTRAL')
         expected_return = forecast.get('expected_return', 0.0)
@@ -52,7 +85,7 @@ class DecisionEngineAdapter:
         model_type = forecast.get('model', {}).get('type', 'xgboost')
         timestamp = datetime.now(timezone.utc)
         
-        # 3. Determinar probability_up
+        # 4. Determinar probability_up
         if direction == "UP":
             probability_up = probability
         elif direction == "DOWN":
@@ -60,12 +93,12 @@ class DecisionEngineAdapter:
         else:
             probability_up = 0.5
         
-        # 4. Construir confidence_interval
+        # 5. Construir confidence_interval
         lower = max(0.0, probability_up - expected_volatility * 0.5)
         upper = min(1.0, probability_up + expected_volatility * 0.5)
         confidence_interval = ConfidenceInterval(lower=lower, upper=upper)
         
-        # 5. Construir shap_values
+        # 6. Construir shap_values
         shap_values = []
         shap_data = forecast.get('shap')
         if shap_data:
@@ -78,15 +111,7 @@ class DecisionEngineAdapter:
                         ShapValue(feature=feature, value=contribution)
                     )
         
-        # 6. Macro regime (desde forecast o por defecto)
-        macro_regime = MacroRegime(
-            risk="UNKNOWN",
-            policy="UNKNOWN",
-            growth="UNKNOWN",
-            inflation="UNKNOWN"
-        )
-        
-        # 7. Construir artifact
+        # 7. Construir artifact con macro_regime real
         return PredictionArtifact(
             prediction_id=str(uuid.uuid4()),
             model_id=f"{model_type}_{pair.replace('/', '_')}",
