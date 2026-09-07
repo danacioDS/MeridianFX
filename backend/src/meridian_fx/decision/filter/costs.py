@@ -42,7 +42,7 @@ class PairCategory(StrEnum):
 #: Category catalog (L2 §7.2): pairs, base spread range, base slippage.
 CATEGORY_CATALOG: dict[PairCategory, dict] = {
     PairCategory.MAJOR: {
-        "pairs": ("USDJPY", "EURUSD"),
+        "pairs": ("USDJPY", "EURUSD", "USDCHF"),
         "base_min": 0.2,
         "base_max": 0.5,
         "base_slippage": 0.5,
@@ -96,10 +96,16 @@ class CostCalculator:
 
     @staticmethod
     def category_for(pair: str) -> PairCategory:
+        # Normalizar par: USD/CNY -> USDCNY para el catálogo
+        normalized = pair.replace("/", "")
         try:
-            return _PAIR_TO_CATEGORY[pair]
+            return _PAIR_TO_CATEGORY[normalized]
         except KeyError as exc:
-            raise ValueError(f"pair {pair!r} not present in cost catalog") from exc
+            # Si aún no está, intentar con el par original (por si ya estaba normalizado)
+            try:
+                return _PAIR_TO_CATEGORY[pair]
+            except KeyError:
+                raise ValueError(f"pair {pair!r} (normalized: {normalized!r}) not present in cost catalog") from exc
 
     @staticmethod
     def normalized_volatility(vix: float) -> float:

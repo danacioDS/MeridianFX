@@ -3,9 +3,22 @@ import { FX_PAIRS } from "../constants/fxPairs";
 
 export const DEFAULT_PAIR = "EUR/USD";
 
-export function pairUniverseFromRanking(): string[] {
-  // Siempre devolver el orden fijo, no depender del ranking
-  return FX_PAIRS;
+/**
+ * Universo canónico fijo.
+ *
+ * Se mantiene como array mutable para compatibilidad con
+ * componentes y tests existentes.
+ */
+export const DEFAULT_PAIR_UNIVERSE: string[] = [...FX_PAIRS];
+
+/**
+ * Devuelve siempre el universo canónico.
+ *
+ * El argumento es opcional para mantener compatibilidad
+ * con páginas legacy que todavía pasan ranking.data.
+ */
+export function pairUniverseFromRanking(_ranking?: unknown): string[] {
+  return [...FX_PAIRS];
 }
 
 interface ActivePair {
@@ -15,6 +28,7 @@ interface ActivePair {
 
 export function useActivePair(): ActivePair {
   const [searchParams, setSearchParams] = useSearchParams();
+
   const pair = searchParams.get("pair") ?? DEFAULT_PAIR;
 
   const setPair = (next: string): void => {
@@ -23,5 +37,8 @@ export function useActivePair(): ActivePair {
     setSearchParams(params, { replace: false });
   };
 
-  return { pair, setPair };
+  return {
+    pair,
+    setPair,
+  };
 }

@@ -1,29 +1,33 @@
-/**
- * Status badge — presentational only.
- *
- * Maps an existing backend status string to a color/label (misnomers avoided:
- * no inference, no derivation). If no label is passed, the backend status is
- * title-cased for display.
- */
-import { getStatusColor, getStatusLabel } from "../../utils/status";
-
 interface StatusBadgeProps {
-  /** Backend status string (e.g. "healthy", "ACTIVE", "warning"). */
   status: string;
-  /** Optional explicit label. Defaults to getStatusLabel(status). */
   label?: string;
 }
 
-export function StatusBadge({ status, label }: StatusBadgeProps): JSX.Element {
-  const color = getStatusColor(status);
-  const text = label ?? getStatusLabel(status);
+export function StatusBadge({ status, label }: StatusBadgeProps) {
+  const colors: Record<string, string> = {
+    FULL: 'bg-green-100 text-green-800',
+    PARTIAL: 'bg-yellow-100 text-yellow-800',
+    UNAVAILABLE: 'bg-gray-100 text-gray-500',
+    UNKNOWN: 'bg-gray-100 text-gray-500',
+    STALE: 'bg-orange-100 text-orange-800',
+    AVAILABLE: 'bg-green-100 text-green-800',
+  };
+
+  const labels: Record<string, string> = {
+    FULL: '✅ Disponible',
+    PARTIAL: '⚠️ Parcial',
+    UNAVAILABLE: '❌ No disponible',
+    UNKNOWN: '❓ Desconocido',
+    STALE: '🔄 Desactualizado',
+    AVAILABLE: '✅ Disponible',
+  };
+
+  const color = colors[status] || 'bg-gray-100 text-gray-500';
+  const displayLabel = label || labels[status] || status;
+
   return (
-    <span
-      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-0.5 text-xs font-medium text-text-primary"
-      aria-label={text}
-    >
-      <span aria-hidden="true" className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
-      {text}
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
+      {displayLabel}
     </span>
   );
 }

@@ -15,6 +15,34 @@ interface SystemStatusProps {
   status?: StatusResponse | null;
 }
 
+/**
+ * Formatea un valor para mostrar en la UI.
+ * Si es un objeto, extrae el campo 'status' o 'state' si existe.
+ */
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined) return "—";
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  if (typeof value === 'boolean') return value ? '✅' : '❌';
+  if (Array.isArray(value)) return `[${value.length} items]`;
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    // Intentar extraer 'status' o 'state' del objeto
+    if (obj.status) return String(obj.status);
+    if (obj.state) return String(obj.state);
+    if (obj.value) return String(obj.value);
+    // Si tiene un campo 'message' o 'reason'
+    if (obj.message) return String(obj.message);
+    if (obj.reason) return String(obj.reason);
+    // Si solo tiene un campo, mostrarlo
+    const keys = Object.keys(obj);
+    if (keys.length === 1) return String(obj[keys[0]]);
+    // Fallback: mostrar keys principales
+    return keys.slice(0, 3).map(k => `${k}: ${String(obj[k])}`).join(' · ');
+  }
+  return String(value);
+}
+
 export function SystemStatus({ status }: SystemStatusProps): JSX.Element {
   if (!status) {
     return (
@@ -49,9 +77,9 @@ export function SystemStatus({ status }: SystemStatusProps): JSX.Element {
       <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
         <Row label="Data Quality" value={intelligence.data_quality?.status ?? "—"} />
         <Row label="Overall Quality" value={intelligence.data_quality?.overall ?? "—"} />
-        <Row label="Model Performance" value={intelligence.model_performance ?? "—"} />
-        <Row label="Model Drift" value={intelligence.model_drift ?? "—"} />
-        <Row label="Decision Validity" value={intelligence.decision_validity ?? "—"} />
+        <Row label="Model Performance" value={intelligence.model_performance} />
+        <Row label="Model Drift" value={intelligence.model_drift} />
+        <Row label="Decision Validity" value={intelligence.decision_validity} />
         <Row label="Safe Mode" value={intelligence.safe_mode_state ?? "—"} />
         <Row label="Data Freshness" value={status.metrics?.data_freshness ?? "—"} />
         <Row 
@@ -65,12 +93,13 @@ export function SystemStatus({ status }: SystemStatusProps): JSX.Element {
   );
 }
 
-function Row({ label, value }: { label: string; value: string | number | null | undefined }): JSX.Element {
+function Row({ label, value }: { label: string; value: unknown }): JSX.Element {
+  const displayValue = formatValue(value);
   return (
     <div className="flex items-baseline justify-between gap-2">
       <dt className="text-xs text-text-secondary">{label}</dt>
       <dd className="text-sm font-medium text-text-primary">
-        {value !== null && value !== undefined ? String(value) : "—"}
+        {displayValue}
       </dd>
     </div>
   );
