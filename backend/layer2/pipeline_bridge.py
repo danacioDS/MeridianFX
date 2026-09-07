@@ -24,6 +24,9 @@ from backend.src.meridian_fx.decision.contracts.prediction import MacroRegime
 # Import para trazabilidad
 from backend.layer2.data.macro.differential_status import MacroDifferentialStatus, MacroDataStatus
 
+# Import para el proveedor de diferenciales
+from backend.layer2.data.macro.differential_provider import MacroDifferentialProvider
+
 
 class PipelineBridge:
     """Conecta Layer 2 con el DecisionPipeline usando el adapter existente."""
@@ -35,6 +38,7 @@ class PipelineBridge:
         self.adapter = DecisionEngineAdapter(self.engine)
         self.macro_service = MacroService()
         self.macro_transformer = MacroTransformer()
+        self.differential_provider = MacroDifferentialProvider()
     
     async def evaluate_pair(self, pair: str, horizon_days: int = 30) -> Dict[str, Any]:
         """
@@ -74,41 +78,23 @@ class PipelineBridge:
         # 4. Generar features
         features = TechnicalFeatures.generate(data['data'])
         
-        # 5. Determinar disponibilidad de datos macro
+        # 5. Calcular diferenciales macro
         base, quote = pair.split('/')
         
         # Por ahora, solo tenemos datos de EE.UU. (FRED).
-        # La disponibilidad debe respetar la posición de USD en el par.
-        # Esto evolucionará con MacroDifferentialProvider.
-        usd_available = True
-
-        base_available = base == "USD" and usd_available
-        quote_available = quote == "USD" and usd_available
-
-        if base_available and quote_available:
-            status = MacroDataStatus.FULL
-        elif base_available or quote_available:
-            status = MacroDataStatus.PARTIAL
-        else:
-            status = MacroDataStatus.UNAVAILABLE
-
-        macro_status = MacroDifferentialStatus(
-            status=status,
+        # El proveedor maneja correctamente el caso PARTIAL.
+        differential_result = self.differential_provider.calculate(
             base_currency=base,
             quote_currency=quote,
-            base_available=base_available,
-            quote_available=quote_available,
-            reason=(
-                "Only USD macro data currently available (FRED). "
-                "Quote/base-country macro differential cannot be calculated."
-            ),
-            policy_diff_status="UNAVAILABLE",
-            growth_diff_status="UNAVAILABLE",
-            rate_diff_status="UNAVAILABLE",
+            base_macro=macro_context if base == "USD" else None,
+            quote_macro=macro_context if quote == "USD" else None,
         )
         
-        # 6. Construir PipelineInputs con fallback explícito
-        inputs = self._build_inputs(artifact)
+        # 6. Construir PipelineInputs con diferenciales reales (o None)
+        inputs = self._build_inputs(
+            artifact=artifact,
+            differential_result=differential_result,
+        )
         
         # 7. Ejecutar pipeline
         result = self.pipeline.build(inputs)
@@ -128,23 +114,39 @@ class PipelineBridge:
             "quality": result.quality,
             "signals": result.signals,
             "artifact": artifact.model_dump(),
-            "macro_data_status": macro_status.to_dict(),  # <-- Trazabilidad
+            "macro_data_status": differential_result.to_dict(),
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
     
-    def _build_inputs(self, artifact: PredictionArtifact) -> PipelineInputs:
-        """Construye PipelineInputs usando el timestamp del artifact."""
+    def _build_inputs(
+        self,
+        artifact: PredictionArtifact,
+        differential_result,
+    ) -> PipelineInputs:
+        """
+        Construye PipelineInputs usando el timestamp del artifact
+        y los diferenciales calculados.
+        """
         as_of = artifact.as_of
+        
+        # Obtener valores del resultado de diferenciales
+        # Si son None, se usa 0.0 como fallback (PipelineInputs requiere float)
+        policy_diff = differential_result.policy_differential if differential_result.policy_differential is not None else 0.0
+        growth_diff = differential_result.growth_differential if differential_result.growth_differential is not None else 0.0
+        rate_diff = differential_result.normalized_rate_differential if differential_result.normalized_rate_differential is not None else 0.0
+        
+        base_rate = differential_result.base_rate if differential_result.base_rate is not None else 0.0
+        quote_rate = differential_result.quote_rate if differential_result.quote_rate is not None else 0.0
         
         return PipelineInputs(
             artifact=artifact,
-            policy_differential=0.0,
-            growth_differential=0.0,
-            normalized_rate_differential=0.0,
+            policy_differential=policy_diff,
+            growth_differential=growth_diff,
+            normalized_rate_differential=rate_diff,
             base_signal=0.0,
             quote_signal=0.0,
-            base_rate=0.0,
-            quote_rate=0.0,
+            base_rate=base_rate,
+            quote_rate=quote_rate,
             global_regime="Neutral",
             base_policy="Neutral",
             quote_policy="Neutral",
@@ -154,7 +156,9 @@ class PipelineBridge:
             max_exposure=1_000_000.0,
             historical_reliability=0.5,
             model_loaded=True,
-            required_data_missing=False,
+            required_data_missing=(
+                differential_result.status != MacroDataStatus.FULL
+            ),
             derived_available_time=as_of,
             input_available_times=[as_of]
         )
