@@ -75,28 +75,41 @@ class LogisticModel:
         return metrics
     
     def predict(self, X: pd.DataFrame) -> dict:
-        """Predice dirección y probabilidad."""
+        """Predice dirección y probabilidad usando el modelo configurado."""
         if self.model is None:
             raise ValueError("Modelo no entrenado")
-        
-        # Usar feature_names si están disponibles
+
+        # Mantener exactamente el orden canónico de features.
         if self.feature_names:
             X = X[self.feature_names]
-        
-        X_scaled = self.scaler.transform(X)
-        proba = self.model.predict_proba(X_scaled)[0]
-        pred = self.model.predict(X_scaled)[0]
-        
+
+        # Modelo canónico: Pipeline completo
+        # (imputer + scaler + LogisticRegression).
+        if hasattr(self.model, "named_steps"):
+            proba = self.model.predict_proba(X)[0]
+            pred = self.model.predict(X)[0]
+
+        # Modelo tradicional: scaler + estimator separados.
+        else:
+            if self.scaler is None:
+                raise ValueError(
+                    "El modelo no es Pipeline y no tiene scaler configurado"
+                )
+
+            X_scaled = self.scaler.transform(X)
+            proba = self.model.predict_proba(X_scaled)[0]
+            pred = self.model.predict(X_scaled)[0]
+
         direction = "UP" if pred == 1 else "DOWN"
         probability = float(proba[1])
-        
+
         return {
-            'direction': direction,
-            'probability': probability,
-            'raw_prediction': int(pred),
-            'probabilities': proba.tolist()
+            "direction": direction,
+            "probability": probability,
+            "raw_prediction": int(pred),
+            "probabilities": proba.tolist(),
         }
-    
+
     def save(self, path: str):
         """Guarda el modelo y metadatos."""
         os.makedirs(os.path.dirname(path), exist_ok=True)

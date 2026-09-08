@@ -28,13 +28,119 @@ class DecisionEngine:
         self.cache_ttl = 300
         
         # Modelos por par
-        self.xgb_models = {}
+        self.log_models = {}
         self.logistic_models = {}
         self.shap_explainers = {}
         
         # Cargar caché desde disco
         self._load_cache()
     
+        # Cargar modelo canónico Logistic_24
+        self._load_canonical_model()
+
+
+
+    def _get_policy_diff(self, df_feat):
+        """Obtiene el policy_diff histórico PIT para EUR/USD."""
+        try:
+            import asyncio
+            import pandas as pd
+
+            from backend.layer2.data.macro.service import MacroService
+            from backend.layer2.data.macro.differential_provider import (
+                MacroDifferentialProvider,
+            )
+
+            price_dates = pd.DatetimeIndex(df_feat.index)
+
+            if len(price_dates) == 0:
+                raise ValueError("No hay fechas de precio disponibles")
+
+            start_date = (
+                price_dates.min() - pd.Timedelta(days=10)
+            ).strftime("%Y-%m-%d")
+            end_date = price_dates.max().strftime("%Y-%m-%d")
+
+            macro_service = MacroService()
+
+            loop = asyncio.new_event_loop()
+            try:
+                asyncio.set_event_loop(loop)
+
+                eur = loop.run_until_complete(
+                    macro_service.get_historical_policy_rate(
+                        "EUR",
+                        start_date,
+                        end_date,
+                    )
+                )
+
+                usd = loop.run_until_complete(
+                    macro_service.get_historical_policy_rate(
+                        "USD",
+                        start_date,
+                        end_date,
+                    )
+                )
+            finally:
+                loop.close()
+
+            policy_diff = MacroDifferentialProvider.calculate_historical(
+                base_currency="EUR",
+                quote_currency="USD",
+                base_series=eur,
+                quote_series=usd,
+                price_dates=price_dates,
+            )
+
+            if len(policy_diff) == 0:
+                raise ValueError("No se pudo calcular policy_diff EUR/USD")
+
+            value = float(policy_diff.iloc[-1])
+
+            print(
+                f"📊 PIT policy_diff EUR/USD: {value:.6f} "
+                f"(EUR={eur['policy_rate'].iloc[-1]:.4f}, "
+                f"USD={usd['policy_rate'].iloc[-1]:.4f})"
+            )
+
+            return value
+
+        except Exception as e:
+            print(f"❌ Error calculando policy_diff EUR/USD: {e}")
+            return None
+
+    def _load_canonical_model(self):
+        """Carga el modelo canónico Logistic_24."""
+        import joblib
+        import os
+        
+        model_path = "models/canonical/logistic_24_20260908_172009.joblib"
+        
+        if not os.path.exists(model_path):
+            print(f"⚠️ Modelo canónico no encontrado en {model_path}")
+            return
+        
+        try:
+            artifact = joblib.load(model_path)
+            model = artifact["model"]
+            feature_names = artifact["feature_names"]
+            
+            # Registrar en logistic_models
+            from backend.layer2.models.logistic_model import LogisticModel
+            
+            # Crear un wrapper LogisticModel con el pipeline completo
+            log_model = LogisticModel()
+            # El pipeline completo incluye imputer + scaler + model
+            log_model.model = model
+            log_model.scaler = None  # El pipeline maneja el escalado
+            log_model.feature_names = feature_names
+            
+            self.logistic_models["EUR/USD_logistic"] = log_model
+            print(f"✅ Modelo canónico Logistic_24 cargado ({len(feature_names)} features)")
+        except Exception as e:
+            print(f"⚠️ Error cargando modelo canónico: {e}")
+
     def _get_model_for_pair(
         self,
         pair: str,
@@ -47,7 +153,7 @@ class DecisionEngine:
         pair = normalize_pair(pair)
         
         if model_type == "xgboost":
-            models = self.xgb_models
+            models = self.log_models
         elif model_type == "logistic":
             models = self.logistic_models
         else:
@@ -57,9 +163,11 @@ class DecisionEngine:
         
         cache_key = f"{pair}_{model_type}"
         
+        # PRIMERO: verificar si ya está cargado
         if cache_key in models:
             return models[cache_key]
         
+        # SEGUNDO: intentar cargar desde registry
         try:
             active = self.registry.get_active(
                 pair,
@@ -157,40 +265,45 @@ class DecisionEngine:
             
             # 2. Generar features
             df_feat = TechnicalFeatures.generate(df)
+            # Features técnicas + policy_diff
             feature_cols = TechnicalFeatures.get_feature_names()
+            # Calcular policy_diff y añadir
+            policy_diff_value = self._get_policy_diff(df_feat)
+            df_feat["policy_diff"] = policy_diff_value
+            feature_cols = feature_cols + ["policy_diff"]
             latest = df_feat.iloc[-1:][feature_cols].dropna()
             
             if latest.empty:
                 print("⚠️ No hay datos suficientes")
                 return self._fallback_forecast(pair)
             
-            # 3. Cargar modelo específico para el par
-            xgb_model = self._get_model_for_pair(pair, "xgboost")
-            is_trained = xgb_model is not None and xgb_model.model is not None
+            # 3. Cargar modelo canónico Logistic_24
+            log_model = self._get_model_for_pair(pair, "logistic")
+            is_trained = log_model is not None and log_model.model is not None
             
             if is_trained:
                 try:
-                    xgb_pred = xgb_model.predict(latest)
-                    probability = xgb_pred.get('probability_up', 0.5)
-                    print(f"✅ XGBoost predijo para {pair}: {xgb_pred}")
+                    log_pred = log_model.predict(latest)
+                    probability = log_pred.get('probability', 0.5)
+                    print(f"✅ Logistic_24 predijo para {pair}: {log_pred}")
                 except Exception as e:
-                    print(f"⚠️ XGBoost falló: {e}")
-                    xgb_pred = self._heuristic_forecast(latest)
-                    probability = xgb_pred.get('probability_up', 0.5)
+                    print(f"⚠️ Logistic_24 falló: {e}")
+                    log_pred = self._heuristic_forecast(latest)
+                    probability = log_pred.get('probability', 0.5)
             else:
-                xgb_pred = self._heuristic_forecast(latest)
-                probability = xgb_pred.get('probability_up', 0.5)
+                log_pred = self._heuristic_forecast(latest)
+                probability = log_pred.get('probability', 0.5)
                 print(f"⚠️ Usando heuristic para {pair}")
             
             # 4. SHAP explicación
             shap_explanation = None
-            if is_trained and xgb_model is not None:
+            if is_trained and log_model is not None:
                 try:
                     X_background = df_feat[feature_cols].dropna()
                     if len(X_background) > 0:
                         shap_explainer = SHAPExplainer(
-                            xgb_model.model,
-                            xgb_model.feature_names,
+                            log_model.model,
+                            log_model.feature_names,
                             X_background
                         )
                         shap_explanation = shap_explainer.explain(latest)
@@ -198,7 +311,7 @@ class DecisionEngine:
                     print(f"⚠️ SHAP falló: {e}")
             
             # 5. Economic filter
-            filtered = self.economic_filter.apply(xgb_pred)
+            filtered = self.economic_filter.apply(log_pred)
             
             # 6. Determinar dirección
             direction = "UP" if probability > 0.55 else "DOWN" if probability < 0.45 else "NEUTRAL"
@@ -216,8 +329,8 @@ class DecisionEngine:
                 'net_return': filtered.get('net_return', 0.0),
                 'position_size': filtered.get('position_size', 0.0),
                 'model': {
-                    'version': 'xgb-v1.0' if is_trained else 'heuristic-v1.0',
-                    'type': 'xgboost' if is_trained else 'heuristic'
+                    'version': 'logistic-v1.0' if is_trained else 'heuristic-v1.0',
+                    'type': 'logistic' if is_trained else 'heuristic'
                 },
                 'shap': shap_explanation,
                 'data_provider': {
