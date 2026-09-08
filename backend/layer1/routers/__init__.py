@@ -1,1 +1,1 @@
-# Router exports
+from . import canonical
