@@ -153,8 +153,13 @@ class FredDataSource:
     
     BASE_URL = "https://api.stlouisfed.org/fred"
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        allow_simulation: bool = True,
+    ):
         self.api_key = api_key or os.getenv("FRED_API_KEY")
+        self.allow_simulation = allow_simulation
         if not self.api_key:
             logger.warning("FRED_API_KEY not set. Using simulated data.")
         self._cache = {}
@@ -188,7 +193,21 @@ class FredDataSource:
             Diccionario con los datos de la serie
         """
         if not self.api_key:
-            return self._simulate_series(series_id)
+            if self.allow_simulation:
+                return self._simulate_series(series_id)
+
+            logger.warning(
+                "FRED_API_KEY not set and simulation disabled for %s",
+                series_id,
+            )
+            return {
+                "series_id": series_id,
+                "observations": [],
+                "last_updated": None,
+                "source": "FRED",
+                "available": False,
+                "warning": "FRED_API_KEY not set",
+            }
         
         # Verificar caché
         cache_key = f"{series_id}_{start_date}_{end_date}_{limit}"
@@ -218,7 +237,18 @@ class FredDataSource:
                 
                 if response.status_code != 200:
                     logger.error(f"FRED API error: {response.status_code}")
-                    return self._simulate_series(series_id)
+
+                    if self.allow_simulation:
+                        return self._simulate_series(series_id)
+
+                    return {
+                        "series_id": series_id,
+                        "observations": [],
+                        "last_updated": None,
+                        "source": "FRED",
+                        "available": False,
+                        "warning": f"FRED API error: {response.status_code}",
+                    }
                 
                 data = response.json()
                 
@@ -246,7 +276,18 @@ class FredDataSource:
                 
         except Exception as e:
             logger.error(f"Error fetching {series_id}: {e}")
-            return self._simulate_series(series_id)
+
+            if self.allow_simulation:
+                return self._simulate_series(series_id)
+
+            return {
+                "series_id": series_id,
+                "observations": [],
+                "last_updated": None,
+                "source": "FRED",
+                "available": False,
+                "warning": str(e),
+            }
     
     def _simulate_series(self, series_id: str) -> Dict[str, Any]:
         """Genera datos simulados para una serie (fallback)."""

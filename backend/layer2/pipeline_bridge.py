@@ -81,13 +81,19 @@ class PipelineBridge:
         # 5. Calcular diferenciales macro
         base, quote = pair.split('/')
         
-        # Por ahora, solo tenemos datos de EE.UU. (FRED).
-        # El proveedor maneja correctamente el caso PARTIAL.
+        # Obtener contextos por país usando el Registry
+        base_context = await self.macro_service.get_country_context(base)
+        quote_context = await self.macro_service.get_country_context(quote)
+        
+        # Convertir a dict para MacroDifferentialProvider
+        base_macro = base_context.to_dict() if base_context.available else None
+        quote_macro = quote_context.to_dict() if quote_context.available else None
+        
         differential_result = self.differential_provider.calculate(
             base_currency=base,
             quote_currency=quote,
-            base_macro=macro_context if base == "USD" else None,
-            quote_macro=macro_context if quote == "USD" else None,
+            base_macro=base_macro,
+            quote_macro=quote_macro,
         )
         
         # 6. Construir PipelineInputs con diferenciales reales (o None)

@@ -10,6 +10,8 @@ from datetime import datetime
 from .cache import MacroCache
 from ..sources.fred import FredDataSource
 from .transformer import MacroTransformer
+from .registry import CountryMacroRegistry
+from .providers.base import CountryMacroContext
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +21,10 @@ class MacroService:
     Servicio de datos macro unificado.
     
     Orquesta:
-    1. FRED API
-    2. Caché
-    3. Transformación
+    1. FRED API (legacy - para compatibilidad)
+    2. Country Macro Providers (nuevo)
+    3. Caché
+    4. Transformación
     """
     
     def __init__(self, api_key: Optional[str] = None):
@@ -34,13 +37,9 @@ class MacroService:
         force_refresh: bool = False
     ) -> Dict[str, Any]:
         """
-        Obtiene el contexto macro completo.
+        Obtiene el contexto macro completo (legacy - solo USD).
         
-        Args:
-            force_refresh: Si es True, ignora la caché
-            
-        Returns:
-            Contexto macro estructurado
+        Mantenido para compatibilidad con PipelineBridge para el régimen macro.
         """
         cache_key = "macro_context"
         
@@ -63,9 +62,72 @@ class MacroService:
         
         return macro_context
     
+    async def get_country_context(
+        self,
+        currency: str,
+        force_refresh: bool = False
+    ) -> CountryMacroContext:
+        """
+        Obtiene el contexto macro de un país específico usando el Registry.
+        
+        Args:
+            currency: Código de la moneda (ej: USD, CNY)
+            force_refresh: Si es True, ignora la caché
+            
+        Returns:
+            CountryMacroContext con los datos del país
+        """
+        provider = CountryMacroRegistry.get(currency.upper())
+        
+        if provider is None:
+            logger.warning(f"No provider found for currency: {currency}")
+            return CountryMacroContext(
+                currency=currency.upper(),
+                available=False,
+                reason=f"No macro provider available for {currency.upper()}",
+                timestamp=datetime.now(),
+                source="unknown",
+            )
+        
+        try:
+            context = await provider.get_context(force_refresh=force_refresh)
+            return context
+        except Exception as e:
+            logger.error(f"Error getting context for {currency}: {e}")
+            return CountryMacroContext(
+                currency=currency.upper(),
+                available=False,
+                reason=f"Error fetching data: {str(e)}",
+                timestamp=datetime.now(),
+                source=provider.source,
+            )
+    
+    async def get_country_contexts(
+        self,
+        currencies: list[str],
+        force_refresh: bool = False
+    ) -> Dict[str, CountryMacroContext]:
+        """
+        Obtiene contextos macro para múltiples países.
+        
+        Args:
+            currencies: Lista de códigos de moneda
+            force_refresh: Si es True, ignora la caché
+            
+        Returns:
+            Dict con currency -> CountryMacroContext
+        """
+        result = {}
+        for currency in currencies:
+            result[currency] = await self.get_country_context(
+                currency, 
+                force_refresh=force_refresh
+            )
+        return result
+    
     async def get_series(self, series_id: str) -> Optional[Dict]:
         """
-        Obtiene una serie específica.
+        Obtiene una serie específica (legacy - solo FRED).
         
         Args:
             series_id: ID de la serie FRED

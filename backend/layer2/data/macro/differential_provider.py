@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .differential_status import MacroDataStatus
+from .registry import CountryMacroRegistry
 
 
 @dataclass
@@ -62,8 +63,6 @@ class MacroDifferentialProvider:
     """
 
     # FRED actualmente cubre USD.
-    SUPPORTED_CURRENCIES = {"USD"}
-
     # Escalas explícitas para convertir diferencias económicas a [-1, +1].
     #
     # Estas constantes representan la sensibilidad del score, no límites
@@ -77,7 +76,7 @@ class MacroDifferentialProvider:
 
     @classmethod
     def is_supported(cls, currency: str) -> bool:
-        return currency.upper() in cls.SUPPORTED_CURRENCIES
+        return CountryMacroRegistry.is_supported(currency)
 
     @staticmethod
     def _normalize(value: float, scale: float) -> float:
@@ -126,6 +125,12 @@ class MacroDifferentialProvider:
         else:
             status = MacroDataStatus.UNAVAILABLE
 
+        base_summary = base_macro.get("summary", {}) if base_available else {}
+        quote_summary = quote_macro.get("summary", {}) if quote_available else {}
+
+        base_rate = base_summary.get("fed_funds")
+        quote_rate = quote_summary.get("fed_funds")
+
         if not (base_available and quote_available):
             return MacroDifferentialResult(
                 base_currency=base,
@@ -133,8 +138,8 @@ class MacroDifferentialProvider:
                 policy_differential=None,
                 growth_differential=None,
                 normalized_rate_differential=None,
-                base_rate=None,
-                quote_rate=None,
+                base_rate=base_rate,
+                quote_rate=quote_rate,
                 status=status,
                 base_available=base_available,
                 quote_available=quote_available,
@@ -143,9 +148,6 @@ class MacroDifferentialProvider:
                     "quote country macro datasets are required."
                 ),
             )
-
-        base_summary = base_macro.get("summary", {})
-        quote_summary = quote_macro.get("summary", {})
 
         base_rate = base_summary.get("fed_funds")
         quote_rate = quote_summary.get("fed_funds")
