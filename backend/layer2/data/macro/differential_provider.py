@@ -118,18 +118,26 @@ class MacroDifferentialProvider:
         base_available = base_macro is not None and cls.is_supported(base)
         quote_available = quote_macro is not None and cls.is_supported(quote)
 
-        if base_available and quote_available:
-            status = MacroDataStatus.FULL
-        elif base_available or quote_available:
-            status = MacroDataStatus.PARTIAL
-        else:
-            status = MacroDataStatus.UNAVAILABLE
-
+        # Determinar disponibilidad de cada componente
         base_summary = base_macro.get("summary", {}) if base_available else {}
         quote_summary = quote_macro.get("summary", {}) if quote_available else {}
 
         base_rate = base_summary.get("fed_funds")
         quote_rate = quote_summary.get("fed_funds")
+        base_growth = base_summary.get("gdp_growth")
+        quote_growth = quote_summary.get("gdp_growth")
+
+        # FULL requiere todos los componentes disponibles
+        policy_available = base_rate is not None and quote_rate is not None
+        growth_available = base_growth is not None and quote_growth is not None
+        rate_available = base_rate is not None and quote_rate is not None  # mismo que policy por ahora
+
+        if policy_available and growth_available:
+            status = MacroDataStatus.FULL
+        elif base_available or quote_available:
+            status = MacroDataStatus.PARTIAL
+        else:
+            status = MacroDataStatus.UNAVAILABLE
 
         if not (base_available and quote_available):
             return MacroDifferentialResult(

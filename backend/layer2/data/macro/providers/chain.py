@@ -1,8 +1,9 @@
 """
 Chain Provider - Combina múltiples proveedores en una cadena de fallback.
 
-FRED China → primary
-Investing.com → fallback
+CNBS/NBS → primary
+World Bank → secondary
+Investing.com → fallback (temporal)
 """
 
 import logging
@@ -10,7 +11,8 @@ from datetime import datetime
 from typing import Optional
 
 from .base import CountryMacroContext, CountryMacroProvider
-from .fred_china import FREDChinaProvider
+from .cnbs import CNBSProvider
+from .world_bank import WorldBankProvider
 from .investing_com import InvestingComProvider
 
 logger = logging.getLogger(__name__)
@@ -20,11 +22,12 @@ class ChainCNYProvider(CountryMacroProvider):
     """
     Proveedor en cadena para CNY.
     
-    Primero intenta FRED China, si falla usa Investing.com.
+    Primero intenta CNBS/NBS, luego World Bank, luego Investing.com.
     """
 
     def __init__(self):
-        self._fred = FREDChinaProvider()
+        self._cnbs = CNBSProvider()
+        self._worldbank = WorldBankProvider()
         self._investing = InvestingComProvider()
         self._cache: Optional[CountryMacroContext] = None
 
@@ -34,37 +37,43 @@ class ChainCNYProvider(CountryMacroProvider):
 
     @property
     def source(self) -> str:
-        return "FRED + Investing.com (chain)"
+        return "CNBS/NBS → World Bank → Investing.com (chain)"
 
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
         """Obtiene contexto macro de CNY con cadena de fallback."""
         if not force_refresh and self._cache:
             return self._cache
 
-        # 1. Intentar FRED primero
-        fred_context = await self._fred.get_context(force_refresh=force_refresh)
-        
-        if fred_context.available:
-            logger.info("CNY: usando datos de FRED")
-            self._cache = fred_context
-            return fred_context
+        # 1. Intentar CNBS/NBS primero
+        cnbs_context = await self._cnbs.get_context(force_refresh=force_refresh)
+        if cnbs_context.available:
+            logger.info("CNY: usando datos de CNBS/NBS")
+            self._cache = cnbs_context
+            return cnbs_context
 
-        # 2. Si FRED no tiene datos, usar Investing.com
-        logger.info("CNY: FRED no tiene datos, usando Investing.com fallback")
+        # 2. Si CNBS no tiene datos, usar World Bank
+        logger.info("CNY: CNBS no disponible, usando World Bank")
+        wb_context = await self._worldbank.get_context(force_refresh=force_refresh)
+        if wb_context.available:
+            logger.info("CNY: usando datos de World Bank")
+            self._cache = wb_context
+            return wb_context
+
+        # 3. Si World Bank no tiene datos, usar Investing.com (temporal)
+        logger.info("CNY: World Bank no disponible, usando Investing.com fallback")
         investing_context = await self._investing.get_context(force_refresh=force_refresh)
-        
         if investing_context.available:
             logger.info("CNY: usando datos de Investing.com")
             self._cache = investing_context
             return investing_context
 
-        # 3. Si ambos fallan, devolver fallback explícito
+        # 4. Si todos fallan, devolver fallback explícito
         logger.warning("CNY: ningún proveedor disponible, usando fallback explícito")
         context = CountryMacroContext(
             currency="CNY",
             available=False,
             is_fallback=True,
-            reason="FRED y Investing.com no tienen datos disponibles",
+            reason="CNBS/NBS, World Bank e Investing.com no tienen datos disponibles",
             timestamp=datetime.now(),
             source="Chain (no data)",
         )
