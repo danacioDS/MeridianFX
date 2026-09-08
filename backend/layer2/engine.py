@@ -86,10 +86,10 @@ class DecisionEngine:
                 loop.close()
 
             policy_diff = MacroDifferentialProvider.calculate_historical(
-                base_currency="EUR",
-                quote_currency="USD",
-                base_series=eur,
-                quote_series=usd,
+                base_currency="USD",
+                quote_currency="EUR",
+                base_series=usd,
+                quote_series=eur,
                 price_dates=price_dates,
             )
 

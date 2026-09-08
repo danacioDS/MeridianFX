@@ -4,6 +4,7 @@ Macro Service — Servicio unificado para datos macro.
 
 import asyncio
 import logging
+import pandas as pd
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -165,3 +166,77 @@ class MacroService:
         """Limpia la caché."""
         self.cache.clear()
         logger.info("Macro cache cleared")
+
+    async def get_historical_policy_rate(
+        self,
+        currency: str,
+        start_date: str,
+        end_date: str,
+    ) -> pd.DataFrame:
+        """
+        Obtiene policy rate histórico real.
+
+        Importante:
+        - No rellena historia con el valor actual.
+        - No simula observaciones.
+        - Si el proveedor no soporta histórico, devuelve vacío.
+        """
+        provider = CountryMacroRegistry.get(currency.upper())
+
+        if provider is None:
+            logger.warning(
+                "No provider found for currency: %s",
+                currency,
+            )
+            return pd.DataFrame(
+                columns=["date", "policy_rate"]
+            )
+
+        if not hasattr(provider, "get_historical"):
+            logger.warning(
+                "Provider %s has no historical policy-rate support",
+                currency.upper(),
+            )
+            return pd.DataFrame(
+                columns=["date", "policy_rate"]
+            )
+
+        try:
+            df = await provider.get_historical(
+                start_date,
+                end_date,
+            )
+
+            if df is None or df.empty:
+                return pd.DataFrame(
+                    columns=["date", "policy_rate"]
+                )
+
+            df = df.copy()
+            df["date"] = pd.to_datetime(
+                df["date"],
+                errors="coerce",
+            )
+            df["policy_rate"] = pd.to_numeric(
+                df["policy_rate"],
+                errors="coerce",
+            )
+
+            return (
+                df[["date", "policy_rate"]]
+                .dropna()
+                .drop_duplicates(subset=["date"])
+                .sort_values("date")
+                .reset_index(drop=True)
+            )
+
+        except Exception as e:
+            logger.error(
+                "Historical policy rate error for %s: %s",
+                currency.upper(),
+                e,
+            )
+            return pd.DataFrame(
+                columns=["date", "policy_rate"]
+            )
+

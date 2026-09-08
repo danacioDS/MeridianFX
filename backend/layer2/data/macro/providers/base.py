@@ -37,7 +37,8 @@ class CountryMacroContext:
         """
         return {
             "summary": {
-                "fed_funds": self.policy_rate,
+                "policy_rate": self.policy_rate,
+                "fed_funds": self.policy_rate,  # compatibilidad legacy
                 "gdp_growth": self.gdp_growth,
                 "inflation": self.inflation,
                 "unemployment": self.unemployment,

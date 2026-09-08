@@ -1,0 +1,46 @@
+{
+  "model_type": "LogisticRegression",
+  "features": [
+    "sma_10",
+    "sma_20",
+    "sma_50",
+    "sma_200",
+    "ema_12",
+    "ema_26",
+    "rsi_14",
+    "macd",
+    "macd_signal",
+    "macd_hist",
+    "bb_upper",
+    "bb_middle",
+    "bb_lower",
+    "bb_width",
+    "atr",
+    "momentum",
+    "roc",
+    "volatility",
+    "adx",
+    "aroon_up",
+    "aroon_down",
+    "stoch_k",
+    "stoch_d",
+    "policy_diff"
+  ],
+  "n_features": 24,
+  "horizon": 10,
+  "pair": "EUR/USD",
+  "training_date": "20260908_180112",
+  "version": "2.0.0",
+  "training_period": {
+    "start": "2022-06-14",
+    "end": "2026-08-26",
+    "n_samples": 1092
+  },
+  "policy_diff_stats": {
+    "mean": -0.345,
+    "std": 0.0,
+    "min": -0.345,
+    "max": -0.345,
+    "current_z_score": 0.0
+  }
+}

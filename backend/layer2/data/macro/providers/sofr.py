@@ -1,12 +1,10 @@
 """
-ECB Provider - Datos macro de la Eurozona via FRED.
+SOFR Provider - Tasa de política monetaria de EE.UU. via FRED.
 
-Series FRED:
-- IRLTLT01EZM156N: Long-term interest rates (temporal)
-- ECB policy rate pendiente de fuente oficial
+SOFR (Secured Overnight Financing Rate) es la tasa de referencia de la Fed.
+Fuente: FRED (o Refinitiv via FRED)
 
-NOTA: Actualmente usando long-term rates como proxy.
-      Pendiente implementar fuente oficial de ECB.
+Serie: USDSOFR
 """
 
 import logging
@@ -19,8 +17,10 @@ from .base import CountryMacroContext, CountryMacroProvider
 logger = logging.getLogger(__name__)
 
 
-class ECBProvider(CountryMacroProvider):
-    """Proveedor de datos macro de la Eurozona via FRED."""
+class SOFRProvider(CountryMacroProvider):
+    """
+    Proveedor de SOFR como policy_rate para EE.UU.
+    """
 
     def __init__(self, api_key: Optional[str] = None):
         self._source = FredDataSource(api_key, allow_simulation=False)
@@ -28,50 +28,52 @@ class ECBProvider(CountryMacroProvider):
 
     @property
     def currency(self) -> str:
-        return "EUR"
+        return "USD"
 
     @property
     def source(self) -> str:
-        return "FRED (Euro Area)"
+        return "FRED (SOFR)"
 
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
+        """Obtiene SOFR como policy_rate."""
         if not force_refresh and self._cache:
             return self._cache
 
         try:
-            rate_data = await self._source.fetch_series("IRLTLT01EZM156N", limit=2)
+            # Buscar SOFR en FRED
+            data = await self._source.fetch_series("SOFR", limit=2)
             policy_rate = None
 
-            if rate_data and rate_data.get("observations"):
-                obs = rate_data["observations"]
+            if data and data.get("observations"):
+                obs = data["observations"]
                 if obs and obs[0].get("value"):
                     policy_rate = float(obs[0]["value"])
 
             available = policy_rate is not None
 
             context = CountryMacroContext(
-                currency="EUR",
+                currency="USD",
                 policy_rate=policy_rate,
-                gdp_growth=None,
-                inflation=None,
-                unemployment=None,
+                gdp_growth=None,  # Ya lo tenemos de FREDProvider
+                inflation=None,    # Ya lo tenemos de FREDProvider
+                unemployment=None, # Ya lo tenemos de FREDProvider
                 timestamp=datetime.now(),
-                source="FRED (Euro Area)",
+                source="FRED (SOFR)",
                 available=available,
                 is_fallback=not available,
-                reason="Long-term rates como proxy de policy_rate para Euro Area",
+                reason="SOFR como policy_rate" if available else "SOFR no disponible",
             )
 
             self._cache = context
             return context
 
         except Exception as e:
-            logger.error(f"Error fetching ECB data: {e}")
+            logger.error(f"Error fetching SOFR: {e}")
             return CountryMacroContext(
-                currency="EUR",
+                currency="USD",
                 available=False,
                 is_fallback=True,
-                reason=f"FRED ECB error: {str(e)}",
+                reason=f"SOFR error: {str(e)}",
                 timestamp=datetime.now(),
                 source="FRED",
             )

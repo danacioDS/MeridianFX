@@ -1,0 +1,53 @@
+[
+  {
+    "timestamp": "2026-09-08T18:09:07.714058",
+    "pair": "EUR/USD",
+    "model": {
+      "loaded": true,
+      "type": "Logistic_24",
+      "features": 24,
+      "last_feature": "policy_diff"
+    },
+    "forecast": {
+      "direction": "DOWN",
+      "probability": 0.2052969831830532,
+      "actionable": false
+    },
+    "policy_diff": null
+  },
+  {
+    "timestamp": "2026-09-08T18:11:03.796639",
+    "direction": "DOWN",
+    "probability": 0.2052969831830532,
+    "actionable": false,
+    "model_type": "logistic"
+  },
+  {
+    "timestamp": "2026-09-08T18:12:36.292738",
+    "direction": "DOWN",
+    "probability": 0.2052969831830532,
+    "actionable": false,
+    "model_type": "logistic"
+  },
+  {
+    "timestamp": "2026-09-08T18:13:18.629637",
+    "direction": "DOWN",
+    "probability": 0.2052969831830532,
+    "actionable": false,
+    "model_type": "logistic"
+  },
+  {
+    "timestamp": "2026-09-08T18:15:22.650746",
+    "direction": "DOWN",
+    "probability": 0.2052969831830532,
+    "actionable": false,
+    "model_type": "logistic"
+  },
+  {
+    "timestamp": "2026-09-08T18:15:48.804028",
+    "direction": "DOWN",
+    "probability": 0.2052969831830532,
+    "actionable": false,
+    "model_type": "logistic"
+  }
+]

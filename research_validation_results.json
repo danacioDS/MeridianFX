@@ -3,83 +3,17 @@
     "pair": "GBP/USD",
     "horizon": 20,
     "validation": {
-      "auc": 0.696969696969697,
-      "pr_auc": 0.7256987703220652,
-      "brier": 0.3227434500687279,
-      "log_loss": 0.9849593358533653,
-      "balanced_accuracy": 0.5,
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
-      "cm": [
-        [
-          22,
-          0
-        ],
-        [
-          18,
-          0
-        ]
+      "n_positives": 15,
+      "n_negatives": 23,
+      "n_samples": 38,
+      "unique_labels": [
+        0.0,
+        1.0
       ],
-      "n_positives": 18,
-      "n_negatives": 22
-    },
-    "test": {
-      "auc": 0.6041666666666666,
-      "pr_auc": 0.9445315389339215,
-      "brier": 0.24182376538670533,
-      "log_loss": 0.6870271629748257,
-      "balanced_accuracy": 0.5694444444444444,
-      "precision": 0.92,
-      "recall": 0.6388888888888888,
-      "f1": 0.7540983606557377,
-      "cm": [
-        [
-          2,
-          2
-        ],
-        [
-          13,
-          23
-        ]
-      ],
-      "n_positives": 36,
-      "n_negatives": 4
-    },
-    "calibrated": {
-      "auc": 0.6041666666666666,
-      "pr_auc": 0.9445315389339215,
-      "brier": 0.11291752230383505,
-      "log_loss": 0.37001132841302503,
-      "balanced_accuracy": 0.4722222222222222,
-      "precision": 0.8947368421052632,
-      "recall": 0.9444444444444444,
-      "f1": 0.918918918918919,
-      "cm": [
-        [
-          0,
-          4
-        ],
-        [
-          2,
-          34
-        ]
-      ],
-      "n_positives": 36,
-      "n_negatives": 4
-    },
-    "n_research": 179,
-    "n_val": 40,
-    "n_test": 40
-  },
-  {
-    "pair": "GBP/USD",
-    "horizon": 10,
-    "validation": {
-      "auc": 0.41679160419790107,
-      "pr_auc": 0.5627604727801344,
-      "brier": 0.5155268322913161,
-      "log_loss": 2.373672124789912,
+      "auc": 0.6202898550724638,
+      "pr_auc": 0.601540857615419,
+      "brier": 0.30928522984168627,
+      "log_loss": 0.9938400080356238,
       "balanced_accuracy": 0.5,
       "precision": 0.0,
       "recall": 0.0,
@@ -90,186 +24,349 @@
           0
         ],
         [
-          29,
+          15,
           0
         ]
       ],
-      "n_positives": 29,
-      "n_negatives": 23
+      "status": "valid"
     },
     "test": {
-      "auc": 0.7049441786283892,
-      "pr_auc": 0.8095873524052396,
-      "brier": 0.252317894583556,
-      "log_loss": 0.7930039222382674,
-      "balanced_accuracy": 0.671451355661882,
-      "precision": 0.8,
-      "recall": 0.6060606060606061,
-      "f1": 0.6896551724137931,
+      "n_positives": 36,
+      "n_negatives": 1,
+      "n_samples": 37,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.7777777777777778,
+      "pr_auc": 0.993335210382372,
+      "brier": 0.3454102997183327,
+      "log_loss": 0.971693160812131,
+      "balanced_accuracy": 0.7361111111111112,
+      "precision": 1.0,
+      "recall": 0.4722222222222222,
+      "f1": 0.6415094339622641,
       "cm": [
         [
-          14,
-          5
+          1,
+          0
         ],
         [
-          13,
-          20
+          19,
+          17
         ]
       ],
-      "n_positives": 33,
-      "n_negatives": 19
+      "status": "valid"
     },
     "calibrated": {
-      "auc": 0.29505582137161085,
-      "pr_auc": 0.5194642136544358,
-      "brier": 0.2836079352466268,
-      "log_loss": 0.7614238401061221,
-      "balanced_accuracy": 0.43301435406698563,
-      "precision": 0.5,
-      "recall": 0.18181818181818182,
-      "f1": 0.26666666666666666,
+      "n_positives": 36,
+      "n_negatives": 1,
+      "n_samples": 37,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.7777777777777778,
+      "pr_auc": 0.993335210382372,
+      "brier": 0.14379116666669195,
+      "log_loss": 0.4610225108026166,
+      "balanced_accuracy": 0.4027777777777778,
+      "precision": 0.9666666666666667,
+      "recall": 0.8055555555555556,
+      "f1": 0.8787878787878788,
       "cm": [
         [
-          13,
-          6
+          0,
+          1
         ],
         [
-          27,
-          6
+          7,
+          29
         ]
       ],
+      "status": "valid"
+    },
+    "n_research": 179,
+    "n_val": 38,
+    "n_test": 37,
+    "test_status": "VALID",
+    "split_info": {
+      "train_end_date": "2026-02-25 00:00:00",
+      "val_start_date": "2026-03-28 00:00:00",
+      "val_end_date": "2026-05-20 00:00:00",
+      "test_start_date": "2026-06-20 00:00:00",
+      "purge_days": "30"
+    }
+  },
+  {
+    "pair": "GBP/USD",
+    "horizon": 10,
+    "validation": {
+      "n_positives": 28,
+      "n_negatives": 23,
+      "n_samples": 51,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.3586956521739131,
+      "pr_auc": 0.5449194979196273,
+      "brier": 0.4377497850884004,
+      "log_loss": 1.4667907239335256,
+      "balanced_accuracy": 0.5357142857142857,
+      "precision": 1.0,
+      "recall": 0.07142857142857142,
+      "f1": 0.13333333333333333,
+      "cm": [
+        [
+          23,
+          0
+        ],
+        [
+          26,
+          2
+        ]
+      ],
+      "status": "valid"
+    },
+    "test": {
       "n_positives": 33,
-      "n_negatives": 19
+      "n_negatives": 17,
+      "n_samples": 50,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.7593582887700534,
+      "pr_auc": 0.8618781199650217,
+      "brier": 0.23019272217741396,
+      "log_loss": 0.7084750704607322,
+      "balanced_accuracy": 0.64349376114082,
+      "precision": 0.7575757575757576,
+      "recall": 0.7575757575757576,
+      "f1": 0.7575757575757576,
+      "cm": [
+        [
+          9,
+          8
+        ],
+        [
+          8,
+          25
+        ]
+      ],
+      "status": "valid"
+    },
+    "calibrated": {
+      "n_positives": 33,
+      "n_negatives": 17,
+      "n_samples": 50,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.24064171122994654,
+      "pr_auc": 0.5213836906623522,
+      "brier": 0.2946769216241116,
+      "log_loss": 0.7843135821986139,
+      "balanced_accuracy": 0.37076648841354726,
+      "precision": 0.4666666666666667,
+      "recall": 0.21212121212121213,
+      "f1": 0.2916666666666667,
+      "cm": [
+        [
+          9,
+          8
+        ],
+        [
+          26,
+          7
+        ]
+      ],
+      "status": "valid"
     },
     "n_research": 185,
-    "n_val": 52,
-    "n_test": 52
+    "n_val": 51,
+    "n_test": 50,
+    "test_status": "VALID",
+    "split_info": {
+      "train_end_date": "2026-03-05 00:00:00",
+      "val_start_date": "2026-03-21 00:00:00",
+      "val_end_date": "2026-06-01 00:00:00",
+      "test_start_date": "2026-06-17 00:00:00",
+      "purge_days": "15"
+    }
   },
   {
     "pair": "USD/CHF",
     "horizon": 30,
     "validation": {
-      "auc": 0.9489795918367347,
-      "pr_auc": 0.9395992895992895,
-      "brier": 0.1969266916110736,
-      "log_loss": 0.5518232212374895,
-      "balanced_accuracy": 0.6785714285714286,
+      "n_positives": 17,
+      "n_negatives": 8,
+      "n_samples": 25,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.9264705882352942,
+      "pr_auc": 0.9606979406902008,
+      "brier": 0.23323879466976888,
+      "log_loss": 0.6638261787310914,
+      "balanced_accuracy": 0.7352941176470589,
       "precision": 1.0,
-      "recall": 0.35714285714285715,
-      "f1": 0.5263157894736842,
+      "recall": 0.47058823529411764,
+      "f1": 0.64,
       "cm": [
         [
-          14,
+          8,
           0
         ],
         [
           9,
-          5
+          8
         ]
       ],
-      "n_positives": 14,
-      "n_negatives": 14
+      "status": "valid"
     },
     "test": {
-      "auc": 0.6632653061224489,
-      "pr_auc": 0.7558749055177626,
-      "brier": 0.49937533249136573,
-      "log_loss": 5.139011914473936,
+      "n_positives": 11,
+      "n_negatives": 15,
+      "n_samples": 26,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.6060606060606061,
+      "pr_auc": 0.637261434217956,
+      "brier": 0.4230444016703375,
+      "log_loss": 4.841992979970944,
       "balanced_accuracy": 0.5,
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "cm": [
         [
-          14,
+          15,
           0
         ],
         [
-          14,
+          11,
           0
         ]
       ],
-      "n_positives": 14,
-      "n_negatives": 14
+      "status": "valid"
     },
     "calibrated": {
-      "auc": 0.6632653061224489,
-      "pr_auc": 0.7558749055177626,
-      "brier": 0.4831448192870308,
-      "log_loss": 2.88845302037263,
+      "n_positives": 11,
+      "n_negatives": 15,
+      "n_samples": 26,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.6060606060606061,
+      "pr_auc": 0.637261434217956,
+      "brier": 0.4175576784616073,
+      "log_loss": 2.4113744789288174,
       "balanced_accuracy": 0.5,
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "cm": [
         [
-          14,
+          15,
           0
         ],
         [
-          14,
+          11,
           0
         ]
       ],
-      "n_positives": 14,
-      "n_negatives": 14
+      "status": "valid"
     },
     "n_research": 173,
-    "n_val": 28,
-    "n_test": 28
+    "n_val": 25,
+    "n_test": 26,
+    "test_status": "VALID",
+    "split_info": {
+      "train_end_date": "2026-02-17 00:00:00",
+      "val_start_date": "2026-04-04 00:00:00",
+      "val_end_date": "2026-05-08 00:00:00",
+      "test_start_date": "2026-06-23 00:00:00",
+      "purge_days": "45"
+    }
   },
   {
     "pair": "USD/CHF",
     "horizon": 10,
     "validation": {
-      "auc": 0.6577380952380953,
-      "pr_auc": 0.7098315634831273,
-      "brier": 0.28888060765793644,
-      "log_loss": 0.8988027611587504,
-      "balanced_accuracy": 0.6071428571428572,
-      "precision": 0.6,
-      "recall": 0.9642857142857143,
-      "f1": 0.7397260273972602,
+      "n_positives": 27,
+      "n_negatives": 24,
+      "n_samples": 51,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.5941358024691358,
+      "pr_auc": 0.635721880607083,
+      "brier": 0.303361064583677,
+      "log_loss": 0.9481377758183182,
+      "balanced_accuracy": 0.587962962962963,
+      "precision": 0.5813953488372093,
+      "recall": 0.9259259259259259,
+      "f1": 0.7142857142857143,
       "cm": [
         [
           6,
           18
         ],
         [
-          1,
-          27
+          2,
+          25
         ]
       ],
-      "n_positives": 28,
-      "n_negatives": 24
+      "status": "valid"
     },
     "test": {
-      "auc": 0.7407407407407407,
-      "pr_auc": 0.7516904119189162,
-      "brier": 0.3408509761813538,
-      "log_loss": 1.4349886393332851,
-      "balanced_accuracy": 0.58,
+      "n_positives": 23,
+      "n_negatives": 27,
+      "n_samples": 50,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.6602254428341385,
+      "pr_auc": 0.63480283069223,
+      "brier": 0.38341490788393273,
+      "log_loss": 1.7793987207474447,
+      "balanced_accuracy": 0.5217391304347826,
       "precision": 1.0,
-      "recall": 0.16,
-      "f1": 0.27586206896551724,
+      "recall": 0.043478260869565216,
+      "f1": 0.08333333333333333,
       "cm": [
         [
           27,
           0
         ],
         [
-          21,
-          4
+          22,
+          1
         ]
       ],
-      "n_positives": 25,
-      "n_negatives": 27
+      "status": "valid"
     },
     "calibrated": {
-      "auc": 0.7407407407407407,
-      "pr_auc": 0.7516904119189162,
-      "brier": 0.33414619502213794,
-      "log_loss": 1.0145736350587622,
+      "n_positives": 23,
+      "n_negatives": 27,
+      "n_samples": 50,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.6602254428341385,
+      "pr_auc": 0.63480283069223,
+      "brier": 0.3115862499698337,
+      "log_loss": 0.8851528553222795,
       "balanced_accuracy": 0.5,
       "precision": 0.0,
       "recall": 0.0,
@@ -280,73 +377,92 @@
           0
         ],
         [
-          25,
+          23,
           0
         ]
       ],
-      "n_positives": 25,
-      "n_negatives": 27
+      "status": "valid"
     },
     "n_research": 185,
-    "n_val": 52,
-    "n_test": 52
+    "n_val": 51,
+    "n_test": 50,
+    "test_status": "VALID",
+    "split_info": {
+      "train_end_date": "2026-03-05 00:00:00",
+      "val_start_date": "2026-03-21 00:00:00",
+      "val_end_date": "2026-06-01 00:00:00",
+      "test_start_date": "2026-06-17 00:00:00",
+      "purge_days": "15"
+    }
   },
   {
     "pair": "USD/JPY",
     "horizon": 30,
     "validation": {
-      "auc": 0.24598930481283426,
-      "pr_auc": 0.5856259273448666,
-      "brier": 0.60714136804067,
-      "log_loss": 9.633808440457559,
+      "n_positives": 20,
+      "n_negatives": 5,
+      "n_samples": 25,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.41000000000000003,
+      "pr_auc": 0.8435164218175896,
+      "brier": 0.7999353402567607,
+      "log_loss": 11.666662929620408,
       "balanced_accuracy": 0.5,
       "precision": 0.0,
       "recall": 0.0,
       "f1": 0.0,
       "cm": [
         [
-          11,
+          5,
           0
         ],
         [
-          17,
+          20,
           0
         ]
       ],
-      "n_positives": 17,
-      "n_negatives": 11
+      "status": "valid"
     },
     "test": {
-      "auc": 0.8653846153846154,
-      "pr_auc": 0.29166666666666663,
-      "brier": 0.07142857142847489,
-      "log_loss": 2.002105365295217,
-      "balanced_accuracy": 0.5,
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1": 0.0,
+      "n_positives": 0,
+      "n_negatives": 26,
+      "n_samples": 26,
+      "unique_labels": [
+        0.0
+      ],
+      "auc": NaN,
+      "pr_auc": NaN,
+      "brier": 2.7987824596630757e-24,
+      "log_loss": NaN,
+      "balanced_accuracy": NaN,
+      "precision": NaN,
+      "recall": NaN,
+      "f1": NaN,
       "cm": [
         [
-          26,
-          0
-        ],
-        [
-          2,
-          0
+          26
         ]
       ],
-      "n_positives": 2,
-      "n_negatives": 26
+      "status": "single_class"
     },
     "calibrated": {
-      "auc": 0.13461538461538464,
-      "pr_auc": 0.06173913043478261,
-      "brier": 0.9185747040593414,
-      "log_loss": 5.014420438025099,
-      "balanced_accuracy": 0.5,
-      "precision": 0.07142857142857142,
-      "recall": 1.0,
-      "f1": 0.13333333333333333,
+      "n_positives": 0,
+      "n_negatives": 26,
+      "n_samples": 26,
+      "unique_labels": [
+        0.0
+      ],
+      "auc": NaN,
+      "pr_auc": NaN,
+      "brier": 0.4025216950059142,
+      "log_loss": NaN,
+      "balanced_accuracy": NaN,
+      "precision": NaN,
+      "recall": NaN,
+      "f1": NaN,
       "cm": [
         [
           0,
@@ -354,160 +470,219 @@
         ],
         [
           0,
-          2
+          0
         ]
       ],
-      "n_positives": 2,
-      "n_negatives": 26
+      "status": "single_class"
     },
     "n_research": 173,
-    "n_val": 28,
-    "n_test": 28
+    "n_val": 25,
+    "n_test": 26,
+    "test_status": "INVALID_TEST_CLASS",
+    "split_info": {
+      "train_end_date": "2026-02-17 00:00:00",
+      "val_start_date": "2026-04-04 00:00:00",
+      "val_end_date": "2026-05-08 00:00:00",
+      "test_start_date": "2026-06-23 00:00:00",
+      "purge_days": "45"
+    }
   },
   {
     "pair": "USD/BOB",
     "horizon": 20,
     "validation": {
-      "auc": 0.6741854636591478,
-      "pr_auc": 0.6867106034210617,
-      "brier": 0.23445651881354265,
-      "log_loss": 0.654955085311457,
-      "balanced_accuracy": 0.6854636591478697,
-      "precision": 0.6071428571428571,
-      "recall": 0.8947368421052632,
-      "f1": 0.723404255319149,
+      "n_positives": 18,
+      "n_negatives": 20,
+      "n_samples": 38,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.6972222222222222,
+      "pr_auc": 0.6663552618784586,
+      "brier": 0.2195542914257771,
+      "log_loss": 0.6206254159573548,
+      "balanced_accuracy": 0.7194444444444444,
+      "precision": 0.64,
+      "recall": 0.8888888888888888,
+      "f1": 0.7441860465116279,
       "cm": [
         [
-          10,
-          11
+          11,
+          9
         ],
         [
           2,
-          17
+          16
         ]
       ],
-      "n_positives": 19,
-      "n_negatives": 21
+      "status": "valid"
     },
     "test": {
-      "auc": 0.9166666666666666,
-      "pr_auc": 0.9914492427650322,
-      "brier": 0.6158356342458816,
-      "log_loss": 18.663683437779888,
-      "balanced_accuracy": 0.625,
+      "n_positives": 33,
+      "n_negatives": 4,
+      "n_samples": 37,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.8787878787878788,
+      "pr_auc": 0.986328727505198,
+      "brier": 0.6687885527772343,
+      "log_loss": 21.08738275660088,
+      "balanced_accuracy": 0.6060606060606061,
       "precision": 1.0,
-      "recall": 0.25,
-      "f1": 0.4,
+      "recall": 0.21212121212121213,
+      "f1": 0.35,
       "cm": [
         [
           4,
           0
         ],
         [
-          27,
-          9
+          26,
+          7
         ]
       ],
-      "n_positives": 36,
-      "n_negatives": 4
+      "status": "valid"
     },
     "calibrated": {
-      "auc": 0.9166666666666666,
-      "pr_auc": 0.9914492427650322,
-      "brier": 0.6355514489268255,
-      "log_loss": 18.574736214762897,
-      "balanced_accuracy": 0.625,
+      "n_positives": 33,
+      "n_negatives": 4,
+      "n_samples": 37,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.8787878787878788,
+      "pr_auc": 0.986328727505198,
+      "brier": 0.6774163479591332,
+      "log_loss": 20.963895873841683,
+      "balanced_accuracy": 0.6060606060606061,
       "precision": 1.0,
-      "recall": 0.25,
-      "f1": 0.4,
+      "recall": 0.21212121212121213,
+      "f1": 0.35,
       "cm": [
         [
           4,
           0
         ],
         [
-          27,
-          9
+          26,
+          7
         ]
       ],
-      "n_positives": 36,
-      "n_negatives": 4
+      "status": "valid"
     },
-    "n_research": 180,
-    "n_val": 40,
-    "n_test": 40
+    "n_research": 179,
+    "n_val": 38,
+    "n_test": 37,
+    "test_status": "VALID",
+    "split_info": {
+      "train_end_date": "2026-02-25 00:00:00",
+      "val_start_date": "2026-03-28 00:00:00",
+      "val_end_date": "2026-05-20 00:00:00",
+      "test_start_date": "2026-06-20 00:00:00",
+      "purge_days": "30"
+    }
   },
   {
     "pair": "EUR/USD",
     "horizon": 10,
     "validation": {
-      "auc": 0.7796101949025487,
-      "pr_auc": 0.7390070925100007,
-      "brier": 0.32417007650857066,
-      "log_loss": 0.9209918305326702,
-      "balanced_accuracy": 0.5344827586206896,
-      "precision": 0.46,
-      "recall": 1.0,
-      "f1": 0.6301369863013698,
-      "cm": [
-        [
-          2,
-          27
-        ],
-        [
-          0,
-          23
-        ]
+      "n_positives": 21,
+      "n_negatives": 30,
+      "n_samples": 51,
+      "unique_labels": [
+        0.0,
+        1.0
       ],
-      "n_positives": 23,
-      "n_negatives": 29
-    },
-    "test": {
-      "auc": 0.86875,
-      "pr_auc": 0.90736863249463,
-      "brier": 0.34460082093432237,
-      "log_loss": 1.498679990717971,
-      "balanced_accuracy": 0.5,
-      "precision": 0.6153846153846154,
+      "auc": 0.8253968253968255,
+      "pr_auc": 0.743978209203773,
+      "brier": 0.3020125057349747,
+      "log_loss": 0.8430151914074964,
+      "balanced_accuracy": 0.5833333333333334,
+      "precision": 0.45652173913043476,
       "recall": 1.0,
-      "f1": 0.7619047619047619,
-      "cm": [
-        [
-          0,
-          20
-        ],
-        [
-          0,
-          32
-        ]
-      ],
-      "n_positives": 32,
-      "n_negatives": 20
-    },
-    "calibrated": {
-      "auc": 0.86875,
-      "pr_auc": 0.90736863249463,
-      "brier": 0.23729285957548565,
-      "log_loss": 0.7633389763354543,
-      "balanced_accuracy": 0.625,
-      "precision": 0.6808510638297872,
-      "recall": 1.0,
-      "f1": 0.810126582278481,
+      "f1": 0.6268656716417911,
       "cm": [
         [
           5,
-          15
+          25
+        ],
+        [
+          0,
+          21
+        ]
+      ],
+      "status": "valid"
+    },
+    "test": {
+      "n_positives": 32,
+      "n_negatives": 18,
+      "n_samples": 50,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.873263888888889,
+      "pr_auc": 0.9213929547818198,
+      "brier": 0.32429315613948084,
+      "log_loss": 1.401499850611404,
+      "balanced_accuracy": 0.5,
+      "precision": 0.64,
+      "recall": 1.0,
+      "f1": 0.7804878048780488,
+      "cm": [
+        [
+          0,
+          18
         ],
         [
           0,
           32
         ]
       ],
+      "status": "valid"
+    },
+    "calibrated": {
       "n_positives": 32,
-      "n_negatives": 20
+      "n_negatives": 18,
+      "n_samples": 50,
+      "unique_labels": [
+        0.0,
+        1.0
+      ],
+      "auc": 0.873263888888889,
+      "pr_auc": 0.9213929547818198,
+      "brier": 0.24937809226199026,
+      "log_loss": 0.8853714675035965,
+      "balanced_accuracy": 0.5555555555555556,
+      "precision": 0.6666666666666666,
+      "recall": 1.0,
+      "f1": 0.8,
+      "cm": [
+        [
+          2,
+          16
+        ],
+        [
+          0,
+          32
+        ]
+      ],
+      "status": "valid"
     },
     "n_research": 185,
-    "n_val": 52,
-    "n_test": 52
+    "n_val": 51,
+    "n_test": 50,
+    "test_status": "VALID",
+    "split_info": {
+      "train_end_date": "2026-03-05 00:00:00",
+      "val_start_date": "2026-03-21 00:00:00",
+      "val_end_date": "2026-06-01 00:00:00",
+      "test_start_date": "2026-06-17 00:00:00",
+      "purge_days": "15"
+    }
   }
 ]

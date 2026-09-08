@@ -1,0 +1,163 @@
+{
+  "timestamp": "20260908_175519",
+  "model": "Logistic_24",
+  "pair": "EUR/USD",
+  "feature_count": 24,
+  "features": [
+    "sma_10",
+    "sma_20",
+    "sma_50",
+    "sma_200",
+    "ema_12",
+    "ema_26",
+    "rsi_14",
+    "macd",
+    "macd_signal",
+    "macd_hist",
+    "bb_upper",
+    "bb_middle",
+    "bb_lower",
+    "bb_width",
+    "atr",
+    "momentum",
+    "roc",
+    "volatility",
+    "adx",
+    "aroon_up",
+    "aroon_down",
+    "stoch_k",
+    "stoch_d",
+    "policy_diff"
+  ],
+  "results": [
+    {
+      "date": "2026-08-12",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 3.608198678146889e-05
+    },
+    {
+      "date": "2026-08-13",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 4.9620118028374085e-05
+    },
+    {
+      "date": "2026-08-14",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 7.51906861968486e-05
+    },
+    {
+      "date": "2026-08-17",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 7.311400477480923e-05
+    },
+    {
+      "date": "2026-08-18",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 6.678753721249669e-05
+    },
+    {
+      "date": "2026-08-19",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 6.137116746763605e-05
+    },
+    {
+      "date": "2026-08-20",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 4.351272844649271e-05
+    },
+    {
+      "date": "2026-08-21",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 2.869371598395809e-05
+    },
+    {
+      "date": "2026-08-24",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 2.5448111662326413e-05
+    },
+    {
+      "date": "2026-08-25",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 1.3028595903065572e-05
+    },
+    {
+      "date": "2026-08-26",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 8.041460983661794e-06
+    },
+    {
+      "date": "2026-08-27",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 9.92904577608028e-06
+    },
+    {
+      "date": "2026-08-28",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 1.1688863917314059e-05
+    },
+    {
+      "date": "2026-08-31",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 3.104200278584405e-05
+    },
+    {
+      "date": "2026-09-01",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 3.50831937783929e-05
+    },
+    {
+      "date": "2026-09-02",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 4.479909926487405e-05
+    },
+    {
+      "date": "2026-09-03",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 5.4892331356858214e-05
+    },
+    {
+      "date": "2026-09-04",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 1.4769779356774123e-05
+    },
+    {
+      "date": "2026-09-07",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 1.541081478372461e-05
+    },
+    {
+      "date": "2026-09-08",
+      "policy_diff": -0.345,
+      "direction": "DOWN",
+      "probability": 1.607772596026355e-05
+    }
+  ],
+  "summary": {
+    "mean_prob": 3.57291485210632e-05,
+    "std_prob": 2.1472694164106242e-05,
+    "min_prob": 8.041460983661794e-06,
+    "max_prob": 7.51906861968486e-05,
+    "direction_counts": {
+      "DOWN": 20
+    }
+  }
+}

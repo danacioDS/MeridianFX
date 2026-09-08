@@ -3,42 +3,28 @@
 from .providers.fred import FREDProvider
 from .providers.chain import ChainCNYProvider
 from .providers.world_bank import WorldBankProvider
-from .providers.trading_economics import TradingEconomicsProvider
+from .providers.bolivia import BoliviaProvider
+from .providers.switzerland import SwitzerlandProvider
+from .providers.euro import EuroProvider
 from .registry import CountryMacroRegistry
 
 # Limpiar registry antes de registrar
 CountryMacroRegistry.clear()
 
-# Registrar proveedores disponibles
+# 1. Países con policy rate
+CountryMacroRegistry.register(FREDProvider())           # USD
+CountryMacroRegistry.register(EuroProvider())           # EUR
+CountryMacroRegistry.register(SwitzerlandProvider())    # CHF
 
-# 1. USD - FRED (datos reales)
-CountryMacroRegistry.register(FREDProvider())
+# 2. Datos estructurales (GDP, Inflation, Unemployment)
+#    World Bank para el resto de países
+for code in ["GB", "JP", "MX", "BR", "AR"]:
+    CountryMacroRegistry.register(WorldBankProvider(code))
 
-# 2. CNY - Chain (CNBS → World Bank → Investing)
+# 3. Bolivia - Provider específico (sin policy_rate)
+CountryMacroRegistry.register(BoliviaProvider())
+
+# 4. China - Chain (World Bank + Investing fallback)
 CountryMacroRegistry.register(ChainCNYProvider())
-
-# 3. EUR - World Bank (Euro Area)
-CountryMacroRegistry.register(WorldBankProvider("EMU"))
-
-# 4. GBP - World Bank (United Kingdom)
-CountryMacroRegistry.register(WorldBankProvider("GB"))
-
-# 5. JPY - World Bank (Japan)
-CountryMacroRegistry.register(WorldBankProvider("JP"))
-
-# 6. CHF - World Bank (Switzerland)
-CountryMacroRegistry.register(WorldBankProvider("CH"))
-
-# 7. MXN - World Bank (Mexico)
-CountryMacroRegistry.register(WorldBankProvider("MX"))
-
-# 8. BRL - World Bank (Brazil)
-CountryMacroRegistry.register(WorldBankProvider("BR"))
-
-# 9. ARS - World Bank (Argentina)
-CountryMacroRegistry.register(WorldBankProvider("AR"))
-
-# 10. BOB - World Bank (Bolivia)
-CountryMacroRegistry.register(WorldBankProvider("BO"))
 
 print(f"✅ Monedas soportadas: {sorted(CountryMacroRegistry.get_supported_currencies())}")

@@ -30,9 +30,10 @@ class TechnicalFeatures:
             cols = macd.columns.tolist()
             # Buscar columnas por nombre o posición
             if len(cols) >= 3:
+                # pandas_ta devuelve: MACD, MACDh (histogram), MACDs (signal)
                 df['macd'] = macd[cols[0]]
-                df['macd_signal'] = macd[cols[1]]
-                df['macd_hist'] = macd[cols[2]]
+                df['macd_hist'] = macd[cols[1]]
+                df['macd_signal'] = macd[cols[2]]
             else:
                 df['macd'] = np.nan
                 df['macd_signal'] = np.nan
@@ -148,19 +149,13 @@ class TechnicalFeatures:
             df['stoch_k'] = np.nan
             df['stoch_d'] = np.nan
         
-        # Eliminar filas con NaN (más tolerante)
-        # Solo eliminar si más del 50% de features son NaN
-        feature_cols = TechnicalFeatures.get_feature_names()
-        df_features = df[feature_cols]
-        
-        # Contar NaN por fila
-        nan_count = df_features.isna().sum(axis=1)
-        total_features = len(feature_cols)
-        
-        # Mantener filas con menos del 50% de NaN
-        keep_mask = nan_count < (total_features * 0.5)
-        df = df[keep_mask].copy()
-        
+        # Mantener todas las filas originales.
+        #
+        # Los NaN corresponden al warm-up de indicadores como SMA200.
+        # La capa de investigación/modelado decide posteriormente
+        # qué observaciones son válidas, después de construir el target.
+        #
+        # Esto preserva correctamente la semántica temporal del horizonte.
         print(f"📈 Features generadas: {len(df)} filas")
         
         if len(df) == 0:

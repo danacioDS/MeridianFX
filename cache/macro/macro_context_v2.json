@@ -1,23 +1,23 @@
 {
-  "cached_at": "2026-08-30T17:19:19.507742",
+  "cached_at": "2026-09-07T16:10:29.209126",
   "schema_version": "v2",
   "value": {
-    "timestamp": "2026-08-30T17:19:10.987301",
+    "timestamp": "2026-09-07T16:10:18.706514",
     "source": "FRED",
     "summary": {
       "fed_funds": 3.63,
       "inflation": 2.715835582,
       "unemployment": 4.1,
       "gdp_growth": 1.01,
-      "yield_10y": 4.67,
-      "yield_2y": 4.2,
-      "yield_spread": 0.39,
+      "yield_10y": 4.77,
+      "yield_2y": 4.34,
+      "yield_spread": 0.41,
       "consumer_sentiment": 98.91297
     },
     "series": {
       "fed_funds": {
         "latest_value": 3.63,
-        "latest_date": "2026-07-01",
+        "latest_date": "2026-08-01",
         "previous_value": 3.63,
         "source": "FRED",
         "warning": null,
@@ -39,8 +39,8 @@
       },
       "unemployment": {
         "latest_value": 4.1,
-        "latest_date": "2026-07-01",
-        "previous_value": 4.2,
+        "latest_date": "2026-08-01",
+        "previous_value": 4.1,
         "source": "FRED",
         "warning": null,
         "series_info": {
@@ -60,9 +60,9 @@
         }
       },
       "yield_10y": {
-        "latest_value": 4.67,
-        "latest_date": "2026-08-27",
-        "previous_value": 4.66,
+        "latest_value": 4.77,
+        "latest_date": "2026-09-03",
+        "previous_value": 4.79,
         "source": "FRED",
         "warning": null,
         "series_info": {
@@ -71,9 +71,9 @@
         }
       },
       "yield_2y": {
-        "latest_value": 4.2,
-        "latest_date": "2026-08-27",
-        "previous_value": 4.19,
+        "latest_value": 4.34,
+        "latest_date": "2026-09-03",
+        "previous_value": 4.39,
         "source": "FRED",
         "warning": null,
         "series_info": {
@@ -82,9 +82,9 @@
         }
       },
       "yield_spread": {
-        "latest_value": 0.39,
-        "latest_date": "2026-08-28",
-        "previous_value": 0.47,
+        "latest_value": 0.41,
+        "latest_date": "2026-09-04",
+        "previous_value": 0.43,
         "source": "FRED",
         "warning": null,
         "series_info": {
@@ -115,9 +115,9 @@
         }
       },
       "payrolls": {
-        "latest_value": 158858.0,
-        "latest_date": "2026-07-01",
-        "previous_value": 158881.0,
+        "latest_value": 159075.0,
+        "latest_date": "2026-08-01",
+        "previous_value": 158913.0,
         "source": "FRED",
         "warning": null,
         "series_info": {

@@ -27,6 +27,67 @@ class FREDProvider(CountryMacroProvider):
     def source(self) -> str:
         return "FRED"
 
+    async def get_historical(
+        self,
+        start_date: str,
+        end_date: str,
+    ):
+        """
+        Obtiene el histórico real de policy rate de EE.UU.
+
+        Fuente:
+        - FRED DFF (Daily Federal Funds Rate)
+
+        No utiliza simulación ni repite el valor actual.
+        """
+        import pandas as pd
+
+        try:
+            data = await self._source.fetch_series(
+                "DFF",
+                start_date=start_date,
+                end_date=end_date,
+                limit=10000,
+            )
+
+            observations = (data or {}).get("observations", [])
+
+            if not observations:
+                logger.warning(
+                    "No historical DFF observations for %s -> %s",
+                    start_date,
+                    end_date,
+                )
+                return pd.DataFrame(columns=["date", "policy_rate"])
+
+            df = pd.DataFrame(observations)
+
+            if df.empty:
+                return pd.DataFrame(columns=["date", "policy_rate"])
+
+            df["date"] = pd.to_datetime(df["date"], errors="coerce")
+            df["policy_rate"] = pd.to_numeric(
+                df["value"],
+                errors="coerce",
+            )
+
+            df = (
+                df[["date", "policy_rate"]]
+                .dropna()
+                .drop_duplicates(subset=["date"])
+                .sort_values("date")
+                .reset_index(drop=True)
+            )
+
+            return df
+
+        except Exception as e:
+            logger.error(
+                "Error fetching historical FRED DFF: %s",
+                e,
+            )
+            return pd.DataFrame(columns=["date", "policy_rate"])
+
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
         """Obtiene el contexto macro de EE.UU."""
         if not force_refresh and self._cache:

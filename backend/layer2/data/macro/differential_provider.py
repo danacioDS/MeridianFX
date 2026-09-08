@@ -11,6 +11,7 @@ Principios:
 - base_rate / quote_rate conservan sus unidades económicas originales (%).
 """
 
+import pandas as pd
 from dataclasses import dataclass
 from typing import Optional
 
@@ -122,8 +123,13 @@ class MacroDifferentialProvider:
         base_summary = base_macro.get("summary", {}) if base_available else {}
         quote_summary = quote_macro.get("summary", {}) if quote_available else {}
 
-        base_rate = base_summary.get("fed_funds")
-        quote_rate = quote_summary.get("fed_funds")
+        base_rate = base_summary.get("policy_rate")
+        if base_rate is None:
+            base_rate = base_summary.get("fed_funds")
+
+        quote_rate = quote_summary.get("policy_rate")
+        if quote_rate is None:
+            quote_rate = quote_summary.get("fed_funds")
         base_growth = base_summary.get("gdp_growth")
         quote_growth = quote_summary.get("gdp_growth")
 
@@ -157,8 +163,13 @@ class MacroDifferentialProvider:
                 ),
             )
 
-        base_rate = base_summary.get("fed_funds")
-        quote_rate = quote_summary.get("fed_funds")
+        base_rate = base_summary.get("policy_rate")
+        if base_rate is None:
+            base_rate = base_summary.get("fed_funds")
+
+        quote_rate = quote_summary.get("policy_rate")
+        if quote_rate is None:
+            quote_rate = quote_summary.get("fed_funds")
 
         base_growth = base_summary.get("gdp_growth")
         quote_growth = quote_summary.get("gdp_growth")
@@ -193,3 +204,127 @@ class MacroDifferentialProvider:
             quote_available=quote_available,
             reason=None,
         )
+
+    
+    @classmethod
+    def calculate_historical(
+        cls,
+        base_currency: str,
+        quote_currency: str,
+        base_series: pd.DataFrame,
+        quote_series: pd.DataFrame,
+        price_dates: pd.DatetimeIndex,
+    ) -> pd.Series:
+        """
+        Calcula policy differential histórico Point-in-Time.
+
+        Para cada fecha t:
+            base_policy(t)  = última observación base <= t
+            quote_policy(t) = última observación quote <= t
+
+        No utiliza valores futuros.
+        """
+
+        if len(price_dates) == 0:
+            return pd.Series(dtype="float64", name="policy_diff")
+
+        def normalize_series(
+            series: pd.DataFrame,
+            column_name: str,
+        ) -> pd.DataFrame:
+            required = {"date", "policy_rate"}
+            missing = required - set(series.columns)
+
+            if missing:
+                raise ValueError(
+                    f"Serie histórica {column_name} incompleta. "
+                    f"Faltan columnas: {sorted(missing)}"
+                )
+
+            result = series[["date", "policy_rate"]].copy()
+
+            result["date"] = pd.to_datetime(
+                result["date"],
+                errors="coerce",
+            ).dt.normalize()
+
+            result["policy_rate"] = pd.to_numeric(
+                result["policy_rate"],
+                errors="coerce",
+            )
+
+            result = (
+                result
+                .dropna(subset=["date", "policy_rate"])
+                .drop_duplicates(subset=["date"], keep="last")
+                .sort_values("date")
+                .reset_index(drop=True)
+            )
+
+            return result.rename(
+                columns={"policy_rate": column_name}
+            )
+
+        # Normalizar las fechas de precios.
+        prices = pd.DataFrame({
+            "date": pd.to_datetime(
+                pd.DatetimeIndex(price_dates),
+                errors="coerce",
+            ).normalize()
+        })
+
+        prices = (
+            prices
+            .dropna(subset=["date"])
+            .drop_duplicates(subset=["date"])
+            .sort_values("date")
+            .reset_index(drop=True)
+        )
+
+        base = normalize_series(base_series, "base_policy")
+        quote = normalize_series(quote_series, "quote_policy")
+
+        # Asegurar exactamente el mismo dtype temporal.
+        common_dtype = prices["date"].dtype
+
+        base["date"] = base["date"].astype(common_dtype)
+        quote["date"] = quote["date"].astype(common_dtype)
+
+        # Point-in-Time: última observación disponible <= fecha de precio.
+        macro = pd.merge_asof(
+            prices,
+            base,
+            on="date",
+            direction="backward",
+        )
+
+        macro = pd.merge_asof(
+            macro.sort_values("date"),
+            quote,
+            on="date",
+            direction="backward",
+        )
+
+        # Eliminar fechas donde todavía no existe una observación
+        # macro disponible. Nunca rellenar artificialmente.
+        macro = macro.dropna(
+            subset=["base_policy", "quote_policy"]
+        )
+
+        # Diferencial canónico:
+        # base policy rate - quote policy rate.
+        macro["policy_diff_raw"] = (
+            macro["base_policy"] - macro["quote_policy"]
+        )
+
+        # Misma normalización que calculate().
+        macro["policy_diff"] = (
+            macro["policy_diff_raw"] / cls.POLICY_SCALE
+        ).clip(-1.0, 1.0)
+
+        return (
+            macro
+            .set_index("date")["policy_diff"]
+            .rename("policy_diff")
+        )
+

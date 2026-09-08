@@ -1,12 +1,8 @@
 """
-ECB Provider - Datos macro de la Eurozona via FRED.
+UK Provider - Datos macro de Reino Unido via FRED.
 
 Series FRED:
-- IRLTLT01EZM156N: Long-term interest rates (temporal)
-- ECB policy rate pendiente de fuente oficial
-
-NOTA: Actualmente usando long-term rates como proxy.
-      Pendiente implementar fuente oficial de ECB.
+- IRLTLT01GBM156N: Long-term interest rates (proxy para policy_rate)
 """
 
 import logging
@@ -19,8 +15,8 @@ from .base import CountryMacroContext, CountryMacroProvider
 logger = logging.getLogger(__name__)
 
 
-class ECBProvider(CountryMacroProvider):
-    """Proveedor de datos macro de la Eurozona via FRED."""
+class UKProvider(CountryMacroProvider):
+    """Proveedor de datos macro de Reino Unido via FRED."""
 
     def __init__(self, api_key: Optional[str] = None):
         self._source = FredDataSource(api_key, allow_simulation=False)
@@ -28,18 +24,18 @@ class ECBProvider(CountryMacroProvider):
 
     @property
     def currency(self) -> str:
-        return "EUR"
+        return "GBP"
 
     @property
     def source(self) -> str:
-        return "FRED (Euro Area)"
+        return "FRED (UK)"
 
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
         if not force_refresh and self._cache:
             return self._cache
 
         try:
-            rate_data = await self._source.fetch_series("IRLTLT01EZM156N", limit=2)
+            rate_data = await self._source.fetch_series("IRLTLT01GBM156N", limit=2)
             policy_rate = None
 
             if rate_data and rate_data.get("observations"):
@@ -50,28 +46,28 @@ class ECBProvider(CountryMacroProvider):
             available = policy_rate is not None
 
             context = CountryMacroContext(
-                currency="EUR",
+                currency="GBP",
                 policy_rate=policy_rate,
                 gdp_growth=None,
                 inflation=None,
                 unemployment=None,
                 timestamp=datetime.now(),
-                source="FRED (Euro Area)",
+                source="FRED (UK)",
                 available=available,
                 is_fallback=not available,
-                reason="Long-term rates como proxy de policy_rate para Euro Area",
+                reason="Long-term rates como policy_rate para UK" if available else "FRED UK no disponible",
             )
 
             self._cache = context
             return context
 
         except Exception as e:
-            logger.error(f"Error fetching ECB data: {e}")
+            logger.error(f"Error fetching UK data: {e}")
             return CountryMacroContext(
-                currency="EUR",
+                currency="GBP",
                 available=False,
                 is_fallback=True,
-                reason=f"FRED ECB error: {str(e)}",
+                reason=f"FRED UK error: {str(e)}",
                 timestamp=datetime.now(),
                 source="FRED",
             )
