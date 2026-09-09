@@ -80,22 +80,20 @@ class DecisionEngineAdapter:
         probability = forecast.get('probability', 0.5)
         direction = forecast.get('direction', 'NEUTRAL')
         expected_return = forecast.get('expected_return', 0.0) * 10000  # Convertir decimal a bps
-        expected_volatility = forecast.get('expected_volatility', 0.12) * 10000  # Convertir decimal a bps
+        expected_volatility = forecast.get('expected_volatility', 0.12)  # Convertir decimal a bps
         model_version = forecast.get('model', {}).get('version', 'xgb-v1.0')
         model_type = forecast.get('model', {}).get('type', 'xgboost')
         timestamp = datetime.now(timezone.utc)
         
-        # 4. Determinar probability_up
-        if direction == "UP":
-            probability_up = probability
-        elif direction == "DOWN":
-            probability_up = 1 - probability
-        else:
-            probability_up = 0.5
+        # 4. LogisticModel.probability = P(UP)
+        # No invertir la probabilidad cuando direction == DOWN.
+        probability_up = probability
         
-        # 5. Construir confidence_interval
-        lower = max(0.0, probability_up - expected_volatility * 0.5)
-        upper = min(1.0, probability_up + expected_volatility * 0.5)
+        # 5. Construir confidence_interval (expected_volatility ya está en decimal, no bps)
+        # La volatilidad en bps debe dividirse por 10000 para obtener decimal
+        vol_decimal = expected_volatility / 10000
+        lower = max(0.0, probability_up - vol_decimal * 0.5)
+        upper = min(1.0, probability_up + vol_decimal * 0.5)
         confidence_interval = ConfidenceInterval(lower=lower, upper=upper)
         
         # 6. Construir shap_values
