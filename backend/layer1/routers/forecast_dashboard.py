@@ -58,7 +58,50 @@ def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> d
     try:
         df_feat = TechnicalFeatures.generate(df)
         feature_cols = TechnicalFeatures.get_feature_names()
-
+        
+        # Calcular policy_diff PIT para el modelo Logistic_24
+        try:
+            import asyncio
+            import pandas as pd
+            from backend.layer2.data.macro.service import MacroService
+            from backend.layer2.data.macro.differential_provider import MacroDifferentialProvider
+            
+            price_dates = pd.DatetimeIndex(df_feat.index)
+            start_date = (price_dates.min() - pd.Timedelta(days=10)).strftime("%Y-%m-%d")
+            end_date = price_dates.max().strftime("%Y-%m-%d")
+            
+            macro_service = MacroService()
+            try:
+                loop = asyncio.get_running_loop()
+                # Si estamos en un loop, usar run_in_executor o crear una tarea
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    eur_future = executor.submit(lambda: macro_service.get_historical_policy_rate("EUR", start_date, end_date))
+                    usd_future = executor.submit(lambda: macro_service.get_historical_policy_rate("USD", start_date, end_date))
+                    eur = eur_future.result()
+                    usd = usd_future.result()
+            except RuntimeError:
+                # No hay loop corriendo, usar run_until_complete
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                eur = loop.run_until_complete(macro_service.get_historical_policy_rate("EUR", start_date, end_date))
+                usd = loop.run_until_complete(macro_service.get_historical_policy_rate("USD", start_date, end_date))
+                loop.close()
+            
+            policy_diff = MacroDifferentialProvider.calculate_historical(
+                base_currency="USD",
+                quote_currency="EUR",
+                base_series=usd,
+                quote_series=eur,
+                price_dates=price_dates,
+            )
+            df_feat["policy_diff"] = policy_diff.reindex(df_feat.index)
+        except Exception as e:
+            print(f"⚠️ Error calculando policy_diff: {e}")
+            df_feat["policy_diff"] = 0.345  # Fallback
+        
+        # Añadir policy_diff a features
+        feature_cols = feature_cols + ["policy_diff"]
         latest_features = df_feat[feature_cols].iloc[-1:].dropna()
 
         if latest_features.empty:
@@ -69,7 +112,7 @@ def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> d
             }
 
         # Obtener el modelo correcto desde el Registry según el par.
-        model = engine._get_model_for_pair(pair, "xgboost")
+        model = engine._get_model_for_pair(pair, "logistic")
 
         if model is None or not getattr(model, "model", None):
             return {
@@ -113,7 +156,7 @@ def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> d
             "ci_95_lower": round(ci_95_lower, 4),
             "ci_95_upper": round(ci_95_upper, 4),
             "model": {
-                "type": "xgboost",
+                "type": "logistic",
                 "version": "v1.0",
             },
         }

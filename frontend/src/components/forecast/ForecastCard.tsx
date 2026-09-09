@@ -31,7 +31,7 @@ export function ForecastCard({ forecasts, currentPrice }: ForecastCardProps): JS
             <div className={`text-lg font-bold ${isUp ? 'text-bull' : 'text-bear'}`}>
               {isUp ? '▲' : '▼'} {data.expected_return}%
             </div>
-            <div className="text-sm text-ink-soft">Confianza: {(probability * 100).toFixed(1)}%</div>
+            <div className="text-sm text-ink-soft">Confidence: {(probability * 100).toFixed(1)}%</div>
             <div className="text-xs text-muted mt-2">
               Precio esperado: {(currentPrice * (1 + data.expected_return / 100)).toFixed(4)}
             </div>

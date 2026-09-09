@@ -94,7 +94,7 @@ export function RankingTable({
                   </span>
                 ) : (
                   <span className="text-xs px-2.5 py-1 rounded-full bg-panel-2 text-muted font-semibold">
-                    Sin edge
+                    No edge
                   </span>
                 )}
               </span>

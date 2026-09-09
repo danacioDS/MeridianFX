@@ -76,8 +76,8 @@ export function GlobalPage(): JSX.Element {
                   </div>
                   <div className="text-xs text-muted">vs día anterior</div>
                   <div className="text-xs text-muted mt-1">
-                    Predicción: <span className={data.forecasts?.["30d"]?.direction === 'UP' ? 'text-bull' : 'text-bear'}>
-                      {data.forecasts?.["30d"]?.direction === 'UP' ? '▲ Alcista' : '▼ Bajista'}
+                    Forecast: <span className={data.forecasts?.["30d"]?.direction === 'UP' ? 'text-bull' : 'text-bear'}>
+                      {data.forecasts?.["30d"]?.direction === 'UP' ? '▲ Bullish' : '▼ Bearish'}
                     </span> ({ (data.forecasts?.["30d"]?.probability || 0.5) * 100 }%)
                   </div>
                 </div>
@@ -94,7 +94,7 @@ export function GlobalPage(): JSX.Element {
 
           {/* Forecast 30/60/90 días */}
           {data.forecasts && (
-            <Panel title="🔮 Predicción XGBoost">
+            <Panel title="🔮 Logistic_24 Forecast">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {["30d", "60d", "90d"].map((h) => {
                   const f = data.forecasts[h as keyof typeof data.forecasts];
@@ -107,7 +107,7 @@ export function GlobalPage(): JSX.Element {
                       <div className={`text-xl font-bold ${isUp ? 'text-bull' : 'text-bear'}`}>
                         {isUp ? '▲' : '▼'} {f.expected_return}%
                       </div>
-                      <div className="text-sm text-ink-soft">Confianza: {safeToFixed(f.probability * 100, 1)}%</div>
+                      <div className="text-sm text-ink-soft">Confidence: {safeToFixed(f.probability * 100, 1)}%</div>
                       <div className="text-xs text-muted mt-1">
                         Precio: {safeToFixed(targetPrice, 4)}
                       </div>
@@ -125,9 +125,9 @@ export function GlobalPage(): JSX.Element {
             </Panel>
           )}
 
-          {/* Contexto Macro con interpretación LLM */}
+          {/* Macro Context con interpretación LLM */}
           {data.macro && data.macro.summary && (
-            <Panel title="🏛️ Contexto Macro">
+            <Panel title="🏛️ Macro Context">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {data.macro.summary.fed_funds && (
                   <div className="text-center p-2 bg-panel-2 rounded">
@@ -209,7 +209,7 @@ export function GlobalPage(): JSX.Element {
       {/* Ranking de oportunidades */}
       {rankingData && (
         <>
-          <Panel title="📈 Top Opportunities — Predicción basada en Logistic Regression">
+          <Panel title="📈 Top Opportunities — Forecast basada en Logistic Regression">
             <RankingTable
               opportunities={opportunities}
               topOpportunity={topOpportunity}

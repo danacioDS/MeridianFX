@@ -42,7 +42,7 @@ export function RankingCard({ rank, opportunity }: RankingCardProps): JSX.Elemen
           </span>
         ) : (
           <span className="text-xs px-3 py-1 rounded-full bg-panel-2 text-muted font-medium uppercase tracking-wide">
-            Sin edge
+            No edge
           </span>
         )}
       </span>

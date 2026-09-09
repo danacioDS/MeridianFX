@@ -60,31 +60,31 @@ export function PricePage(): JSX.Element {
       {/* Precio actual */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 bg-panel rounded-lg p-6 border border-line">
         <div>
-          <div className="text-sm text-muted">Precio Actual</div>
+          <div className="text-sm text-muted">Current Price</div>
           <div className="text-3xl font-bold text-ink">{safeToFixed(current_price, 4)}</div>
           <div className="text-sm text-muted">{info}</div>
         </div>
         <div>
-          <div className="text-sm text-muted">Cambio (24h)</div>
+          <div className="text-sm text-muted">24h Change</div>
           <div className={`text-2xl font-bold ${change_percent >= 0 ? 'text-bull' : 'text-bear'}`}>
             {change_percent >= 0 ? '+' : ''}{safeToFixed(change_percent, 2)}%
           </div>
           <div className="text-sm text-muted">{change_abs >= 0 ? '+' : ''}{safeToFixed(change_abs, 4)}</div>
         </div>
         <div>
-          <div className="text-sm text-muted">Predicción XGBoost</div>
+          <div className="text-sm text-muted">XGBoost Forecast</div>
           <div className={`text-2xl font-bold ${direction === 'UP' ? 'text-bull' : direction === 'DOWN' ? 'text-bear' : 'text-muted'}`}>
-            {direction === 'UP' ? '▲ Alcista' : direction === 'DOWN' ? '▼ Bajista' : '—'}
+            {direction === 'UP' ? '▲ Bullish' : direction === 'DOWN' ? '▼ Bearish' : '—'}
           </div>
-          <div className="text-sm text-muted">Confianza: {(probability * 100).toFixed(1)}%</div>
+          <div className="text-sm text-muted">Confidence: {(probability * 100).toFixed(1)}%</div>
         </div>
         <div>
-          <div className="text-sm text-muted">Fuente</div>
+          <div className="text-sm text-muted">Source</div>
           <div className="text-lg font-semibold text-ink">{source || 'yahoo'}</div>
           <div className="text-sm text-muted">{freshness || 'UNKNOWN'}</div>
         </div>
         <div>
-          <div className="text-sm text-muted">Última actualización</div>
+          <div className="text-sm text-muted">Last Update</div>
           <div className="text-lg font-semibold text-ink">{last_date || '—'}</div>
           <div className="text-sm text-muted">{new Date(data.timestamp).toLocaleTimeString()}</div>
         </div>
@@ -151,7 +151,7 @@ export function PricePage(): JSX.Element {
             Precio actual: 1 {base_name} = {safeToFixed(current_price, 4)} {quote_name}
           </p>
           <p className="text-xs text-muted">
-            Datos históricos: {history?.length || 0} días · Fuente: {source || 'yahoo'}
+            Datos históricos: {history?.length || 0} días · Source: {source || 'yahoo'}
           </p>
         </div>
       </Panel>

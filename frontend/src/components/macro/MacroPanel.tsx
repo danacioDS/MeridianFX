@@ -99,7 +99,7 @@ export function MacroPanel({ macro, isLoading }: MacroPanelProps): JSX.Element {
           )}
           {summary.consumer_sentiment !== undefined && (
             <div className="bg-panel-2 rounded-lg p-2 text-center">
-              <div className="text-xs text-muted">Confianza</div>
+              <div className="text-xs text-muted">Confidence</div>
               <div className="text-sm font-mono font-semibold">{summary.consumer_sentiment.toFixed(0)}</div>
             </div>
           )}

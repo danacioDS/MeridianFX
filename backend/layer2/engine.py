@@ -111,35 +111,47 @@ class DecisionEngine:
             return None
 
     def _load_canonical_model(self):
-        """Carga el modelo canónico Logistic_24."""
+        """Carga todos los modelos Logistic_24 disponibles."""
         import joblib
         import os
+        import glob
         
-        model_path = "models/canonical/logistic_24_20260908_172009.joblib"
+        from backend.layer2.models.logistic_model import LogisticModel
         
-        if not os.path.exists(model_path):
-            print(f"⚠️ Modelo canónico no encontrado en {model_path}")
-            return
+        # Definir mapa de pares a modelos
+        pair_map = {
+            "EUR/USD": "models/canonical/logistic_24_20260908_172009.joblib",
+            "USD/CHF": "models/canonical/logistic_24_USD_CHF_20260909_081530.joblib",
+            "USD/BOB": "models/canonical/logistic_24_USD_BOB_20260909_081531.joblib",
+            "USD/MXN": "models/canonical/logistic_24_USD_MXN_20260909_081531.joblib",
+            "USD/CNY": "models/canonical/logistic_24_USD_CNY_20260909_081532.joblib",
+            "USD/JPY": "models/canonical/logistic_24_USD_JPY_20260909_081908.joblib",
+            "GBP/USD": "models/canonical/logistic_24_GBP_USD_20260909_081913.joblib",
+            "USD/BRL": "models/canonical/logistic_24_USD_BRL_20260909_081913.joblib",
+            "USD/ARS": "models/canonical/logistic_24_USD_ARS_20260909_081914.joblib",
+        }
         
-        try:
-            artifact = joblib.load(model_path)
-            model = artifact["model"]
-            feature_names = artifact["feature_names"]
+        for pair, model_path in pair_map.items():
+            if not os.path.exists(model_path):
+                print(f"⚠️ Modelo no encontrado: {model_path}")
+                continue
             
-            # Registrar en logistic_models
-            from backend.layer2.models.logistic_model import LogisticModel
-            
-            # Crear un wrapper LogisticModel con el pipeline completo
-            log_model = LogisticModel()
-            # El pipeline completo incluye imputer + scaler + model
-            log_model.model = model
-            log_model.scaler = None  # El pipeline maneja el escalado
-            log_model.feature_names = feature_names
-            
-            self.logistic_models["EUR/USD_logistic"] = log_model
-            print(f"✅ Modelo canónico Logistic_24 cargado ({len(feature_names)} features)")
-        except Exception as e:
-            print(f"⚠️ Error cargando modelo canónico: {e}")
+            try:
+                artifact = joblib.load(model_path)
+                model = artifact["model"]
+                feature_names = artifact["feature_names"]
+                
+                # Crear wrapper
+                log_model = LogisticModel()
+                log_model.model = model
+                log_model.scaler = None
+                log_model.feature_names = feature_names
+                
+                cache_key = f"{pair}_logistic"
+                self.logistic_models[cache_key] = log_model
+                print(f"✅ Logistic_24 cargado para {pair} ({len(feature_names)} features)")
+            except Exception as e:
+                print(f"⚠️ Error cargando {pair}: {e}")
 
     def _get_model_for_pair(
         self,

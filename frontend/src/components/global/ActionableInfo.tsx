@@ -74,7 +74,7 @@ export function ActionableInfo({
         <div>🔹 <span className="text-text-primary">Umbral Edge Mínimo:</span> {threshold.minEdge}x</div>
         <div>🔹 <span className="text-text-primary">Umbral Net Return:</span> &gt; {threshold.minNetReturn * 100}%</div>
         <div>🔹 <span className="text-text-primary">Umbral Probabilidad:</span> &gt; {threshold.minProbability * 100}%</div>
-        <div>💡 <span className="text-text-primary">Interpretación:</span> "Sin edge" = no supera los umbrales</div>
+        <div>💡 <span className="text-text-primary">Interpretación:</span> "No edge" = no supera los umbrales</div>
       </div>
     </div>
   );
