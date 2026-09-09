@@ -1,24 +1,31 @@
 import { useSearchParams } from "react-router-dom";
-import { FX_PAIRS } from "../constants/fxPairs";
-
-export const DEFAULT_PAIR = "EUR/USD";
-
-/**
- * Universo canónico fijo.
- *
- * Se mantiene como array mutable para compatibilidad con
- * componentes y tests existentes.
- */
-export const DEFAULT_PAIR_UNIVERSE: string[] = [...FX_PAIRS];
+import { FX_PAIRS, DEFAULT_PAIR } from "../constants/fxPairs";
+import type { RankingResponse } from "../types";
 
 /**
- * Devuelve siempre el universo canónico.
+ * MVP universe used when ranking data is unavailable.
  *
- * El argumento es opcional para mantener compatibilidad
- * con páginas legacy que todavía pasan ranking.data.
+ * The full FX universe is defined in FX_PAIRS.
+ * When ranking data is available, pairUniverseFromRanking()
+ * uses the pairs returned by the ranking instead.
  */
-export function pairUniverseFromRanking(_ranking?: unknown): string[] {
-  return [...FX_PAIRS];
+export const DEFAULT_PAIR_UNIVERSE = [
+  "EUR/USD",
+  "GBP/USD",
+  "USD/JPY",
+] as const;
+
+/**
+ * Returns the pair universe from the ranking, or the MVP universe
+ * when ranking data is unavailable.
+ */
+export function pairUniverseFromRanking(
+  ranking?: RankingResponse | null,
+): string[] {
+  if (ranking?.opportunities?.length) {
+    return ranking.opportunities.map((opp) => opp.pair);
+  }
+  return [...DEFAULT_PAIR_UNIVERSE];
 }
 
 interface ActivePair {
@@ -29,16 +36,18 @@ interface ActivePair {
 export function useActivePair(): ActivePair {
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const pair = searchParams.get("pair") ?? DEFAULT_PAIR;
+  const pairParam = searchParams.get("pair");
+  const isValid = pairParam ? FX_PAIRS.includes(pairParam as any) : false;
+  const pair = isValid ? pairParam : DEFAULT_PAIR;
 
-  const setPair = (next: string): void => {
-    const params = new URLSearchParams(searchParams);
-    params.set("pair", next);
-    setSearchParams(params, { replace: false });
+  const setPair = (next: string) => {
+    if (!FX_PAIRS.includes(next as any)) return;
+    setSearchParams((prev) => {
+      const params = new URLSearchParams(prev);
+      params.set("pair", next);
+      return params;
+    });
   };
 
-  return {
-    pair,
-    setPair,
-  };
+  return { pair, setPair };
 }

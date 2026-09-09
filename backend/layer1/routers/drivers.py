@@ -63,7 +63,7 @@ async def get_drivers(base: str, quote: str) -> Dict[str, Any]:
                 for c in sorted_contrib
             ]
             base_value = shap_data.get('base_value', 0.0)
-            feature_count = len(shap_data.get('contributions', []))
+            feature_count = shap_data.get('feature_count', len(shap_data.get('contributions', [])))
         
         # Macro drivers (ejemplo con datos de mercado)
         macro_drivers = [
@@ -92,7 +92,7 @@ async def get_drivers(base: str, quote: str) -> Dict[str, Any]:
             "pair": pair,
             "normalized_pair": normalized_pair,
             "model_available": True,
-            "model_type": "xgboost",
+            "model_type": "logistic",
             "timestamp": pd.Timestamp.now().isoformat(),
             "drivers": drivers,
             "macro_drivers": macro_drivers,

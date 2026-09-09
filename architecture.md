@@ -1,8 +1,8 @@
 # Meridian FX — Architecture
 
-**Date:** 2026-09-05
+**Date:** 2026-09-09
 
-System architecture for the Meridian FX repo: a contract-driven FX intelligence product with a FastAPI delivery API (Layer 1), a live ML/decision engine (Layer 2), research (Layer 3) and data-quality (Layer 4) codebases, a contract-verified decision engine (`src`), a script-driven Research Gate + experimental-model pipeline (repo root), and a React dashboard — deployed in production (Render backend, Cloudflare Pages + Vercel frontend) and pinned to a frozen documentation suite.
+System architecture for the Meridian FX repo: a contract-driven FX intelligence product with a FastAPI delivery API (Layer 1), a live ML/decision engine (Layer 2), research (Layer 3) and data-quality (Layer 4) codebases, a contract-verified decision engine (`src`), a canonical DecisionPipeline wired via bridge, a script-driven Research Gate + experimental-model pipeline + extensive walkforward research (repo root), and a React dashboard — deployed in production (Render backend, Cloudflare Pages + Vercel frontend) and pinned to a frozen documentation suite.
 
 ---
 
@@ -16,11 +16,12 @@ System architecture for the Meridian FX repo: a contract-driven FX intelligence 
 │   ┌────────────────┐  delivery contracts (Layer 1 §7)   ┌───────────────────────┐            │
 │   │   LAYER 1      │ ──────────────────────────────────▶ │  FRONTEND (React+TS) │            │
 │   │ DELIVERY API   │  /v1/fx/{base}/{quote}/drivers     │  Global · Price ·     │            │
-│   │  (FastAPI, 11  │  /v1/fx/{pair}/price|forecast|h... │  Forecast · Drivers · │            │
+│   │  (FastAPI, 12  │  /v1/fx/{pair}/price|forecast|h... │  Forecast · Drivers · │            │
 │   │   routers)     │  /v1/fx/ranking · performance      │  Evaluation · Status ·│            │
-│   │  backend/layer1 │ /v1/market-intelligence (NEW)     │  Models               │            │
-│   └───────┬────────┘  /v1/status · forecast-dashboard · model-comparison         │             │
-│           │  uses layer2 engine (+ layer3 via model-comparison, + src decision)  │             │
+│   │  backend/layer1 │ /v1/market-intelligence           │  Models · Canonical   │            │
+│   └───────┬────────┘  /v1/canonical/{pair}/decision (NEW)                       │             │
+│           │  /v1/status · forecast-dashboard · model-comparison                  │             │
+│           │  uses layer2 engine (+ layer3 via model-comparison, + src decision via pipeline_bridge) │
 │   ┌───────▼──────────────────┐         ┌────────────────────────┐ ┌───────────────┐          │
 │   │ LAYER 2  LIVE ENGINE     │         │ LAYER 3  RESEARCH       │ │ LAYER 4 DATA  │          │
 │   │ backend/layer2:          │◀───────▶│ backend/layer3:        │ │  QUALITY      │          │
@@ -41,7 +42,7 @@ System architecture for the Meridian FX repo: a contract-driven FX intelligence 
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-> **Key relationships:** Layer 1 consumes `layer2/` directly, now including `_get_model_for_pair` for per-pair models and the real `StatusEngine`. Layer 3 is wired into the API **only** via the `model_comparison` router (now working); `run_benchmarks.py` remains broken. Layer 4 is wired into runtime **only** through tests (`test_pit_adversarial.py`). The contract-governed `src/meridian_fx/decision/` engine remains unconnected to the live API. The root-level Research Gate pipeline (**`research_gate.py` + `research_validation_test.py` + `train_experimental_models.py`)** produces `models/experimental/` candidates that the API never loads.
+> **Key relationships:** Layer 1 consumes `layer2/` directly, now including `_get_model_for_pair` for per-pair models, the real `StatusEngine`, and the new **canonical pipeline** wired via `pipeline_bridge.py` (Layer 2 → `DecisionPipeline` with macro regime, differential status, and traceability). Layer 3 is wired into the API **only** via the `model_comparison` router (working); `run_benchmarks.py` remains broken. Layer 4 is wired into runtime **only** through tests (`test_pit_adversarial.py`). The contract-governed `src/meridian_fx/decision/` engine is now **partially wired** to the live API via the canonical router + pipeline bridge (using `FakeFeatureStore` / `FakeDataQualityRegistry` providers). The root-level Research Gate pipeline (**`research_gate.py` + `research_validation_test.py` + `train_experimental_models.py`**) produces `models/experimental/` candidates that the API never loads. **21 macro providers** (~2065 lines) cover policy rates, differentials, and country-specific data for all 9 pairs.
 
 ---
 
@@ -49,36 +50,45 @@ System architecture for the Meridian FX repo: a contract-driven FX intelligence 
 
 ```
 MeridianFX/
-├── docs/                     Frozen specifications, prompts, contract governance
+├── docs/                     Frozen specifications, prompts, contract governance, model_selection
 ├── backend/                  Python backend
-│   ├── layer1/               FastAPI delivery API (11 routers incl. NEW intelligence, models, adapters, LLM, decision)
-│   ├── layer2/               Live engine (data, features, models, explainers, macro, ranking, status, engine)
-│   ├── layer3/               Research/evaluation layer (walk-forward FIXED, benchmarks, models, regime, RAG, gate)
+│   ├── layer1/               FastAPI delivery API (12 routers incl. canonical, intelligence, models, adapters, LLM, decision)
+│   ├── layer2/               Live engine (data, features, models, explainers, macro, ranking, status, engine, pipeline_bridge)
+│   ├── layer3/               Research/evaluation layer (walk-forward, benchmarks, models, regime, RAG, gate)
 │   ├── layer4/               Data-quality layer (PIT validator, config policies, lineage)
 │   ├── src/meridian_fx/decision/  Contract-governed Decision Engine (8-stage pipeline, 103 tests)
 │   ├── models/               Trained XGBoost/logistic .pkl + models/registry.json (10 models) + models/experimental/
-│   ├── tests/                Backend pytest suite (12 files)
+│   ├── tests/                Backend pytest suite (13 files)
 │   ├── pyproject.toml        Backend project metadata (pythonpath=src, pytest)
 │   ├── requirements.txt      Backend dependency manifest
 │   └── docker-compose.yml    Local compose (port 10000, mounts models/ + cache/)
+├── models/canonical/         NEW — Logistic_24 .joblib canonical models (10 artifacts, all pairs) + metadata.json
 ├── Dockerfile                Render container (python:3.12-slim, uvicorn layer1.main:app :10000)
 ├── render.yaml               Render blueprint (docker free web service, /health, env keys)
 ├── runtime.txt               Python 3.12.0 pin (repo root)
 ├── train_models.py           XGBoost training script (production registry)
-├── train_experimental_models.py  NEW — logistic + sigmoid candidates with purged protocol
-├── evaluate_all_pairs.py · final_holdout.py · research_validation_test.py   NEW validation scripts
-├── research_gate.py · research_gate_results{,v2}.json   NEW Research Gate + outputs
-├── research_validation_results.json · research_validation_summary.csv · final_holdout_results.csv  NEW
-├── models/                   Root-level artifacts (ONLY 6 of 9 XGBoost .pkl — see §4.2/§9)
+├── train_experimental_models.py  Logistic + sigmoid candidates with purged protocol
+├── train_canonical_model.py  NEW — trains canonical Logistic_24 model
+├── train_canonical_model_extended.py  NEW — extended canonical training
+├── train_multi_pairs.py      NEW — multi-pair canonical training (all 9 pairs)
+├── evaluate_all_pairs.py · final_holdout.py · research_validation_test.py   Validation scripts
+├── research_gate.py · research_gate_results{,v2}.json   Research Gate + outputs
+├── research_walkforward.py   NEW — base walkforward research
+├── research_walkforward_*.py NEW — 8 specialized walkforward scripts (head-to-head, inflation, lag, macro, pit, models, nonoverlap, xgb_macro_pit)
+├── shadow_test.py · shadow_test_simple.py  NEW — shadow testing framework
+├── monitor_daily.py · monitor_model.py  NEW — monitoring scripts
+├── research_validation_results.json · research_validation_summary.csv · final_holdout_results.csv
+├── models/                   Root-level artifacts (ONLY 6 of 9 XGBoost .pkl — see §4.2/§9) + experimental/
 ├── cache/                    Runtime forecast + macro caches (CWD-relative in prod)
 ├── frontend/                 Contract-driven React+TS dashboard (Cloudflare Pages + Vercel)
 │   ├── .env                  VITE_API_URL = VITE_API_BASE_URL = http://localhost:8000  (NO .env.production)
 │   ├── vercel.json · _headers · _redirects
-│   └── src/constants/fxPairs.ts  NEW fixed pair order + market convention (UI refactor)
+│   ├── src/constants/fxPairs.ts  Fixed pair order + market convention (UI refactor)
+│   └── src_backup_espanol/   NEW — Spanish-language frontend backup
 ├── .env                      Runtime env (FRED/GROQ/ALPHA/TWELVE/OPENAI/CLOUDFLARE keys + config)
 ├── ngrok-stable-linux-amd64.zip · commandos.md · start_backend.sh · VERSION*.txt · *.bak  (committed clutter)
 ├── README.md                 Product overview + quickstart
-├── report.md                 Repository analysis (2026-09-05)
+├── report.md                 Repository analysis (2026-09-09)
 └── architecture.md           This document
 ```
 
@@ -86,7 +96,7 @@ MeridianFX/
 
 ## 3. Layer 1 — FastAPI delivery API (`backend/layer1/`)
 
-**Entry:** `backend/layer1/main.py` — `FastAPI(title="Meridian FX API", version="1.0.0")`, CORS covering localhost/Render/Vercel/Cloudflare/**ngrok**/`*`. **11 routers** plus `/` and `/health`.
+**Entry:** `backend/layer1/main.py` — `FastAPI(title="Meridian FX API", version="1.0.0")`, CORS covering localhost/Render/Vercel/Cloudflare/ngrok/`*`. **12 routers** plus `/` and `/health`.
 
 ### 3.1 Routers
 
@@ -103,19 +113,21 @@ MeridianFX/
 | `intelligence` | `GET /v1/market-intelligence` | **NEW** — English narrative synthesis over `RankingEngine` | ✅ |
 | `interpretation` | `GET /v1/fx/interpretation?pair=&include_macro=` | `EconomicInterpreter` + `FORECAST_DATA`; macro via missing `layer1.services.macro_service` | ⚠️ partial |
 | `model_comparison` | `GET /v1/fx/{pair:path}/model-comparison` | Layer 3 `WalkForwardEvaluator.evaluate_expanding` (was 500) | ✅ — 200 (slow 3y walk-forward per pair) |
+| `canonical` | `GET /v1/canonical/{pair}/decision` | **NEW** — `DecisionPipeline` via `pipeline_bridge.py` (uses `FakeFeatureStore` etc.) | ✅ — 200 |
 
 > `/v1/fx/macro/status` and `/v1/fx/macro/refresh` remain removed (interpretation router exposes only `/interpretation`).
 
 ### 3.2 Supporting modules
 
 - **`models/responses.py`** — Pydantic response models mirroring Layer 1 §7.1–7.7.
-- **`adapters/decision_to_response.py`** — `DecisionAdapter`; **`adapters/decision_engine_adapter.py`** NEW.
+- **`adapters/decision_to_response.py`** — `DecisionAdapter`; **`adapters/decision_engine_adapter.py`** (engine → response shaping).
 - **`decision/`** — `decision_context.py`, `economic_filter.py`, `signal_validity.py`.
 - **`llm/`** — provider chain + rule-based `FallbackLLM`; `EconomicInterpreter` resolves via fallback (LLM chain not invoked).
-- **`routers/intelligence.py`** NEW — deterministic market-intelligence endpoint.
+- **`routers/intelligence.py`** — deterministic market-intelligence endpoint.
+- **`routers/canonical.py`** **NEW** — `GET /v1/canonical/{pair}/decision` wired to `PipelineBridge` → `DecisionPipeline` (currently uses `FakeFeatureStore`/`FakeDataQualityRegistry`).
 - **`data/forecast_data.py`** — consolidated hardcoded `FORECAST_DATA`.
 
-> **Regression driver (closed for routers, open for models):** the layer-2 `DecisionEngine` per-pair refactor is now reflected in `drivers.py`, `price.py`, and `model_comparison.py` (all use `_get_model_for_pair`). The remaining fault line is **path resolution**: registry paths (`models/*.pkl`) are CWD-relative, and at the repo root the USD/JPY, EUR/USD, GBP/USD artifacts don't exist → those 3 pairs 404 in `drivers` and lose the `price` signal. `run_benchmarks.py` also still reads the removed `engine.xgb_model`.
+> **Regression driver (closed for routers, open for models):** the layer-2 `DecisionEngine` per-pair refactor is now reflected in `drivers.py`, `price.py`, and `model_comparison.py` (all use `_get_model_for_pair`). The canonical router (`canonical.py`) now wires the contract-governed `DecisionPipeline` via `pipeline_bridge.py` (using fake providers). The remaining fault line is **path resolution**: registry paths (`models/*.pkl`) are CWD-relative, and at the repo root the USD/JPY, EUR/USD, GBP/USD artifacts don't exist → those 3 pairs 404 in `drivers` and lose the `price` signal. `run_benchmarks.py` also still reads the removed `engine.xgb_model`.
 
 ---
 
@@ -139,6 +151,7 @@ DecisionEngine.get_forecast(pair)  ── on-disk cache (5-min TTL) + heuristic 
         │
         ├─▶ RankingEngine.get_ranking()  (score = 0.6·prob + 0.4·edge)
         ├─▶ StatusEngine.get_full_status()  (registry + live probes + LLM checks → HEALTHY/DEGRADED)
+        ├─▶ PipelineBridge.build_inputs() ──▶ DecisionPipeline (canonical route, fake providers)
         └─▶ [layer1 price · forecast-dashboard · drivers · model-comparison · market-intelligence]
 ```
 
@@ -148,19 +161,21 @@ DecisionEngine.get_forecast(pair)  ── on-disk cache (5-min TTL) + heuristic 
 | --- | --- | --- |
 | `config.py` | — | Env config: keys, trading thresholds, paths |
 | `data/` | `provider.py`, `fetcher.py`, `sources/{yahoo,alpha_vantage,twelve,fred}.py` | Multi-source failover data; FRED + simulated fallback |
-| `data/macro/` | `service.py`, `cache.py`, `transformer.py` | `MacroService`, disk cache (24 h TTL), `MacroTransformer` |
+| `data/macro/` | `service.py`, `cache.py`, `transformer.py`, `canonical_adapter.py`, `differential_provider.py`, `differential_status.py`, `registry.py` | `MacroService`, disk cache (24 h TTL), `MacroTransformer`, `CanonicalMacroAdapter`, `MacroDifferentialProvider`, `MacroDifferentialStatus` |
+| `data/macro/providers/` | 21 country/indicator providers (~2065 lines) | FRED, ECB, PBoC, BoJ, SNB, World Bank, Investing.com, Trading Economics, policy rates, SOFR, chain, CNBS, etc. |
 | `status/` | `engine.py` | `StatusEngine` — model states, live probes, LLM availability, HEALTHY/DEGRADED |
-| `features/` | `technical.py` | 23 technical indicators + `create_target()` |
+| `features/` | `technical.py`, `derived.py`, `macro.py` | 23 technical indicators + `create_target()`, derived features, macro features |
 | `models/` | `xgboost_model.py`, `logistic_model.py`, `registry.py` | Per-pair models + `ModelRegistry`; `model_selector.py`/`registry_adapter.py` unwired; `trainer.py` empty |
 | `explainers/` | `shap_explainer.py` | SHAP `TreeExplainer`, top-10 contributions |
 | `decision/` | `filter.py` | Simplified `EconomicFilter` |
 | `ranking/` | `engine.py` | `RankingEngine` over active-model pairs |
+| `pipeline_bridge.py` | — | **NEW** — `PipelineBridge` connecting Layer 2 data → `DecisionPipeline` (macro regime, differential status, traceability) |
 | `quality/` | `pit_adapter.py` | Adapter over `PITValidator` — **dead code** |
 | `engine.py` | — | `DecisionEngine` — per-pair model dicts, cache, heuristic fallback |
 
 ### 4.3 Models & registry
 
-`backend/models/registry.json`: **10 models, all `active: true`**, all `v1.0` (9 XGBoost + 1 logistic). In-registry AUCs **0.380–0.733** (USD/CHF 0.733 best; USD/CNY 0.380 worst; USD/JPY xgb 0.408 / logistic 0.448). **Path caveat:** registry `path` is CWD-relative `models/*.pkl`; from the repo root only 6 of 9 XGBoost artifacts exist there (USD/JPY, EUR/USD, GBP/USD live only under `backend/models/`). `train_models.py` trains XGBoost into the registry; the new `train_experimental_models.py` trains logistic+sigmoid candidates into `models/experimental/`.
+`backend/models/registry.json`: **10 models, all `active: true`**, all `v1.0` (9 XGBoost + 1 logistic). In-registry AUCs **0.380–0.733** (USD/CHF 0.733 best; USD/CNY 0.380 worst; USD/JPY xgb 0.408 / logistic 0.448). The new **`models/canonical/`** tree holds **10 Logistic_24 `.joblib` artifacts + 2 metadata files** (per-pair Logistic_24 for the USD-pair universe plus aggregate/extended variants) trained 2026-09-08/09 with PIT `policy_diff` integration — the v2.0 "stable" deliverable (`cac4721`). Registry `path` is CWD-relative `models/*.pkl`; from the repo root only 6 of 9 XGBoost artifacts exist there (USD/JPY, EUR/USD, GBP/USD live only under `backend/models/`). `train_models.py` trains XGBoost into the registry; `train_canonical_model.py` / `train_canonical_model_extended.py` / `train_multi_pairs.py` train the canonical Logistic_24 models; `train_experimental_models.py` trains logistic+sigmoid candidates into `models/experimental/`.
 
 ---
 
@@ -195,6 +210,23 @@ train_experimental_models.py → models/experimental/{EUR_USD/h10, USD_BOB/h20} 
 
 Caveats: PR-AUC is a declared rule but **not actually computed**; the experimental candidates are **not registered** in `backend/models/registry.json` and are never loaded by the API; `research_gate_results_v2.json` is currently untracked.
 
+### 5.2 Canonical-model research & shadow testing (repo root, NEW)
+
+```
+train_canonical_model.py · train_canonical_model_extended.py · train_multi_pairs.py
+        ▼   Logistic_24 for all 9 pairs (PIT policy_diff)
+models/canonical/logistic_24_*_2026090{8,9}_*.joblib  (12 models + metadata.json)
+        ▼
+research_walkforward.py · research_walkforward_{models,macro,pit,xgb_macro_pit,inflation,lag,nonoverlap,head_to_head}.py
+        ▼  walkforward A/B/head-to-head studies → research_walkforward_{*}_results.json
+        ▼
+shadow_test.py · shadow_test_simple.py → shadow_test_results_*.json (PIT + non-PIT)
+        ▼
+monitor_daily.py · monitor_model.py  (daily/monitoring hooks)
+```
+
+Docs: `docs/model_selection/2026-09-08_model_selection_logistic_vs_xgboost.md`. `requirements-stable-v2.0.txt` pins the stable dependency set.
+
 ---
 
 ## 6. Layer 4 — data-quality layer (`backend/layer4/`)
@@ -224,7 +256,9 @@ L4 streams (policy/GDP/rates,  │  PipelineInputs
      6. Quality · 7. Hard gates (signal_validity P3) · 8. Sizing → Decision {...}
 ```
 
-**Verification:** `python -m pytest` (from `backend/`) → **103 passed** across 12 files, incl. `test_pit_adversarial.py`.
+**Verification:** `python -m pytest` (from `backend/`) → **103 passed** across 13 files, incl. `test_pit_adversarial.py` and `test_canonical_macro_adapter.py`.
+
+> **Runtime wiring status (updated):** `pipeline_bridge.py` now connects Layer 2 data to the `DecisionPipeline` and the canonical router exposes `GET /v1/canonical/{pair}/decision` — but the pipeline still runs on **fake providers** (`FakeFeatureStore`, `FakeDataQualityRegistry`), so the decision engine's real-data footprint remains partial.
 
 ---
 
@@ -245,7 +279,7 @@ L4 streams (policy/GDP/rates,  │  PipelineInputs
 | `/models` | ModelComparisonPage | `useModelComparison` → `/v1/fx/{pair}/model-comparison` |
 | `/about` | AboutPage | (narrative) |
 
-New this cycle: `constants/fxPairs.ts` (fixed pair order), `common/MarketConvention.tsx`, `UniverseSelector` refactor (drops `currencies` prop), `useActivePair` fixed-universe simplification. Dead/stale: `useFanChartData.ts`, orphaned `HistoricalPage.tsx`, duplicate `common/Header.tsx`, `mockup/*`.
+New this cycle: `constants/fxPairs.ts` (fixed pair order), `common/MarketConvention.tsx`, `UniverseSelector` refactor (drops `currencies` prop), `useActivePair` fixed-universe simplification. **`src_backup_espanol/`** — a full Spanish-language frontend backup tree (approx. 130 files). Dead/stale: `useFanChartData.ts`, orphaned `HistoricalPage.tsx`, duplicate `common/Header.tsx`, `mockup/*`.
 
 ### 8.2 SignalIQ Global + Forecast + Model Comparison
 
@@ -301,6 +335,7 @@ docs/
 ├── Domain/ · High-Level Design/ · Low-Level Design/
 ├── Product_specification/   FROZEN L1 v5.1 · L2 v3.4.1 · L3 v5.0 · L4 v3.1.1
 ├── Prompts/                 Layer prompts + prompt_-1/0/X audit & build
+├── model_selection/         NEW — 2026-09-08 Logistic vs XGBoost selection report
 └── Contract/                Governance artifacts (traceability, gaps, freeze, validation, migration, mapping)
 ```
 
@@ -310,18 +345,19 @@ docs/
 | `CONTRACT_GAPS.md` (v2.0) | 16 unified gaps: G1–G9 + EC-1..4, RA, CA, DF-P |
 | `FRONTEND_CONTRACT_FREEZE.md` (v2.0) | FREEZE WITH OPTIONAL GAPS, 0 blocking |
 | `CONTRACT_VALIDATION.md` / `MIGRATION_REPORT.md` / `COMPONENT_MAPPING.md` | Prompt-1 audit PASS / 66 mockups / 100% mapping |
+| `MACRO_COVERAGE.md` (**NEW**) | Macro provider coverage & traceability baseline (v2.5) |
 
-**Governance workflow:** change request → traceability → gaps → freeze → validate. The Layer 3/4 code, the Model Comparison surface, the new `/v1/market-intelligence` endpoint, the root Research Gate/experimental pipeline, and the fixed-universe UI changes have **not** gone through this loop.
+**Governance workflow:** change request → traceability → gaps → freeze → validate. The Layer 3/4 code, the Model Comparison surface, `/v1/market-intelligence`, the **canonical router + `pipeline_bridge`**, the **Country Macro Providers v2.5**, the root Research Gate/experimental pipeline, the walkforward research bundle, and the fixed-universe UI changes have **not** gone through this loop.
 
 ---
 
 ## 11. Verification matrix
 
-| Layer | Command | Status (2026-09-05) |
+| Layer | Command | Status (2026-09-09) |
 | --- | --- | --- |
-| Backend `src` decision engine (+ L4 PIT) | `cd backend && python -m pytest` | **103 passed** (12 files) ✅ |
+| Backend `src` decision engine (+ L4 PIT) | `cd backend && python -m pytest` | **103 passed** (13 files) ✅ |
 | Layer 1 import | `python -c "import backend.layer1.main"` | pass ✅ |
-| Layer 1 endpoints (smoke) | TestClient against running app | `/status` `HEALTHY`; `/market-intelligence` 200; `/drivers` 200 (6 pairs) / 404 (3 core pairs); `/price` 200; `/model-comparison` 200 ✅ |
+| Layer 1 endpoints (smoke) | TestClient against running app | `/status` `HEALTHY`; `/market-intelligence` 200; `/drivers` 200 (6 pairs) / 404 (3 core pairs); `/price` 200; `/model-comparison` 200; `/canonical/{pair}/decision` 200 (fake providers) ✅ |
 | Frontend typecheck | `cd frontend && npm run typecheck` | ❌ **FAILS** (~20 TS errors from `9d0b62f`) |
 | Frontend tests | `cd frontend && npm test` | **53 passed / 2 FAILED** (`useActivePair.test.tsx`; `format.test.ts` green) |
 | Frontend build | `cd frontend && npm run build` | ❌ **FAILS** (same TS errors) |
@@ -338,7 +374,7 @@ docs/
 6. **Hardcoded/simulated endpoints** — `/forecast` & `/interpretation` use `FORECAST_DATA`; interpretation macro import (`layer1.services.macro_service`) missing; drivers `macro_drivers` hardcoded (VIX 16.8 / 72 / RISK_ON); FRED simulated without key.
 7. **Research Gate caveats** — PR-AUC rule declared but not computed; `models/experimental/` unconsumed by the API; v2 results file untracked.
 8. **`EconomicInterpreter` bypasses the LLM chain** (rule-based primary).
-9. **`src` decision engine not wired to `layer2`/`layer1`** — 103 verified tests, zero runtime footprint.
+9. **Canonical pipeline runs on fake providers** — `/v1/canonical/{pair}/decision` is wired via `pipeline_bridge.py` but uses `FakeFeatureStore`/`FakeDataQualityRegistry`; no live data flows into the `src` decision engine yet.
 10. **Contract-shape drift in frontend** — `direction === 'UP'` derivations, hardcoded VIX/riskAppetite/regime in `RegimeStrip`, locally computed returns.
-11. **Dead/stale artifacts** — orphaned `HistoricalPage.tsx`; unused `FanChart`/`useFanChartData`/`WhyNow`/`DataTimestamps`/`ForecastHero`/`mockup/*`/duplicate `common/Header.tsx`; empty `trainer.py`; dead `layer2` adapters; **plus committed clutter** (13.9 MB ngrok zip, `commandos.md`, `start_backend.sh`, `VERSION*.txt`, `*.bak`/`*.backup`).
+11. **Dead/stale artifacts & clutter** — orphaned `HistoricalPage.tsx`; unused `FanChart`/`useFanChartData`/`WhyNow`/`DataTimestamps`/`ForecastHero`/`mockup/*`/duplicate `common/Header.tsx`; empty `trainer.py`; dead `layer2` adapters; `frontend/src_backup_espanol/` (full Spanish backup committed); numerous `.bak`/`.backup` files; **plus committed clutter** (13.9 MB ngrok zip, `commandos.md`, `start_backend.sh`, `VERSION*.txt`, `*.bak`/`*.backup`).
 12. **Bundle size** — 1,397 kB main chunk; warning silenced by raising `chunkSizeWarningLimit`.

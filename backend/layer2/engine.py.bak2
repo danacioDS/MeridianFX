@@ -42,20 +42,13 @@ class DecisionEngine:
 
 
 
-    def _get_policy_diff(self, df_feat, pair: str):
-        """Obtiene el policy_diff histórico PIT para el par especificado."""
+    def _get_policy_diff(self, df_feat):
+        """Obtiene el policy_diff histórico PIT para EUR/USD."""
         try:
             import asyncio
             import pandas as pd
             from backend.layer2.data.macro.service import MacroService
             from backend.layer2.data.macro.differential_provider import MacroDifferentialProvider
-
-            base, quote = pair.split("/")
-            
-            # Solo EUR/USD tiene datos de policy rates por ahora
-            if base not in ["EUR", "USD"] or quote not in ["EUR", "USD"]:
-                print(f"⚠️ Policy_diff solo disponible para pares con EUR/USD. Saltando para {pair}")
-                return None
 
             price_dates = pd.DatetimeIndex(df_feat.index)
             if len(price_dates) == 0:
@@ -66,43 +59,43 @@ class DecisionEngine:
 
             macro_service = MacroService()
 
+            # Usar run_in_executor para evitar conflictos con el loop existente
             def _sync_fetch():
                 import asyncio
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 try:
-                    base_rate = loop.run_until_complete(
-                        macro_service.get_historical_policy_rate(base, start_date, end_date)
+                    eur = loop.run_until_complete(
+                        macro_service.get_historical_policy_rate("EUR", start_date, end_date)
                     )
-                    quote_rate = loop.run_until_complete(
-                        macro_service.get_historical_policy_rate(quote, start_date, end_date)
+                    usd = loop.run_until_complete(
+                        macro_service.get_historical_policy_rate("USD", start_date, end_date)
                     )
-                    return base_rate, quote_rate
+                    return eur, usd
                 finally:
                     loop.close()
 
             import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                base_rate, quote_rate = executor.submit(_sync_fetch).result()
+                eur, usd = executor.submit(_sync_fetch).result()
 
             policy_diff = MacroDifferentialProvider.calculate_historical(
-                base_currency=base,
-                quote_currency=quote,
-                base_series=base_rate,
-                quote_series=quote_rate,
+                base_currency="EUR",
+                quote_currency="USD",
+                base_series=eur,
+                quote_series=usd,
                 price_dates=price_dates,
             )
 
             if len(policy_diff) == 0:
-                raise ValueError(f"No se pudo calcular policy_diff {pair}")
+                raise ValueError("No se pudo calcular policy_diff EUR/USD")
 
             value = float(policy_diff.iloc[-1])
-            print(f"📊 PIT policy_diff {pair}: {value:.6f} ({base}={base_rate['policy_rate'].iloc[-1]:.4f}, {quote}={quote_rate['policy_rate'].iloc[-1]:.4f})")
+            print(f"📊 PIT policy_diff EUR/USD: {value:.6f} (EUR={eur['policy_rate'].iloc[-1]:.4f}, USD={usd['policy_rate'].iloc[-1]:.4f})")
             return value
 
         except Exception as e:
-            print(f"❌ Error calculando policy_diff {pair}: {e}")
-            return None
+            print(f"❌ Error calculando policy_diff EUR/USD: {e}")
             return None
     def _load_canonical_model(self):
         """Carga todos los modelos Logistic_24 disponibles."""
@@ -274,7 +267,7 @@ class DecisionEngine:
             # Features técnicas + policy_diff
             feature_cols = TechnicalFeatures.get_feature_names()
             # Calcular policy_diff y añadir
-            policy_diff_value = self._get_policy_diff(df_feat, pair) or 0.0
+            policy_diff_value = self._get_policy_diff(df_feat)
             df_feat["policy_diff"] = policy_diff_value
             feature_cols = feature_cols + ["policy_diff"]
             latest = df_feat.iloc[-1:][feature_cols].dropna()

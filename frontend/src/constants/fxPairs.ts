@@ -44,3 +44,5 @@ export const FX_PAIR_LABELS: Record<FXPair, { base: string; quote: string; descr
   "USD/BOB": { base: "USD", quote: "BOB", description: "US Dollar / Bolivian Boliviano" },
   "USD/CHF": { base: "USD", quote: "CHF", description: "US Dollar / Swiss Franc" }
 };
+
+export const DEFAULT_PAIR = "USD/CNY" as const;
