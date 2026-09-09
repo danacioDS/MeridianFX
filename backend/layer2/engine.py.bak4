@@ -51,6 +51,7 @@ class DecisionEngine:
             from backend.layer2.data.macro.differential_provider import MacroDifferentialProvider
 
             base, quote = pair.split("/")
+            
 
             price_dates = pd.DatetimeIndex(df_feat.index)
             if len(price_dates) == 0:
@@ -80,10 +81,6 @@ class DecisionEngine:
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 base_rate, quote_rate = executor.submit(_sync_fetch).result()
 
-            if base_rate.empty or quote_rate.empty:
-                print(f"⚠️ No hay datos de policy rate para {pair}")
-                return None
-
             policy_diff = MacroDifferentialProvider.calculate_historical(
                 base_currency=base,
                 quote_currency=quote,
@@ -100,8 +97,6 @@ class DecisionEngine:
             return value
 
         except Exception as e:
-            print(f"❌ Error calculando policy_diff {pair}: {e}")
-            return None
             print(f"❌ Error calculando policy_diff {pair}: {e}")
             return None
             return None

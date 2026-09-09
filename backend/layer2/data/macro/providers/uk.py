@@ -6,6 +6,7 @@ Series FRED:
 """
 
 import logging
+import pandas as pd
 from datetime import datetime
 from typing import Optional
 
@@ -29,6 +30,64 @@ class UKProvider(CountryMacroProvider):
     @property
     def source(self) -> str:
         return "FRED (UK)"
+
+    async def get_historical(
+        self,
+        start_date: str,
+        end_date: str,
+    ) -> pd.DataFrame:
+        """
+        Obtiene el histórico de policy rate para Reino Unido.
+        """
+        try:
+            result = await self._source.fetch_series(
+                "IRLTLT01GBM156N",
+                start_date=start_date,
+                end_date=end_date,
+                limit=1000
+            )
+
+            if not result or not result.get("observations"):
+                logger.warning(
+                    "No historical UK observations for %s -> %s",
+                    start_date,
+                    end_date,
+                )
+                return pd.DataFrame(columns=["date", "policy_rate"])
+
+            rows = []
+            for obs in result["observations"]:
+                date_str = obs.get("date")
+                value_str = obs.get("value")
+
+                if not date_str or value_str is None:
+                    continue
+
+                try:
+                    rows.append({
+                        "date": pd.to_datetime(date_str),
+                        "policy_rate": float(value_str),
+                    })
+                except (ValueError, TypeError):
+                    continue
+
+            if not rows:
+                return pd.DataFrame(columns=["date", "policy_rate"])
+
+            df = pd.DataFrame(rows)
+            df = (
+                df[["date", "policy_rate"]]
+                .dropna()
+                .drop_duplicates(subset=["date"])
+                .sort_values("date")
+                .reset_index(drop=True)
+            )
+
+            return df
+
+        except Exception as e:
+            logger.error("Error fetching historical UK data: %s", e)
+            return pd.DataFrame(columns=["date", "policy_rate"])
 
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
         if not force_refresh and self._cache:
