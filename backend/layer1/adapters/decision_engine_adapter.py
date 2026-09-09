@@ -79,8 +79,8 @@ class DecisionEngineAdapter:
         # 3. Extraer datos
         probability = forecast.get('probability', 0.5)
         direction = forecast.get('direction', 'NEUTRAL')
-        expected_return = forecast.get('expected_return', 0.0)
-        expected_volatility = forecast.get('expected_volatility', 0.12)
+        expected_return = forecast.get('expected_return', 0.0) * 10000  # Convertir decimal a bps
+        expected_volatility = forecast.get('expected_volatility', 0.12) * 10000  # Convertir decimal a bps
         model_version = forecast.get('model', {}).get('version', 'xgb-v1.0')
         model_type = forecast.get('model', {}).get('type', 'xgboost')
         timestamp = datetime.now(timezone.utc)

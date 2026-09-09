@@ -51,7 +51,7 @@ export function RankingTable({
           <span>#</span>
           <span>Par</span>
           <span>Señal</span>
-          <span>Prob.</span>
+          <span>Score</span>
           <span>Edge</span>
           <span>Ret. esp. / Net</span>
           <span>Estado</span>

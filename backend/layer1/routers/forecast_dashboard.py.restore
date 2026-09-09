@@ -54,32 +54,105 @@ def calculate_volatility(df: pd.DataFrame, days: int = 30) -> float:
     return round(annual_vol * 100, 2)
 
 def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> dict:
-    """Calcula forecast usando DecisionEngine como fuente canónica."""
+    """Calcula forecast usando el modelo registrado para el par."""
     try:
-        # Usar el forecast canónico
-        forecast = engine.get_forecast(pair)
+        df_feat = TechnicalFeatures.generate(df)
+        feature_cols = TechnicalFeatures.get_feature_names()
         
-        # Extraer valores canónicos
-        direction = forecast.get("direction", "NEUTRAL")
-        probability = forecast.get("probability", 0.5)
-        expected_return = forecast.get("expected_return", 0.0) * (horizon_days / 30)
-        volatility = forecast.get("expected_volatility", 0.0)
+        # Calcular policy_diff PIT para el modelo Logistic_24
+        try:
+            import asyncio
+            import pandas as pd
+            from backend.layer2.data.macro.service import MacroService
+            from backend.layer2.data.macro.differential_provider import MacroDifferentialProvider
+            
+            price_dates = pd.DatetimeIndex(df_feat.index)
+            start_date = (price_dates.min() - pd.Timedelta(days=10)).strftime("%Y-%m-%d")
+            end_date = price_dates.max().strftime("%Y-%m-%d")
+            
+            macro_service = MacroService()
+            try:
+                loop = asyncio.get_running_loop()
+                # Si estamos en un loop, usar run_in_executor o crear una tarea
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    eur_future = executor.submit(lambda: macro_service.get_historical_policy_rate("EUR", start_date, end_date))
+                    usd_future = executor.submit(lambda: macro_service.get_historical_policy_rate("USD", start_date, end_date))
+                    eur = eur_future.result()
+                    usd = usd_future.result()
+            except RuntimeError:
+                # No hay loop corriendo, usar run_until_complete
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                eur = loop.run_until_complete(macro_service.get_historical_policy_rate("EUR", start_date, end_date))
+                usd = loop.run_until_complete(macro_service.get_historical_policy_rate("USD", start_date, end_date))
+                loop.close()
+            
+            policy_diff = MacroDifferentialProvider.calculate_historical(
+                base_currency="USD",
+                quote_currency="EUR",
+                base_series=usd,
+                quote_series=eur,
+                price_dates=price_dates,
+            )
+            df_feat["policy_diff"] = policy_diff.reindex(df_feat.index)
+        except Exception as e:
+            print(f"⚠️ Error calculando policy_diff: {e}")
+            df_feat["policy_diff"] = 0.345  # Fallback
         
+        # Añadir policy_diff a features
+        feature_cols = feature_cols + ["policy_diff"]
+        latest_features = df_feat[feature_cols].iloc[-1:].dropna()
+
+        if latest_features.empty:
+            return {
+                "direction": "UNKNOWN",
+                "probability": 0.5,
+                "expected_return": 0.0,
+            }
+
+        # Obtener el modelo correcto desde el Registry según el par.
+        model = engine._get_model_for_pair(pair, "logistic")
+
+        if model is None or not getattr(model, "model", None):
+            return {
+                "direction": "UNKNOWN",
+                "probability": 0.5,
+                "expected_return": 0.0,
+            }
+
+        pred = model.predict(latest_features)
+
+        probability = float(pred.get("probability", 0.5))
+        probability = max(0.0, min(1.0, probability))
+
         current_price = float(df["Close"].iloc[-1])
-        target_price = current_price * (1 + expected_return)
-        
-        # Intervalos de confianza basados en volatilidad histórica
-        historical_vol = calculate_volatility(df, 30) / 100
-        horizon_vol = historical_vol * (horizon_days / 252) ** 0.5
-        ci_95_lower = current_price * (1 - 1.96 * horizon_vol)
-        ci_95_upper = current_price * (1 + 1.96 * horizon_vol)
-        
+
+        # Estimación simple del retorno esperado a partir de la probabilidad.
+        expected_return = (probability - 0.5) * 0.05 * (horizon_days / 30)
+
+        if expected_return > 0.001:
+            direction = "UP"
+        elif expected_return < -0.001:
+            direction = "DOWN"
+        else:
+            direction = "NEUTRAL"
+
+        volatility = calculate_volatility(df, 30)
+
+        ci_95_lower = current_price * (
+            1 - 0.02 * (horizon_days / 30) * (volatility / 20)
+        )
+        ci_95_upper = current_price * (
+            1 + 0.02 * (horizon_days / 30) * (volatility / 20)
+        )
+
         return {
             "direction": direction,
-            "probability": round(probability, 8),
+            "probability": round(probability, 4),
             "expected_return": round(expected_return * 100, 2),
             "current_price": round(current_price, 4),
-            "volatility": round(volatility * 100, 2),
+            "volatility": volatility,
             "ci_95_lower": round(ci_95_lower, 4),
             "ci_95_upper": round(ci_95_upper, 4),
             "model": {
@@ -87,6 +160,7 @@ def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> d
                 "version": "v1.0",
             },
         }
+
     except Exception as e:
         print(f"⚠️ Forecast error for {pair}: {e}")
         return {

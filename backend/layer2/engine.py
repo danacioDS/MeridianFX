@@ -105,6 +105,19 @@ class DecisionEngine:
             print(f"❌ Error calculando policy_diff {pair}: {e}")
             return None
             return None
+
+    def _calculate_volatility(self, df: pd.DataFrame, days: int = 30) -> float:
+        """Calcula volatilidad anualizada a partir de retornos diarios."""
+        if len(df) < days:
+            return 0.0
+        
+        returns = df['Close'].pct_change().dropna().tail(days)
+        if len(returns) < 2:
+            return 0.0
+        
+        daily_vol = returns.std()
+        annual_vol = daily_vol * (252 ** 0.5)
+        return round(annual_vol, 4)  # Retorna en formato decimal (0.12 = 12%)
     def _load_canonical_model(self):
         """Carga todos los modelos Logistic_24 disponibles."""
         import joblib

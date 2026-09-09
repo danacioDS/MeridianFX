@@ -38,7 +38,7 @@ export function useActivePair(): ActivePair {
 
   const pairParam = searchParams.get("pair");
   const isValid = pairParam ? FX_PAIRS.includes(pairParam as any) : false;
-  const pair = isValid && pairParam ? pairParam : DEFAULT_PAIR;
+  const pair = isValid const pair = isValid ? pairParam : DEFAULT_PAIR;const pair = isValid ? pairParam : DEFAULT_PAIR; pairParam ? pairParam : DEFAULT_PAIR;
 
   const setPair = (next: string) => {
     if (!FX_PAIRS.includes(next as any)) return;

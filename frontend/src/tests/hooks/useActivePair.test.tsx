@@ -6,7 +6,6 @@ import { MemoryRouter, type MemoryRouterProps } from "react-router-dom";
 import { renderHook, act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
-  DEFAULT_PAIR,
   DEFAULT_PAIR_UNIVERSE,
   pairUniverseFromRanking,
   useActivePair,
@@ -79,9 +78,42 @@ describe("pairUniverseFromRanking", () => {
       snapshot_timestamp: "2026-08-27T00:00:00Z",
       as_of: "2026-08-27T00:00:00Z",
       opportunities: [
-        { rank: 1, pair: "EUR/USD", direction: "LONG", opportunity_score: 0.8, probability_up: 0.65, edge_ratio: 1.2, expected_return: 0.02, net_return: 0.015, position_size: 0.5, prediction_id: "p1", decision_id: "d1" },
-        { rank: 2, pair: "GBP/USD", direction: "SHORT", opportunity_score: 0.6, probability_up: 0.35, edge_ratio: 1.0, expected_return: -0.01, net_return: -0.015, position_size: 0.3, prediction_id: "p2", decision_id: "d2" },
-        { rank: 3, pair: "USD/JPY", direction: "LONG", opportunity_score: 0.5, probability_up: 0.55, edge_ratio: 0.8, expected_return: 0.01, net_return: 0.005, position_size: 0.2, prediction_id: "p3", decision_id: "d3" },
+        { 
+          rank: 1, 
+          pair: "EUR/USD", 
+          direction: "LONG" as const, 
+          opportunity_score: 0.8, 
+          edge_ratio: 1.2, 
+          actionable: true, 
+          confidence: 0.7, 
+          decision_quality: 0.8, 
+          position_size: 0.5, 
+          prediction_id: "p1", decision_id: "d1" 
+        },
+        { 
+          rank: 2, 
+          pair: "GBP/USD", 
+          direction: "SHORT" as const, 
+          opportunity_score: 0.6, 
+          edge_ratio: 1.0, 
+          actionable: false, 
+          confidence: 0.5, 
+          decision_quality: 0.6, 
+          position_size: 0.3, 
+          prediction_id: "p2", decision_id: "d2" 
+        },
+        { 
+          rank: 3, 
+          pair: "USD/JPY", 
+          direction: "LONG" as const, 
+          opportunity_score: 0.5, 
+          edge_ratio: 0.8, 
+          actionable: false, 
+          confidence: 0.4, 
+          decision_quality: 0.5, 
+          position_size: 0.2, 
+          prediction_id: "p3", decision_id: "d3" 
+        },
       ],
       top_opportunity: "EUR/USD",
       total_actionable: 1,
