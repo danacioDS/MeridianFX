@@ -127,6 +127,7 @@ class PipelineBridge:
             "signals": result.signals,
             "artifact": artifact.model_dump(),
             "macro_data_status": differential_result.to_dict(),
+            "risk": result.risk.model_dump() if result.risk else None,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
     
@@ -182,6 +183,7 @@ class PipelineBridge:
             required_data_missing=(
                 differential_result.status != MacroDataStatus.FULL
             ),
+            macro_status=differential_result.status.value,
             derived_available_time=as_of,
             input_available_times=[as_of]
         )

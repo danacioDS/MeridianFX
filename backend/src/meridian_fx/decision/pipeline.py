@@ -47,6 +47,8 @@ from .filter import CostCalculator, EconomicFilter, EdgeThresholdInvalidError, V
 from .gates import GateResult, HardGateEngine
 from .quality import DecisionQualityEngine
 from .sizing import PositionSizingEngine
+from .risk import RiskEngine
+from .risk.models import RiskAssessment
 
 
 @dataclass
@@ -81,6 +83,7 @@ class PipelineInputs:
     age_hours: float | None = None  # freshness override (else L4 FreshnessRegistry)
     model_loaded: bool = True
     required_data_missing: bool = False
+    macro_status: str = "UNAVAILABLE"  # FULL | PARTIAL | UNAVAILABLE
 
     # PIT availability (Layer 4 Synthetic Datasets D / D2 acceptance)::
     #   D  → derived.available_time < max(inputs)  → Gate #2 INVALID
@@ -101,6 +104,7 @@ class DecisionPipelineResult:
     gate: GateResult | None = None
     sizing: dict | None = None
     vix: float | None = None
+    risk: RiskAssessment | None = None
 
 
 class DecisionPipeline:
@@ -125,6 +129,7 @@ class DecisionPipeline:
         self._quality = DecisionQualityEngine()
         self._gates = HardGateEngine()
         self._sizing = PositionSizingEngine()
+        self._risk = RiskEngine()
 
     # ------------------------------------------------------------------
     def build(self, inputs: PipelineInputs) -> DecisionPipelineResult:
@@ -296,6 +301,15 @@ class DecisionPipeline:
             signal_validity=gate.signal_validity,  # P3 — DIRECT assignment
         )
 
+        # ---- Risk assessment (v2.3.0) --------------------------------------
+        risk = self._risk.compute(
+            vix=vix,
+            macro_status=inputs.macro_status,
+            confidence=confidence_result.confidence,
+            regime=regime,
+            edge_ratio=economic.edge_ratio if economic else 0.0,
+        )
+
         return DecisionPipelineResult(
             decision=decision,
             signals=signals,
@@ -307,6 +321,7 @@ class DecisionPipeline:
             gate=gate,
             sizing=sizing.model_dump(),
             vix=vix,
+            risk=risk,
         )
 
     # ------------------------------------------------------------------
