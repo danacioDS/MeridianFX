@@ -56,5 +56,12 @@
     "probability": 0.19771739644456587,
     "actionable": false,
     "model_type": "logistic"
+  },
+  {
+    "timestamp": "2026-09-10T09:00:19.704775",
+    "direction": "DOWN",
+    "probability": 1.715698476023306e-05,
+    "actionable": false,
+    "model_type": "logistic"
   }
 ]

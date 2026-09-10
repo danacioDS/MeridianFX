@@ -159,7 +159,7 @@ def _base_inputs(artifact: PredictionArtifact) -> dict:
         artifact=artifact,
         policy_differential=0.4,
         growth_differential=0.2,
-        normalized_rate_differential=0.2,
+        inflation_differential=0.2,
         base_signal=0.2,
         quote_signal=-0.1,
         base_rate=1.0,

@@ -2,73 +2,73 @@
   "forecast_EUR/USD": {
     "data": {
       "direction": "DOWN",
-      "probability": 1.572846452396641e-05,
-      "expected_return": -0.009999685430709521,
+      "probability": 1.73921031328356e-05,
+      "expected_return": -0.009999652157937343,
       "expected_volatility": 0.12,
       "actionable": false,
       "confidence": 0,
       "signal_strength": 0.0,
       "edge_ratio": 0,
-      "net_return": 0.006999779801496664,
+      "net_return": 0.00699975651055614,
       "position_size": 0,
       "model": {
         "version": "logistic-v1.0",
         "type": "logistic"
       },
       "shap": {
-        "base_value": -10.216962418305389,
-        "base_probability": 3.6543801974287684e-05,
-        "final_probability": 1.572846452396641e-05,
+        "base_value": -10.221636911133714,
+        "base_probability": 3.637338306876916e-05,
+        "final_probability": 1.739210313283557e-05,
         "contributions": [
           {
             "feature": "macd_hist",
-            "contribution": 0.4842161229140762,
-            "abs_contribution": 0.4842161229140762
+            "contribution": 0.5516532305130375,
+            "abs_contribution": 0.5516532305130375
           },
           {
             "feature": "aroon_up",
-            "contribution": -0.43328575790349105,
-            "abs_contribution": 0.43328575790349105
+            "contribution": -0.5006358757123238,
+            "abs_contribution": 0.5006358757123238
           },
           {
             "feature": "macd_signal",
-            "contribution": 0.34188665456476736,
-            "abs_contribution": 0.34188665456476736
-          },
-          {
-            "feature": "aroon_down",
-            "contribution": -0.22961117478534337,
-            "abs_contribution": 0.22961117478534337
+            "contribution": 0.317379381210138,
+            "abs_contribution": 0.317379381210138
           },
           {
             "feature": "bb_lower",
-            "contribution": -0.22905318630641722,
-            "abs_contribution": 0.22905318630641722
+            "contribution": -0.26360177657842443,
+            "abs_contribution": 0.26360177657842443
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.23621551060846216,
+            "abs_contribution": 0.23621551060846216
+          },
+          {
+            "feature": "adx",
+            "contribution": 0.20027050006656663,
+            "abs_contribution": 0.20027050006656663
           },
           {
             "feature": "bb_middle",
-            "contribution": -0.1728936090610255,
-            "abs_contribution": 0.1728936090610255
+            "contribution": -0.17450572368823758,
+            "abs_contribution": 0.17450572368823758
           },
           {
             "feature": "atr",
-            "contribution": 0.1684169147521741,
-            "abs_contribution": 0.1684169147521741
-          },
-          {
-            "feature": "sma_10",
-            "contribution": -0.1453897559012481,
-            "abs_contribution": 0.1453897559012481
-          },
-          {
-            "feature": "stoch_d",
-            "contribution": -0.14099109357902523,
-            "abs_contribution": 0.14099109357902523
+            "contribution": 0.16663367010119445,
+            "abs_contribution": 0.16663367010119445
           },
           {
             "feature": "roc",
-            "contribution": 0.12632790615168732,
-            "abs_contribution": 0.12632790615168732
+            "contribution": 0.16519113408360908,
+            "abs_contribution": 0.16519113408360908
+          },
+          {
+            "feature": "aroon_down",
+            "contribution": -0.14684435596737078,
+            "abs_contribution": 0.14684435596737078
           }
         ],
         "feature_count": 24
@@ -77,82 +77,82 @@
         "source": "yahoo",
         "fallback_used": false,
         "freshness": "FRESH",
-        "last_price": 1.1640088558197021
+        "last_price": 1.1606314182281494
       },
-      "timestamp": "2026-09-09T17:14:59.856531"
+      "timestamp": "2026-09-10T09:11:51.095859"
     },
-    "timestamp": "2026-09-09T17:14:59.856544"
+    "timestamp": "2026-09-10T09:11:51.095868"
   },
   "forecast_USD/CNY": {
     "data": {
       "direction": "DOWN",
-      "probability": 0.08698578343908984,
-      "expected_return": -0.008260284331218204,
-      "expected_volatility": 0.0102,
+      "probability": 0.09254526393446424,
+      "expected_return": -0.008149094721310715,
+      "expected_volatility": 0.12,
       "actionable": false,
       "confidence": 0,
       "signal_strength": 0.0,
       "edge_ratio": 0,
-      "net_return": 0.005782199031852742,
+      "net_return": 0.0057043663049175,
       "position_size": 0,
       "model": {
         "version": "logistic-v1.0",
         "type": "logistic"
       },
       "shap": {
-        "base_value": -1.3605250623875047,
-        "base_probability": 0.20415497914084077,
-        "final_probability": 0.08698578343908984,
+        "base_value": -1.3854762266982783,
+        "base_probability": 0.20013093363654919,
+        "final_probability": 0.09254526393446429,
         "contributions": [
           {
             "feature": "sma_200",
-            "contribution": -0.4008144833524232,
-            "abs_contribution": 0.4008144833524232
+            "contribution": -0.4006407330718875,
+            "abs_contribution": 0.4006407330718875
           },
           {
             "feature": "adx",
-            "contribution": -0.3773018407026171,
-            "abs_contribution": 0.3773018407026171
+            "contribution": -0.3861422458832484,
+            "abs_contribution": 0.3861422458832484
           },
           {
             "feature": "stoch_d",
-            "contribution": -0.3181717337710644,
-            "abs_contribution": 0.3181717337710644
+            "contribution": -0.29076714608617027,
+            "abs_contribution": 0.29076714608617027
           },
           {
             "feature": "sma_50",
-            "contribution": 0.20375665984440383,
-            "abs_contribution": 0.20375665984440383
+            "contribution": 0.20921419281957257,
+            "abs_contribution": 0.20921419281957257
           },
           {
             "feature": "rsi_14",
-            "contribution": -0.12628128161289617,
-            "abs_contribution": 0.12628128161289617
-          },
-          {
-            "feature": "macd_hist",
-            "contribution": 0.12060313825199141,
-            "abs_contribution": 0.12060313825199141
+            "contribution": -0.11008805312503478,
+            "abs_contribution": 0.11008805312503478
           },
           {
             "feature": "sma_10",
-            "contribution": 0.10573660625144828,
-            "abs_contribution": 0.10573660625144828
+            "contribution": 0.1047564986725745,
+            "abs_contribution": 0.1047564986725745
           },
           {
             "feature": "sma_20",
-            "contribution": -0.09552013333765173,
-            "abs_contribution": 0.09552013333765173
+            "contribution": -0.09649135181311409,
+            "abs_contribution": 0.09649135181311409
           },
           {
             "feature": "aroon_up",
-            "contribution": -0.08886830493002609,
-            "abs_contribution": 0.08886830493002609
+            "contribution": 0.0772261689129921,
+            "abs_contribution": 0.0772261689129921
           },
           {
-            "feature": "bb_lower",
-            "contribution": -0.07117780138641017,
-            "abs_contribution": 0.07117780138641017
+            "feature": "volatility",
+            "contribution": 0.07365719737467058,
+            "abs_contribution": 0.07365719737467058
+          },
+          {
+            "feature": "bb_upper",
+            "contribution": -0.06717139929523329,
+            "abs_contribution": 0.06717139929523329
           }
         ],
         "feature_count": 24
@@ -161,10 +161,598 @@
         "source": "yahoo",
         "fallback_used": false,
         "freshness": "FRESH",
-        "last_price": 6.697700023651123
+        "last_price": 6.705699920654297
       },
-      "timestamp": "2026-09-09T16:43:21.863392"
+      "timestamp": "2026-09-10T09:12:14.796657"
     },
-    "timestamp": "2026-09-09T16:43:21.863406"
+    "timestamp": "2026-09-10T09:12:14.796669"
+  },
+  "forecast_USD/BOB": {
+    "data": {
+      "direction": "UP",
+      "probability": 0.9965733246332056,
+      "expected_return": 0.009931466492664113,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0.9931466492664112,
+      "signal_strength": 0.3287800889830333,
+      "edge_ratio": 0.9931466492664112,
+      "net_return": 0.006952026544864878,
+      "position_size": 0,
+      "model": {
+        "version": "logistic-v1.0",
+        "type": "logistic"
+      },
+      "shap": {
+        "base_value": 1.5802895126112981,
+        "base_probability": 0.8292455161154776,
+        "final_probability": 0.9965733246332056,
+        "contributions": [
+          {
+            "feature": "sma_200",
+            "contribution": 5.008932884040276,
+            "abs_contribution": 5.008932884040276
+          },
+          {
+            "feature": "sma_50",
+            "contribution": 3.828132405834642,
+            "abs_contribution": 3.828132405834642
+          },
+          {
+            "feature": "volatility",
+            "contribution": -2.31653650024745,
+            "abs_contribution": 2.31653650024745
+          },
+          {
+            "feature": "sma_20",
+            "contribution": -2.2279036711295075,
+            "abs_contribution": 2.2279036711295075
+          },
+          {
+            "feature": "rsi_14",
+            "contribution": -1.4182367520531574,
+            "abs_contribution": 1.4182367520531574
+          },
+          {
+            "feature": "sma_10",
+            "contribution": 0.9456352922774282,
+            "abs_contribution": 0.9456352922774282
+          },
+          {
+            "feature": "bb_lower",
+            "contribution": 0.6019047581209302,
+            "abs_contribution": 0.6019047581209302
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.3329904829750498,
+            "abs_contribution": 0.3329904829750498
+          },
+          {
+            "feature": "bb_middle",
+            "contribution": 0.31767082494565546,
+            "abs_contribution": 0.31767082494565546
+          },
+          {
+            "feature": "momentum",
+            "contribution": -0.31729181090309594,
+            "abs_contribution": 0.31729181090309594
+          }
+        ],
+        "feature_count": 24
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 12.359999656677246
+      },
+      "timestamp": "2026-09-10T09:12:28.040922"
+    },
+    "timestamp": "2026-09-10T09:12:28.040932"
+  },
+  "forecast_USD/JPY": {
+    "data": {
+      "direction": "DOWN",
+      "probability": 0.33013921824095194,
+      "expected_return": -0.0033972156351809615,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0,
+      "signal_strength": 0.0,
+      "edge_ratio": 0,
+      "net_return": 0.002378050944626673,
+      "position_size": 0,
+      "model": {
+        "version": "logistic-v1.0",
+        "type": "logistic"
+      },
+      "shap": {
+        "base_value": -0.3439442232902254,
+        "base_probability": 0.41485169735882416,
+        "final_probability": 0.330139218240952,
+        "contributions": [
+          {
+            "feature": "rsi_14",
+            "contribution": 1.515874006404299,
+            "abs_contribution": 1.515874006404299
+          },
+          {
+            "feature": "adx",
+            "contribution": -0.4559618307897645,
+            "abs_contribution": 0.4559618307897645
+          },
+          {
+            "feature": "atr",
+            "contribution": -0.4218643074678194,
+            "abs_contribution": 0.4218643074678194
+          },
+          {
+            "feature": "volatility",
+            "contribution": -0.4138598516972257,
+            "abs_contribution": 0.4138598516972257
+          },
+          {
+            "feature": "sma_10",
+            "contribution": 0.37924744948839256,
+            "abs_contribution": 0.37924744948839256
+          },
+          {
+            "feature": "stoch_d",
+            "contribution": -0.2975722567555821,
+            "abs_contribution": 0.2975722567555821
+          },
+          {
+            "feature": "macd",
+            "contribution": -0.29722473928561416,
+            "abs_contribution": 0.29722473928561416
+          },
+          {
+            "feature": "roc",
+            "contribution": -0.29039207974539044,
+            "abs_contribution": 0.29039207974539044
+          },
+          {
+            "feature": "sma_20",
+            "contribution": -0.2793086125316279,
+            "abs_contribution": 0.2793086125316279
+          },
+          {
+            "feature": "momentum",
+            "contribution": -0.22560716106692155,
+            "abs_contribution": 0.22560716106692155
+          }
+        ],
+        "feature_count": 24
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 154.2550048828125
+      },
+      "timestamp": "2026-09-10T09:12:12.085065"
+    },
+    "timestamp": "2026-09-10T09:12:12.085073"
+  },
+  "forecast_GBP/USD": {
+    "data": {
+      "direction": "DOWN",
+      "probability": 0.18904891064178161,
+      "expected_return": -0.0062190217871643675,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0,
+      "signal_strength": 0.0,
+      "edge_ratio": 0,
+      "net_return": 0.004353315251015057,
+      "position_size": 0,
+      "model": {
+        "version": "logistic-v1.0",
+        "type": "logistic"
+      },
+      "shap": {
+        "base_value": -1.2681659647337125,
+        "base_probability": 0.21957137033024393,
+        "final_probability": 0.18904891064178175,
+        "contributions": [
+          {
+            "feature": "atr",
+            "contribution": 1.0440765738246316,
+            "abs_contribution": 1.0440765738246316
+          },
+          {
+            "feature": "volatility",
+            "contribution": -0.843367181076556,
+            "abs_contribution": 0.843367181076556
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": 0.4208179027681692,
+            "abs_contribution": 0.4208179027681692
+          },
+          {
+            "feature": "sma_10",
+            "contribution": -0.30284255043640834,
+            "abs_contribution": 0.30284255043640834
+          },
+          {
+            "feature": "sma_50",
+            "contribution": 0.29426132138005234,
+            "abs_contribution": 0.29426132138005234
+          },
+          {
+            "feature": "roc",
+            "contribution": 0.2715398479003712,
+            "abs_contribution": 0.2715398479003712
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.2540773063169897,
+            "abs_contribution": 0.2540773063169897
+          },
+          {
+            "feature": "macd_signal",
+            "contribution": 0.24755415395162825,
+            "abs_contribution": 0.24755415395162825
+          },
+          {
+            "feature": "stoch_k",
+            "contribution": -0.23589169350239558,
+            "abs_contribution": 0.23589169350239558
+          },
+          {
+            "feature": "ema_26",
+            "contribution": -0.23572820510185954,
+            "abs_contribution": 0.23572820510185954
+          }
+        ],
+        "feature_count": 24
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 1.350311279296875
+      },
+      "timestamp": "2026-09-10T09:12:08.607483"
+    },
+    "timestamp": "2026-09-10T09:12:08.607511"
+  },
+  "forecast_USD/MXN": {
+    "data": {
+      "direction": "DOWN",
+      "probability": 0.256459237567864,
+      "expected_return": -0.004870815248642721,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0,
+      "signal_strength": 0.0,
+      "edge_ratio": 0,
+      "net_return": 0.0034095706740499042,
+      "position_size": 0,
+      "model": {
+        "version": "logistic-v1.0",
+        "type": "logistic"
+      },
+      "shap": {
+        "base_value": -0.2689734704255262,
+        "base_probability": 0.4331591238843188,
+        "final_probability": 0.256459237567864,
+        "contributions": [
+          {
+            "feature": "adx",
+            "contribution": -0.5402517518970392,
+            "abs_contribution": 0.5402517518970392
+          },
+          {
+            "feature": "atr",
+            "contribution": -0.3875725722714426,
+            "abs_contribution": 0.3875725722714426
+          },
+          {
+            "feature": "volatility",
+            "contribution": 0.25196464252409284,
+            "abs_contribution": 0.25196464252409284
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": 0.11028482811493386,
+            "abs_contribution": 0.11028482811493386
+          },
+          {
+            "feature": "momentum",
+            "contribution": -0.10550993346267368,
+            "abs_contribution": 0.10550993346267368
+          },
+          {
+            "feature": "rsi_14",
+            "contribution": -0.08282510198129885,
+            "abs_contribution": 0.08282510198129885
+          },
+          {
+            "feature": "stoch_k",
+            "contribution": -0.07703316698001202,
+            "abs_contribution": 0.07703316698001202
+          },
+          {
+            "feature": "bb_lower",
+            "contribution": -0.07501055735298537,
+            "abs_contribution": 0.07501055735298537
+          },
+          {
+            "feature": "aroon_up",
+            "contribution": 0.07399632758761515,
+            "abs_contribution": 0.07399632758761515
+          },
+          {
+            "feature": "sma_200",
+            "contribution": 0.07284393170811881,
+            "abs_contribution": 0.07284393170811881
+          }
+        ],
+        "feature_count": 24
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 17.000110626220703
+      },
+      "timestamp": "2026-09-10T09:12:19.890157"
+    },
+    "timestamp": "2026-09-10T09:12:19.890164"
+  },
+  "forecast_USD/BRL": {
+    "data": {
+      "direction": "UP",
+      "probability": 0.6368460564657351,
+      "expected_return": 0.0027369211293147024,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0.2736921129314702,
+      "signal_strength": 0.024969124226964217,
+      "edge_ratio": 0.2736921129314702,
+      "net_return": 0.0019158447905202915,
+      "position_size": 0,
+      "model": {
+        "version": "logistic-v1.0",
+        "type": "logistic"
+      },
+      "shap": {
+        "base_value": -0.20945575802112382,
+        "base_probability": 0.44782666563823037,
+        "final_probability": 0.6368460564657351,
+        "contributions": [
+          {
+            "feature": "adx",
+            "contribution": 0.46334306437294986,
+            "abs_contribution": 0.46334306437294986
+          },
+          {
+            "feature": "stoch_k",
+            "contribution": -0.38707971678683645,
+            "abs_contribution": 0.38707971678683645
+          },
+          {
+            "feature": "atr",
+            "contribution": 0.23973121686745713,
+            "abs_contribution": 0.23973121686745713
+          },
+          {
+            "feature": "stoch_d",
+            "contribution": 0.23153179712690128,
+            "abs_contribution": 0.23153179712690128
+          },
+          {
+            "feature": "rsi_14",
+            "contribution": 0.21438827729613405,
+            "abs_contribution": 0.21438827729613405
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": -0.1292472741396532,
+            "abs_contribution": 0.1292472741396532
+          },
+          {
+            "feature": "sma_200",
+            "contribution": 0.11225555801253173,
+            "abs_contribution": 0.11225555801253173
+          },
+          {
+            "feature": "roc",
+            "contribution": 0.10853173447228624,
+            "abs_contribution": 0.10853173447228624
+          },
+          {
+            "feature": "macd",
+            "contribution": -0.08391142578957547,
+            "abs_contribution": 0.08391142578957547
+          },
+          {
+            "feature": "volatility",
+            "contribution": 0.08097137636937235,
+            "abs_contribution": 0.08097137636937235
+          }
+        ],
+        "feature_count": 24
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 5.133299827575684
+      },
+      "timestamp": "2026-09-10T09:12:22.481161"
+    },
+    "timestamp": "2026-09-10T09:12:22.481170"
+  },
+  "forecast_USD/ARS": {
+    "data": {
+      "direction": "DOWN",
+      "probability": 0.4485562480848588,
+      "expected_return": -0.0010288750383028245,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0,
+      "signal_strength": 0.0,
+      "edge_ratio": 0,
+      "net_return": 0.0007202125268119771,
+      "position_size": 0,
+      "model": {
+        "version": "logistic-v1.0",
+        "type": "logistic"
+      },
+      "shap": {
+        "base_value": -0.011644864683060252,
+        "base_probability": 0.4970888167262286,
+        "final_probability": 0.4485562480848588,
+        "contributions": [
+          {
+            "feature": "atr",
+            "contribution": 0.41696624408703503,
+            "abs_contribution": 0.41696624408703503
+          },
+          {
+            "feature": "adx",
+            "contribution": -0.3975827932510885,
+            "abs_contribution": 0.3975827932510885
+          },
+          {
+            "feature": "momentum",
+            "contribution": 0.23038259643458,
+            "abs_contribution": 0.23038259643458
+          },
+          {
+            "feature": "aroon_up",
+            "contribution": -0.13882769202793593,
+            "abs_contribution": 0.13882769202793593
+          },
+          {
+            "feature": "macd_signal",
+            "contribution": -0.10462497538689722,
+            "abs_contribution": 0.10462497538689722
+          },
+          {
+            "feature": "roc",
+            "contribution": -0.10386945970363637,
+            "abs_contribution": 0.10386945970363637
+          },
+          {
+            "feature": "bb_upper",
+            "contribution": 0.03874033056014501,
+            "abs_contribution": 0.03874033056014501
+          },
+          {
+            "feature": "sma_200",
+            "contribution": -0.03532358472408025,
+            "abs_contribution": 0.03532358472408025
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": -0.03365000280322175,
+            "abs_contribution": 0.03365000280322175
+          },
+          {
+            "feature": "bb_width",
+            "contribution": -0.03290701282459043,
+            "abs_contribution": 0.03290701282459043
+          }
+        ],
+        "feature_count": 24
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 1515.0
+      },
+      "timestamp": "2026-09-10T09:12:25.763977"
+    },
+    "timestamp": "2026-09-10T09:12:25.763987"
+  },
+  "forecast_USD/CHF": {
+    "data": {
+      "direction": "DOWN",
+      "probability": 0.0015412730229815337,
+      "expected_return": -0.00996917453954037,
+      "expected_volatility": 0.12,
+      "actionable": false,
+      "confidence": 0,
+      "signal_strength": 0.0,
+      "edge_ratio": 0,
+      "net_return": 0.006978422177678258,
+      "position_size": 0,
+      "model": {
+        "version": "logistic-v1.0",
+        "type": "logistic"
+      },
+      "shap": {
+        "base_value": -5.466232724399854,
+        "base_probability": 0.004209333564031444,
+        "final_probability": 0.0015412730229815337,
+        "contributions": [
+          {
+            "feature": "adx",
+            "contribution": -0.3867545371797557,
+            "abs_contribution": 0.3867545371797557
+          },
+          {
+            "feature": "macd_hist",
+            "contribution": -0.3335174031988748,
+            "abs_contribution": 0.3335174031988748
+          },
+          {
+            "feature": "aroon_down",
+            "contribution": -0.28093583116699655,
+            "abs_contribution": 0.28093583116699655
+          },
+          {
+            "feature": "bb_width",
+            "contribution": 0.16936835202922218,
+            "abs_contribution": 0.16936835202922218
+          },
+          {
+            "feature": "stoch_k",
+            "contribution": -0.13864469819754346,
+            "abs_contribution": 0.13864469819754346
+          },
+          {
+            "feature": "stoch_d",
+            "contribution": 0.12710168745254974,
+            "abs_contribution": 0.12710168745254974
+          },
+          {
+            "feature": "macd_signal",
+            "contribution": -0.08698179920595805,
+            "abs_contribution": 0.08698179920595805
+          },
+          {
+            "feature": "momentum",
+            "contribution": 0.07793774526333098,
+            "abs_contribution": 0.07793774526333098
+          },
+          {
+            "feature": "sma_200",
+            "contribution": 0.04947706999265979,
+            "abs_contribution": 0.04947706999265979
+          },
+          {
+            "feature": "roc",
+            "contribution": -0.048266042545258604,
+            "abs_contribution": 0.048266042545258604
+          }
+        ],
+        "feature_count": 24
+      },
+      "data_provider": {
+        "source": "yahoo",
+        "fallback_used": false,
+        "freshness": "FRESH",
+        "last_price": 0.8132500052452087
+      },
+      "timestamp": "2026-09-10T09:12:30.994162"
+    },
+    "timestamp": "2026-09-10T09:12:30.994171"
   }
 }

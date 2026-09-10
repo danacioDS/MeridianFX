@@ -61,7 +61,7 @@ class PipelineInputs:
     artifact: PredictionArtifact
     policy_differential: float = 0.0
     growth_differential: float = 0.0
-    normalized_rate_differential: float = 0.0
+    inflation_differential: float = 0.0
     base_signal: float = 0.0
     quote_signal: float = 0.0
     base_rate: float = 0.0
@@ -139,7 +139,7 @@ class DecisionPipeline:
             macro = raw_macro_score(
                 inputs.policy_differential,
                 inputs.growth_differential,
-                inputs.normalized_rate_differential,
+                inputs.inflation_differential,
             )
         rag = raw_rag_score(inputs.base_signal, inputs.quote_signal)
         try:

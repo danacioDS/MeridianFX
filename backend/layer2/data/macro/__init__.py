@@ -9,6 +9,8 @@ from .providers.euro import EuroProvider
 from .providers.uk import UKProvider
 from .providers.japan import JapanProvider
 from .providers.mexico import MexicoProvider
+from .providers.brazil import BrazilProvider
+from .providers.argentina import ArgentinaProvider
 from .registry import CountryMacroRegistry
 
 # Limpiar registry antes de registrar
@@ -21,11 +23,8 @@ CountryMacroRegistry.register(SwitzerlandProvider())    # CHF
 CountryMacroRegistry.register(UKProvider())             # GBP - con get_historical()
 CountryMacroRegistry.register(JapanProvider())          # JPY - con get_historical()
 CountryMacroRegistry.register(MexicoProvider())         # MXN - con get_historical()
-
-# 2. Datos estructurales (GDP, Inflation, Unemployment) para otros países
-#    World Bank como fallback para países sin policy rate
-for code in ["BR", "AR"]:
-    CountryMacroRegistry.register(WorldBankProvider(code))
+CountryMacroRegistry.register(BrazilProvider())          # BRL - con get_historical()
+CountryMacroRegistry.register(ArgentinaProvider())        # ARS - con get_historical()
 
 # 3. Bolivia - Provider específico (sin policy_rate)
 CountryMacroRegistry.register(BoliviaProvider())

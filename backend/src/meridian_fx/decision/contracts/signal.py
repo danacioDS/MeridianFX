@@ -4,7 +4,7 @@ Formula (unchanged):
     quant_score = 2 x (probability_up - 0.5)                         [-1, +1]
     macro_score = 0.50 x policy_differential
                 + 0.25 x growth_differential
-                + 0.25 x normalized_rate_differential                [-1, +1]
+                + 0.25 x inflation_differential                      [-1, +1]
     rag_score   = (base_signal - quote_signal) x 0.5                 [-1, +1]
 
 Invariant: every component score MUST be bounded to [-1, +1].
@@ -29,13 +29,13 @@ def raw_quant_score(probability_up: float) -> float:
 def raw_macro_score(
     policy_differential: float,
     growth_differential: float,
-    normalized_rate_differential: float,
+    inflation_differential: float,
 ) -> float:
     """Unvalidated §3 macro formula."""
     return (
         0.50 * policy_differential
         + 0.25 * growth_differential
-        + 0.25 * normalized_rate_differential
+        + 0.25 * inflation_differential
     )
 
 
@@ -96,11 +96,11 @@ class SignalGenerator:
     def macro_score(
         policy_differential: float,
         growth_differential: float,
-        normalized_rate_differential: float,
+        inflation_differential: float,
     ) -> float:
-        """macro_score = 0.50p + 0.25g + 0.25r (L2 §3)."""
+        """macro_score = 0.50p + 0.25g + 0.25i (L2 §3)."""
         score = raw_macro_score(
-            policy_differential, growth_differential, normalized_rate_differential
+            policy_differential, growth_differential, inflation_differential
         )
         if not (LOWER_BOUND <= score <= UPPER_BOUND):
             raise SignalOutOfBoundsError(
@@ -123,7 +123,7 @@ class SignalGenerator:
         probability_up: float | None = None,
         policy_differential: float | None = None,
         growth_differential: float | None = None,
-        normalized_rate_differential: float | None = None,
+        inflation_differential: float | None = None,
         base_signal: float | None = None,
         quote_signal: float | None = None,
         quant_score: float | None = None,
@@ -149,7 +149,7 @@ class SignalGenerator:
             if None in (
                 policy_differential,
                 growth_differential,
-                normalized_rate_differential,
+                inflation_differential,
             ):
                 raise ValueError(
                     "macro differentials required to derive macro_score"
@@ -158,7 +158,7 @@ class SignalGenerator:
                 self.macro_score(
                     policy_differential,
                     growth_differential,
-                    normalized_rate_differential,
+                    inflation_differential,
                 )
             )
         if components.rag_score is None:

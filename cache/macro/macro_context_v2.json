@@ -1,17 +1,17 @@
 {
-  "cached_at": "2026-09-08T19:18:35.536180",
+  "cached_at": "2026-09-10T08:53:59.004546",
   "schema_version": "v2",
   "value": {
-    "timestamp": "2026-09-08T19:18:27.174244",
+    "timestamp": "2026-09-10T08:53:48.706553",
     "source": "FRED",
     "summary": {
       "fed_funds": 3.63,
       "inflation": 2.715835582,
       "unemployment": 4.1,
       "gdp_growth": 1.01,
-      "yield_10y": 4.78,
-      "yield_2y": 4.37,
-      "yield_spread": 0.41,
+      "yield_10y": 4.8,
+      "yield_2y": 4.39,
+      "yield_spread": 0.4,
       "consumer_sentiment": 98.91297
     },
     "series": {
@@ -60,9 +60,9 @@
         }
       },
       "yield_10y": {
-        "latest_value": 4.78,
-        "latest_date": "2026-09-04",
-        "previous_value": 4.77,
+        "latest_value": 4.8,
+        "latest_date": "2026-09-08",
+        "previous_value": 4.78,
         "source": "FRED",
         "warning": null,
         "series_info": {
@@ -71,9 +71,9 @@
         }
       },
       "yield_2y": {
-        "latest_value": 4.37,
-        "latest_date": "2026-09-04",
-        "previous_value": 4.34,
+        "latest_value": 4.39,
+        "latest_date": "2026-09-08",
+        "previous_value": 4.37,
         "source": "FRED",
         "warning": null,
         "series_info": {
@@ -82,8 +82,8 @@
         }
       },
       "yield_spread": {
-        "latest_value": 0.41,
-        "latest_date": "2026-09-08",
+        "latest_value": 0.4,
+        "latest_date": "2026-09-09",
         "previous_value": 0.41,
         "source": "FRED",
         "warning": null,

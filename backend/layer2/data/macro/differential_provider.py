@@ -28,7 +28,7 @@ class MacroDifferentialResult:
 
     policy_differential: Optional[float]
     growth_differential: Optional[float]
-    normalized_rate_differential: Optional[float]
+    inflation_differential: Optional[float]
 
     base_rate: Optional[float]
     quote_rate: Optional[float]
@@ -44,7 +44,7 @@ class MacroDifferentialResult:
             "quote": self.quote_currency,
             "policy_differential": self.policy_differential,
             "growth_differential": self.growth_differential,
-            "normalized_rate_differential": self.normalized_rate_differential,
+            "inflation_differential": self.inflation_differential,
             "base_rate": self.base_rate,
             "quote_rate": self.quote_rate,
             "status": self.status.value,
@@ -70,7 +70,7 @@ class MacroDifferentialProvider:
     # económicos absolutos.
     POLICY_SCALE = 4.0
     GROWTH_SCALE = 4.0
-    RATE_SCALE = 4.0
+    INFLATION_SCALE = 4.0
 
     def __init__(self):
         pass
@@ -140,6 +140,8 @@ class MacroDifferentialProvider:
 
         if policy_available and growth_available:
             status = MacroDataStatus.FULL
+        elif policy_available and growth_available:
+            status = MacroDataStatus.PARTIAL
         elif base_available or quote_available:
             status = MacroDataStatus.PARTIAL
         else:
@@ -151,7 +153,7 @@ class MacroDifferentialProvider:
                 quote_currency=quote,
                 policy_differential=None,
                 growth_differential=None,
-                normalized_rate_differential=None,
+                inflation_differential=None,
                 base_rate=base_rate,
                 quote_rate=quote_rate,
                 status=status,
@@ -175,13 +177,10 @@ class MacroDifferentialProvider:
         quote_growth = quote_summary.get("gdp_growth")
 
         if base_rate is None or quote_rate is None:
-            rate_diff = None
-            normalized_rate_diff = None
             policy_diff = None
         else:
             rate_diff = base_rate - quote_rate
             policy_diff = cls._normalize(rate_diff, cls.POLICY_SCALE)
-            normalized_rate_diff = cls._normalize(rate_diff, cls.RATE_SCALE)
 
         if base_growth is None or quote_growth is None:
             growth_diff = None
@@ -191,12 +190,23 @@ class MacroDifferentialProvider:
                 cls.GROWTH_SCALE,
             )
 
+        # Inflation differential
+        base_inflation = base_summary.get("inflation")
+        quote_inflation = quote_summary.get("inflation")
+        if base_inflation is None or quote_inflation is None:
+            inflation_diff = None
+        else:
+            inflation_diff = cls._normalize(
+                base_inflation - quote_inflation,
+                cls.INFLATION_SCALE,
+            )
+
         return MacroDifferentialResult(
             base_currency=base,
             quote_currency=quote,
             policy_differential=policy_diff,
             growth_differential=growth_diff,
-            normalized_rate_differential=normalized_rate_diff,
+            inflation_differential=inflation_diff,
             base_rate=base_rate,
             quote_rate=quote_rate,
             status=status,

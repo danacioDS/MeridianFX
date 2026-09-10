@@ -7,6 +7,7 @@ Investing.com → fallback (temporal)
 """
 
 import logging
+import pandas as pd
 from datetime import datetime
 from typing import Optional
 
@@ -39,6 +40,38 @@ class ChainCNYProvider(CountryMacroProvider):
     def source(self) -> str:
         return "CNBS/NBS → World Bank → Investing.com (chain)"
 
+
+    async def get_historical(
+        self,
+        start_date: str,
+        end_date: str,
+    ) -> pd.DataFrame:
+        """
+        Obtiene el histórico de policy rate para CNY.
+        
+        Intenta CNBS/NBS primero, luego World Bank.
+        """
+        try:
+            # Intentar CNBS/NBS primero
+            if hasattr(self._cnbs, "get_historical"):
+                result = await self._cnbs.get_historical(start_date, end_date)
+                if not result.empty:
+                    logger.info("CNY historical: usando datos de CNBS/NBS")
+                    return result
+            
+            # Si CNBS no tiene histórico, usar World Bank
+            if hasattr(self._worldbank, "get_historical"):
+                result = await self._worldbank.get_historical(start_date, end_date)
+                if not result.empty:
+                    logger.info("CNY historical: usando datos de World Bank")
+                    return result
+            
+            logger.warning("CNY historical: ningún proveedor disponible")
+            return pd.DataFrame(columns=["date", "policy_rate"])
+            
+        except Exception as e:
+            logger.error(f"Error fetching CNY historical data: {e}")
+            return pd.DataFrame(columns=["date", "policy_rate"])
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
         """Obtiene contexto macro de CNY con cadena de fallback."""
         if not force_refresh and self._cache:

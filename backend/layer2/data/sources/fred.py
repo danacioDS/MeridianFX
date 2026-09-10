@@ -3,8 +3,11 @@ FRED Data Source — Datos macroeconómicos de la Reserva Federal.
 """
 
 import os
+import json
 import httpx
 import logging
+import time
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, Optional, List, Any
 from dataclasses import dataclass
@@ -164,6 +167,45 @@ class FredDataSource:
             logger.warning("FRED_API_KEY not set. Using simulated data.")
         self._cache = {}
         self._last_fetch = {}
+        
+        # Cache persistente en disco
+        self._cache_dir = Path("cache/fred")
+        self._cache_dir.mkdir(parents=True, exist_ok=True)
+        self._disk_cache = {}
+        self._load_disk_cache()
+    
+    def _load_disk_cache(self):
+        """Carga caché de disco."""
+        try:
+            cache_file = self._cache_dir / "fred_cache.json"
+            if cache_file.exists():
+                with open(cache_file, "r") as f:
+                    self._disk_cache = json.load(f)
+                logger.info(f"Caché FRED cargado: {len(self._disk_cache)} series")
+        except Exception as e:
+            logger.warning(f"Error cargando caché FRED: {e}")
+            self._disk_cache = {}
+    
+    def _save_disk_cache(self):
+        """Guarda caché en disco."""
+        try:
+            cache_file = self._cache_dir / "fred_cache.json"
+            with open(cache_file, "w") as f:
+                json.dump(self._disk_cache, f)
+        except Exception as e:
+            logger.warning(f"Error guardando caché FRED: {e}")
+    
+    def _get_from_disk_cache(self, series_id: str):
+        """Obtiene serie de caché en disco."""
+        if series_id in self._disk_cache:
+            logger.info(f"Usando caché de disco para {series_id}")
+            return self._disk_cache[series_id]
+        return None
+    
+    def _save_to_disk_cache(self, series_id: str, result: dict):
+        """Guarda serie en caché de disco."""
+        self._disk_cache[series_id] = result
+        self._save_disk_cache()
     
     def get_series(self, series_id: str) -> Optional[FredSeries]:
         """Obtiene la definición de una serie."""
@@ -237,10 +279,53 @@ class FredDataSource:
                 
                 if response.status_code != 200:
                     logger.error(f"FRED API error: {response.status_code}")
-
-                    if self.allow_simulation:
-                        return self._simulate_series(series_id)
-
+                    
+                    # Error 4xx: dato no existe (no reintentar)
+                    if 400 <= response.status_code < 500:
+                        return {
+                            "series_id": series_id,
+                            "observations": [],
+                            "last_updated": None,
+                            "source": "FRED",
+                            "available": False,
+                            "warning": f"FRED API error: {response.status_code}",
+                        }
+                    
+                    # Error 5xx: servicio caído (usar caché o reintentar)
+                    if response.status_code >= 500:
+                        # Intentar caché de disco
+                        cached = self._get_from_disk_cache(series_id)
+                        if cached:
+                            return cached
+                        
+                        # Reintentar con backoff
+                        for attempt in range(3):
+                            wait_time = 2 ** attempt
+                            logger.info(f"Reintentando FRED {series_id} en {wait_time}s (intento {attempt + 1}/3)")
+                            await asyncio.sleep(wait_time)
+                            
+                            try:
+                                retry_response = await client.get(
+                                    f"{self.BASE_URL}/series/observations",
+                                    params=params
+                                )
+                                if retry_response.status_code == 200:
+                                    response = retry_response
+                                    break
+                            except Exception:
+                                continue
+                        else:
+                            # Todos los reintentos fallaron
+                            return {
+                                "series_id": series_id,
+                                "observations": [],
+                                "last_updated": None,
+                                "source": "FRED",
+                                "available": False,
+                                "warning": f"FRED API error: {response.status_code}",
+                            }
+                    
+                    # Si no es 4xx ni 5xx, devolver vacío
                     return {
                         "series_id": series_id,
                         "observations": [],
@@ -268,9 +353,10 @@ class FredDataSource:
                     "source": "FRED"
                 }
                 
-                # Guardar en caché
+                # Guardar en caché en memoria y disco
                 self._cache[cache_key] = result
                 self._last_fetch[series_id] = datetime.now()
+                self._save_to_disk_cache(series_id, result)
                 
                 return result
                 

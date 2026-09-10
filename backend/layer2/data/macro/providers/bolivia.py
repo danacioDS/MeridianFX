@@ -12,6 +12,7 @@ tradicional. Se utiliza un sistema de encaje legal.
 """
 
 import logging
+import pandas as pd
 from datetime import datetime
 from typing import Optional
 
@@ -40,6 +41,20 @@ class BoliviaProvider(CountryMacroProvider):
     def source(self) -> str:
         return "World Bank + BCB"
 
+
+    async def get_historical(
+        self,
+        start_date: str,
+        end_date: str,
+    ) -> pd.DataFrame:
+        """
+        Obtiene el histórico de policy rate para Bolivia.
+        
+        Nota: Bolivia no tiene una tasa de política monetaria oficial.
+        Este método devuelve un DataFrame vacío.
+        """
+        logger.warning("Bolivia no tiene policy rate histórico disponible")
+        return pd.DataFrame(columns=["date", "policy_rate"])
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
         if not force_refresh and self._cache:
             return self._cache

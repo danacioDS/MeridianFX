@@ -40,7 +40,7 @@ class TestSignalGenerator:
             probability_up=0.65,
             policy_differential=0.4,
             growth_differential=0.2,
-            normalized_rate_differential=0.2,
+            inflation_differential=0.2,
             base_signal=0.2,
             quote_signal=-0.1,
         )
@@ -51,7 +51,7 @@ class TestSignalGenerator:
     def test_out_of_bounds_raises(self):
         gen = SignalGenerator()
         with pytest.raises(SignalOutOfBoundsError):
-            gen.generate(probability_up=0.9, policy_differential=0.4, growth_differential=2.0, normalized_rate_differential=2.0, base_signal=0.2, quote_signal=-0.1)
+            gen.generate(probability_up=0.9, policy_differential=0.4, growth_differential=2.0, inflation_differential=2.0, base_signal=0.2, quote_signal=-0.1)
 
 
 class TestFusionEngine:

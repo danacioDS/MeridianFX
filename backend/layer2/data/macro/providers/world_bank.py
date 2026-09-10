@@ -15,6 +15,7 @@ available=False.
 """
 
 import logging
+import pandas as pd
 import httpx
 from datetime import datetime
 from typing import Optional, Dict, Any
@@ -66,6 +67,22 @@ class WorldBankProvider(CountryMacroProvider):
     def source(self) -> str:
         return "World Bank"
 
+
+    async def get_historical(
+        self,
+        start_date: str,
+        end_date: str,
+    ) -> pd.DataFrame:
+        """
+        Obtiene el histórico de policy rate para el país.
+        
+        Nota: World Bank no tiene policy rates históricos.
+        Este método devuelve un DataFrame vacío.
+        """
+        # World Bank no tiene policy rates históricos
+        # Retornar vacío para que el pipeline use fallback
+        logger.warning(f"World Bank no tiene policy rates históricos para {self.currency}")
+        return pd.DataFrame(columns=["date", "policy_rate"])
     async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
         """Obtiene el contexto macro de China via World Bank."""
         if not force_refresh and self._cache:

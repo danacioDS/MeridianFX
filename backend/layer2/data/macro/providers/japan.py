@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Optional
 
 from backend.layer2.data.sources.fred import FredDataSource
+from .world_bank import WorldBankProvider
 from .base import CountryMacroContext, CountryMacroProvider
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ class JapanProvider(CountryMacroProvider):
 
     def __init__(self, api_key: Optional[str] = None):
         self._source = FredDataSource(api_key, allow_simulation=False)
+        self._gdp_source = WorldBankProvider("JP")
         self._cache: Optional[CountryMacroContext] = None
 
     @property
@@ -94,6 +96,7 @@ class JapanProvider(CountryMacroProvider):
             return self._cache
 
         try:
+            # Obtener policy rate de FRED
             rate_data = await self._source.fetch_series("IRLTLT01JPM156N", limit=2)
             policy_rate = None
 
@@ -102,16 +105,20 @@ class JapanProvider(CountryMacroProvider):
                 if obs and obs[0].get("value"):
                     policy_rate = float(obs[0]["value"])
 
+            # Obtener GDP Growth de World Bank
+            gdp_context = await self._gdp_source.get_context(force_refresh=force_refresh)
+            gdp_growth = gdp_context.gdp_growth if gdp_context.available else None
+
             available = policy_rate is not None
 
             context = CountryMacroContext(
                 currency="JPY",
                 policy_rate=policy_rate,
-                gdp_growth=None,
-                inflation=None,
+                gdp_growth=gdp_growth,
+                inflation=gdp_context.inflation if gdp_context.available else None,
                 unemployment=None,
                 timestamp=datetime.now(),
-                source="FRED (Japan)",
+                source="FRED (Japan) + World Bank",
                 available=available,
                 is_fallback=not available,
                 reason="Long-term rates como policy_rate para Japan" if available else "FRED Japan no disponible",

@@ -139,16 +139,27 @@ class PipelineBridge:
         # Si son None, se usa 0.0 como fallback (PipelineInputs requiere float)
         policy_diff = differential_result.policy_differential if differential_result.policy_differential is not None else 0.0
         growth_diff = differential_result.growth_differential if differential_result.growth_differential is not None else 0.0
-        rate_diff = differential_result.normalized_rate_differential if differential_result.normalized_rate_differential is not None else 0.0
+        inflation_diff = differential_result.inflation_differential if differential_result.inflation_differential is not None else 0.0
         
-        base_rate = differential_result.base_rate if differential_result.base_rate is not None else 0.0
-        quote_rate = differential_result.quote_rate if differential_result.quote_rate is not None else 0.0
+        # MacroDifferentialProvider entrega policy rates en porcentaje (%).
+        # DecisionPipeline/EconomicFilter requiere tasas en formato decimal
+        # para convertir correctamente el diferencial a bps.
+        base_rate = (
+            differential_result.base_rate / 100.0
+            if differential_result.base_rate is not None
+            else 0.0
+        )
+        quote_rate = (
+            differential_result.quote_rate / 100.0
+            if differential_result.quote_rate is not None
+            else 0.0
+        )
         
         return PipelineInputs(
             artifact=artifact,
             policy_differential=policy_diff,
             growth_differential=growth_diff,
-            normalized_rate_differential=rate_diff,
+            inflation_differential=inflation_diff,
             base_signal=0.0,
             quote_signal=0.0,
             base_rate=base_rate,
