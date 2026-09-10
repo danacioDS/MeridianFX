@@ -9,7 +9,12 @@ from datetime import datetime, timezone
 from backend.src.meridian_fx.decision.pipeline import DecisionPipeline, PipelineInputs
 from backend.src.meridian_fx.decision.contracts import PredictionArtifact
 
-from backend.layer2.config import REQUIRED_MINIMUM_EDGE_BPS
+from backend.layer2.config import (
+    BASE_SIZE,
+    HISTORICAL_RELIABILITY,
+    MAX_EXPOSURE,
+    REQUIRED_MINIMUM_EDGE_BPS,
+)
 from backend.layer2.data.provider import DataProvider
 from backend.layer2.features.technical import TechnicalFeatures
 from backend.layer2.engine import DecisionEngine
@@ -169,10 +174,10 @@ class PipelineBridge:
             base_policy="Neutral",
             quote_policy="Neutral",
             required_minimum_edge=REQUIRED_MINIMUM_EDGE_BPS,
-            base_size=100_000.0,
+            base_size=BASE_SIZE,
             current_exposure=0.0,
-            max_exposure=1_000_000.0,
-            historical_reliability=0.5,
+            max_exposure=MAX_EXPOSURE,
+            historical_reliability=HISTORICAL_RELIABILITY,
             model_loaded=True,
             required_data_missing=(
                 differential_result.status != MacroDataStatus.FULL

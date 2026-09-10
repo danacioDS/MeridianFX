@@ -25,3 +25,8 @@ DIRECTION_THRESHOLD = float(os.getenv('DIRECTION_THRESHOLD', '0.05'))
 
 # Minimum edge for actionable (bps)
 REQUIRED_MINIMUM_EDGE_BPS = float(os.getenv('REQUIRED_MINIMUM_EDGE_BPS', '10.0'))
+
+# Position sizing policy
+BASE_SIZE = float(os.getenv('BASE_SIZE', '100000.0'))
+MAX_EXPOSURE = float(os.getenv('MAX_EXPOSURE', '1000000.0'))
+HISTORICAL_RELIABILITY = float(os.getenv('HISTORICAL_RELIABILITY', '0.5'))
