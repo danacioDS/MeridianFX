@@ -1,6 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+/**
+ * useForecastDashboard — Consolidated market analysis hook.
+ *
+ * Consumes: GET /v1/fx/{pair}/forecast-dashboard
+ *
+ * ⚠️  Types are defined locally in MarketPage.
+ *     This hook stays untyped to avoid breaking legacy pages that
+ *     access fields not in the canonical dashboard contract.
+ */
+import { useQuery } from "@tanstack/react-query";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 async function fetchForecastDashboard(pair: string) {
   const response = await fetch(`${API_URL}/v1/fx/${pair}/forecast-dashboard`);
@@ -12,7 +21,7 @@ async function fetchForecastDashboard(pair: string) {
 
 export function useForecastDashboard(pair: string) {
   return useQuery({
-    queryKey: ['forecast-dashboard', pair],
+    queryKey: ["forecast-dashboard", pair],
     queryFn: () => fetchForecastDashboard(pair),
     enabled: !!pair,
     refetchInterval: 30000,
