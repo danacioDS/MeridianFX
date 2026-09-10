@@ -6,7 +6,7 @@ interface HeaderProps {
   version?: string;
 }
 
-export function Header({ subtitle = "Financial Intelligence", version = "v2.4" }: HeaderProps): JSX.Element {
+export function Header({ subtitle = "Financial Intelligence", version = "v2.0" }: HeaderProps): JSX.Element {
   const [liveData, setLiveData] = useState(false);
   const [time, setTime] = useState("");
 
@@ -19,12 +19,13 @@ export function Header({ subtitle = "Financial Intelligence", version = "v2.4" }
   }, []);
 
   const navItems = [
-    { to: "/",         label: "Global" },
-    { to: "/market",   label: "Market" },
-    { to: "/macro",    label: "Macro" },
-    { to: "/risk",     label: "Risk" },
-    { to: "/decision", label: "Decision" },
-    { to: "/about",    label: "About" },
+    { to: "/", label: "Global" },
+    { to: "/forecast", label: "Forecast" },
+    { to: "/drivers", label: "Drivers" },
+    { to: "/evaluation", label: "Evaluation" },
+    { to: "/status", label: "Status" },
+    { to: "/price", label: "Price" },
+    { to: "/about", label: "About" },
   ];
 
   return (
