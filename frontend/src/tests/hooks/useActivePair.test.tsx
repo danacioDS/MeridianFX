@@ -6,12 +6,12 @@ import { MemoryRouter, type MemoryRouterProps } from "react-router-dom";
 import { renderHook, act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
-  DEFAULT_PAIR_UNIVERSE,
   pairUniverseFromRanking,
   useActivePair,
 } from "../../hooks/useActivePair";
 import { usePerformancePeriod } from "../../hooks/usePerformancePeriod";
 import type { RankingResponse } from "../../types";
+import { FX_PAIRS } from "../../constants/fxPairs";
 
 function RouterWrapper({ children, initialEntries }: Pick<MemoryRouterProps, "children" | "initialEntries">) {
   return <MemoryRouter initialEntries={initialEntries ?? ["/"]}>{children}</MemoryRouter>;
@@ -68,9 +68,9 @@ describe("usePerformancePeriod", () => {
 });
 
 describe("pairUniverseFromRanking", () => {
-  it("falls back to the MVP universe when ranking is unavailable", () => {
-    expect(pairUniverseFromRanking(null)).toEqual(DEFAULT_PAIR_UNIVERSE);
-    expect(pairUniverseFromRanking(undefined)).toEqual(DEFAULT_PAIR_UNIVERSE);
+  it("falls back to the full FX universe when ranking is unavailable", () => {
+    expect(pairUniverseFromRanking(null)).toEqual([...FX_PAIRS]);
+    expect(pairUniverseFromRanking(undefined)).toEqual([...FX_PAIRS]);
   });
 
   it("returns all pairs from the ranking when available", () => {

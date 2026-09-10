@@ -9,11 +9,7 @@ import type { RankingResponse } from "../types";
  * When ranking data is available, pairUniverseFromRanking()
  * uses the pairs returned by the ranking instead.
  */
-export const DEFAULT_PAIR_UNIVERSE = [
-  "EUR/USD",
-  "GBP/USD",
-  "USD/JPY",
-] as const;
+export const DEFAULT_PAIR_UNIVERSE = [...FX_PAIRS];
 
 /**
  * Returns the pair universe from the ranking, or the MVP universe

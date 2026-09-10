@@ -16,3 +16,4 @@ export * from "./useMacroContext";  // 👈 Añadir esta línea
 export { useCanonicalDecision } from "./useCanonicalDecision";
 export type { CanonicalDecision } from "./useCanonicalDecision";
 export * from "./useCanonicalRisk";
+export * from "./useMarketIntelligence";
