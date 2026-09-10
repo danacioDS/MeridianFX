@@ -68,7 +68,7 @@ class DecisionEngineAdapter:
         Obtiene un PredictionArtifact canónico para un par.
         """
         # 1. Obtener forecast del engine legacy
-        forecast = self._engine.get_forecast(pair)
+        forecast = self._engine.get_forecast(pair, horizon_days)
         if not forecast:
             return None
         

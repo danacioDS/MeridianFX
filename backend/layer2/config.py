@@ -19,3 +19,9 @@ MIN_CONFIDENCE = float(os.getenv('MIN_CONFIDENCE', '0.6'))
 # Data fetching
 DEFAULT_PERIOD = os.getenv('DEFAULT_PERIOD', '1y')
 DEFAULT_INTERVAL = os.getenv('DEFAULT_INTERVAL', '1d')
+
+# Direction threshold (P(UP) ± threshold → NEUTRAL)
+DIRECTION_THRESHOLD = float(os.getenv('DIRECTION_THRESHOLD', '0.05'))
+
+# Minimum edge for actionable (bps)
+REQUIRED_MINIMUM_EDGE_BPS = float(os.getenv('REQUIRED_MINIMUM_EDGE_BPS', '10.0'))

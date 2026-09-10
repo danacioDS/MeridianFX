@@ -9,7 +9,7 @@ from .models.xgboost_model import XGBoostModel
 from .models.logistic_model import LogisticModel
 from .explainers.shap_explainer import SHAPExplainer
 from .decision.filter import EconomicFilter
-from .config import MODEL_PATH
+from .config import MODEL_PATH, DIRECTION_THRESHOLD
 from .models.registry import ModelRegistry
 
 CACHE_DIR = "cache"
@@ -267,9 +267,9 @@ class DecisionEngine:
         }
         self._save_cache()
     
-    def get_forecast(self, pair: str) -> dict:
+    def get_forecast(self, pair: str, horizon_days: int = 30) -> dict:
         """Obtiene forecast completo para un par específico."""
-        cache_key = f"forecast_{pair}"
+        cache_key = f"forecast_{pair}_{horizon_days}d"
         
         cached = self._get_cached(cache_key)
         if cached:
@@ -330,18 +330,26 @@ class DecisionEngine:
                 except Exception as e:
                     print(f"⚠️ SHAP falló: {e}")
             
-            # 5. Economic filter
+            # 5. Economic filter (recibe expected_return y volatility)
+            volatility = self._calculate_volatility(df)
+            log_pred['expected_volatility'] = volatility
+            log_pred['expected_return'] = (2 * probability - 1) * volatility * (30 / 365) ** 0.5
             filtered = self.economic_filter.apply(log_pred)
             
             # 6. Determinar dirección
-            direction = "UP" if probability > 0.55 else "DOWN" if probability < 0.45 else "NEUTRAL"
-            expected_return = (probability - 0.5) * 0.02
+            direction = "UP" if probability > 0.5 + DIRECTION_THRESHOLD else "DOWN" if probability < 0.5 - DIRECTION_THRESHOLD else "NEUTRAL"
+            
+            # Expected return implícito: probability-volatility
+            # Fórmula: (2P - 1) × volatility × √(horizon_days / 365)
+            volatility = self._calculate_volatility(df)
+            # horizon_days viene como parámetro
+            expected_return = (2 * probability - 1) * volatility * (horizon_days / 365) ** 0.5
             
             response = {
                 'direction': direction,
                 'probability': probability,
                 'expected_return': expected_return,
-                'expected_volatility': 0.12,
+                'expected_volatility': self._calculate_volatility(df),
                 'actionable': filtered.get('actionable', False),
                 'confidence': filtered.get('confidence', probability),
                 'signal_strength': filtered.get('signal_strength', 'moderate'),

@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from backend.src.meridian_fx.decision.pipeline import DecisionPipeline, PipelineInputs
 from backend.src.meridian_fx.decision.contracts import PredictionArtifact
 
+from backend.layer2.config import REQUIRED_MINIMUM_EDGE_BPS
 from backend.layer2.data.provider import DataProvider
 from backend.layer2.features.technical import TechnicalFeatures
 from backend.layer2.engine import DecisionEngine
@@ -167,7 +168,7 @@ class PipelineBridge:
             global_regime="Neutral",
             base_policy="Neutral",
             quote_policy="Neutral",
-            required_minimum_edge=10.0,
+            required_minimum_edge=REQUIRED_MINIMUM_EDGE_BPS,
             base_size=100_000.0,
             current_exposure=0.0,
             max_exposure=1_000_000.0,
