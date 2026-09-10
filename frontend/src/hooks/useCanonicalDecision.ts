@@ -25,6 +25,21 @@ export interface MacroDataStatus {
   rate_diff: string;
 }
 
+export interface SizingMultipliers {
+  edge: number;
+  quality: number;
+  volatility: number;
+}
+
+export interface SizingInfo {
+  position_size: number;
+  base_size: number;
+  available_capacity: number;
+  multipliers: SizingMultipliers;
+  rejection_reason: string | null;
+  capacity_constrained: boolean;
+}
+
 export interface CanonicalDecision {
   pair: string;
   horizon_days: number;
@@ -44,12 +59,15 @@ export interface CanonicalDecision {
     rejection_reason: string | null;
     edge_ratio: number;
     net_return: number;
+    position_size: number;
+    signal_validity: string;
   };
   signals: {
     quant_score: { value: number };
     macro_score: { value: number };
     rag_score: { value: number };
   };
+  sizing?: SizingInfo;
 }
 
 export function useCanonicalDecision(pair: string, horizonDays: number = 30) {
