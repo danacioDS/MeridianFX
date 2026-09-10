@@ -109,9 +109,9 @@ export function ForecastPageCanonical() {
               </div>
             )}
             <div className="flex gap-4 text-xs text-gray-500">
-              <span>Policy: {canonicalData.macro_data_status.policy_diff}</span>
-              <span>Growth: {canonicalData.macro_data_status.growth_diff}</span>
-              <span>Rate: {canonicalData.macro_data_status.rate_diff}</span>
+              <span>Policy: {canonicalData.macro_data_status.policy_differential}</span>
+              <span>Growth: {canonicalData.macro_data_status.growth_differential}</span>
+              <span>Rate: {canonicalData.macro_data_status.base_rate}</span>
             </div>
           </div>
         </Panel>

@@ -1,5 +1,19 @@
+/**
+ * useCanonicalDecision — Canonical Decision hook.
+ *
+ * Consumes: GET /v1/canonical/{pair}/decision?horizon_days={h}
+ *
+ * ⚠️  This hook is PURE TRANSPORT + TYPING.
+ *     It does NOT compute any analytical values.
+ *
+ * ⚠️  Types reflect the v2.3.0 canonical contract.
+ *     Many fields are nullable (macro_score, sizing, reason) when the
+ *     model is unavailable or the macro data is partial.
+ */
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api';
+
+// ─── Sub-contracts ─────────────────────────────────────────────────
 
 export interface ShapValue {
   feature: string;
@@ -14,15 +28,17 @@ export interface MacroRegime {
 }
 
 export interface MacroDataStatus {
-  status: string;
   base: string;
   quote: string;
+  policy_differential: number | null;
+  growth_differential: number | null;
+  inflation_differential: number | null;
+  base_rate: number | null;
+  quote_rate: number | null;
+  status: string;               // FULL | PARTIAL | UNAVAILABLE
   base_available: boolean;
   quote_available: boolean;
-  reason: string;
-  policy_diff: string;
-  growth_diff: string;
-  rate_diff: string;
+  reason: string | null;
 }
 
 export interface SizingMultipliers {
@@ -40,18 +56,25 @@ export interface SizingInfo {
   capacity_constrained: boolean;
 }
 
+// ─── Top-level contract ────────────────────────────────────────────
+
 export interface CanonicalDecision {
   pair: string;
   horizon_days: number;
+
   regime: string;
-  macro_score: number;
+
+  macro_score: number | null;
+
   macro_data_status: MacroDataStatus;
+
   artifact: {
     macro_regime: MacroRegime;
     shap_values: ShapValue[];
     probability_up: number;
     expected_return: number;
   };
+
   decision: {
     direction: string;
     confidence: number;
@@ -62,17 +85,21 @@ export interface CanonicalDecision {
     position_size: number;
     signal_validity: string;
   };
+
   signals: {
     quant_score: { value: number };
-    macro_score: { value: number };
+    macro_score: { value: number } | null;
     rag_score: { value: number };
   };
-  sizing?: SizingInfo;
+
+  sizing?: SizingInfo | null;
 }
+
+// ─── Hook ──────────────────────────────────────────────────────────
 
 export function useCanonicalDecision(pair: string, horizonDays: number = 30) {
   const url = `/v1/canonical/${pair}/decision?horizon_days=${horizonDays}`;
-  
+
   return useQuery<CanonicalDecision>({
     queryKey: ['canonical', pair, horizonDays],
     queryFn: async () => {
