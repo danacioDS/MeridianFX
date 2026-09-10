@@ -50,6 +50,54 @@ export function RiskPage(): JSX.Element {
     );
   }
 
+  // Guard: risk can be null when the model is unavailable for this pair
+  if (!data.risk) {
+    return (
+      <section className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-2xl font-semibold text-ink">
+              ⚠️ Risk Assessment
+            </h2>
+            <p className="text-sm text-muted mt-1">
+              {pair} · {data.horizon_days} days · UNAVAILABLE
+            </p>
+          </div>
+
+          <UniverseSelector
+            currencies={universe}
+            selected={pair}
+            onChange={setPair}
+          />
+        </div>
+
+        <Panel title="Risk Assessment Unavailable">
+          <p className="text-sm text-muted">
+            No risk assessment is available for {pair}. This typically
+            occurs when the underlying model is not trained for this
+            currency pair.
+          </p>
+          {data.decision_summary && (
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-xs text-muted">Signal validity</div>
+                <div className="font-semibold text-ink">
+                  {(data.decision_summary as { signal_validity?: string }).signal_validity ?? "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-xs text-muted">Macro status</div>
+                <div className="font-semibold text-ink">
+                  {(data.macro_data_status as { status?: string } | null)?.status ?? "—"}
+                </div>
+              </div>
+            </div>
+          )}
+        </Panel>
+      </section>
+    );
+  }
+
   const { risk: assessment, macro_data_status, decision_summary } = data;
   const macroStatus = (macro_data_status as { status?: string } | null)?.status ?? "—";
   const actionable = (decision_summary as { actionable?: boolean } | null)?.actionable;

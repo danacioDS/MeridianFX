@@ -48,7 +48,7 @@ export interface DecisionSummaryRisk {
 export interface CanonicalRiskResponse {
   pair: string;
   horizon_days: number;
-  risk: RiskAssessment;
+  risk: RiskAssessment | null;   // null when the model is unavailable for this pair
   macro_data_status: MacroDataStatusRisk | null;
   decision_summary: DecisionSummaryRisk | null;
   timestamp: string;
