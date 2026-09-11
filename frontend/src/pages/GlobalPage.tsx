@@ -253,6 +253,11 @@ export function GlobalPage(): JSX.Element {
             summary={intelligence.summary}
           />
 
+            <IntelligenceBrief
+              context={intelligence.current_context.context}
+              interpretations={intelligence.model_interpretation}
+            />
+
           <Panel title="📡 Leading Signals">
             <LeadingSignals signals={intelligence.key_signals} />
           </Panel>
