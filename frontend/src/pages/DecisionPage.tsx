@@ -241,7 +241,7 @@ export function DecisionPage(): JSX.Element {
       )}
 
       {/* Educational panels */}
-      <ActionableInfo />
+      <ActionableInfo requiredMinimumEdge={economic?.required_minimum_edge} />
       <Panel title="📖 About the model">
         <ModelExplanation />
       </Panel>
