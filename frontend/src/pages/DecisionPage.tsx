@@ -22,6 +22,8 @@ import {
   DecisionMetrics,
   DecisionValidity,
   DecisionShapPanel,
+  EconomicBreakdown,
+  HardGates,
 } from "../components/decision";
 import {
   useCanonicalDecision,
@@ -60,7 +62,7 @@ export function DecisionPage(): JSX.Element {
     );
   }
 
-  const { decision, artifact, signals, regime } = data;
+  const { decision, artifact, signals, regime, economic, costs, gate } = data;
   const shapValues = artifact?.shap_values ?? [];
   const expectedReturn = artifact?.expected_return ?? 0;
   const quantScore = signals?.quant_score?.value ?? 0;
@@ -105,6 +107,35 @@ export function DecisionPage(): JSX.Element {
           positionSize={decision.position_size ?? 0}
           expectedReturn={expectedReturn}
         />
+      )}
+
+      {/* Economic Breakdown — gross, carry, costs, edge */}
+      {economic && costs && (
+        <Panel title="💰 Economic Breakdown">
+          <EconomicBreakdown
+            grossReturn={economic.directional_gross_return}
+            carryProxy={economic.carry_proxy}
+            totalCost={economic.total_cost}
+            netReturn={economic.net_return}
+            edgeRatio={economic.edge_ratio}
+            requiredMinimumEdge={economic.required_minimum_edge}
+            spread={costs.spread}
+            slippage={costs.slippage}
+            commission={costs.commission}
+          />
+        </Panel>
+      )}
+
+      {/* Hard Gates — status of the 7 filter gates */}
+      {gate && (
+        <Panel title="🚦 Hard Gates">
+          <HardGates
+            gateResults={gate.gate_results}
+            allPassed={gate.all_passed}
+            thresholdsUsed={gate.thresholds_used}
+            firstFailingGate={gate.first_failing_gate}
+          />
+        </Panel>
       )}
 
       {/* Sizing — values from canonical backend contract */}

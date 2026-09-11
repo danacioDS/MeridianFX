@@ -56,6 +56,94 @@ export interface SizingInfo {
   capacity_constrained: boolean;
 }
 
+
+// ─── Gate ──────────────────────────────────────────────────────────
+
+export interface GateInfo {
+  gate_results: Record<string, boolean>;
+  all_passed: boolean;
+  first_failing_gate: string | null;
+  thresholds_used: Record<string, number>;
+  signal_validity: string;
+  rejection_reason: string | null;
+  degraded_warnings: string[];
+}
+
+// ─── Costs ─────────────────────────────────────────────────────────
+
+export interface CostsInfo {
+  spread: number;
+  slippage: number;
+  commission: number;
+  total_cost: number;
+  normalized_volatility: number;
+  vix: number;
+}
+
+// ─── Economic ──────────────────────────────────────────────────────
+
+export interface EconomicInfo {
+  directional_gross_return: number;
+  carry_proxy: number;
+  total_cost: number;
+  net_return: number;
+  edge_ratio: number;
+  required_minimum_edge: number;
+  actionable: boolean;
+}
+
+// ─── Quality ───────────────────────────────────────────────────────
+
+export interface QualityComponents {
+  confidence: number;
+  freshness: number;
+  regime_alignment: number;
+  data_quality: string;
+  data_quality_score: number;
+  drift_score: number;
+}
+
+export interface QualityInfo {
+  score: number;
+  components: QualityComponents;
+  level: string;
+  fallback_status: Record<string, string>;
+}
+
+// ─── Fusion ────────────────────────────────────────────────────────
+
+export interface FusionWeights {
+  quant: number;
+  macro: number;
+  rag: number;
+}
+
+export interface FusionInfo {
+  regime: string;
+  weights: FusionWeights;
+  fusion_score: number;
+  direction: string;
+  direction_sign: number;
+  confidence: number | null;
+}
+
+// ─── Risk (resumen) ────────────────────────────────────────────────
+
+export interface RiskSummaryDriver {
+  name: string;
+  contribution: number;
+  normalized_value: number;
+  weight: number;
+  explanation: string;
+}
+
+export interface RiskSummary {
+  risk_score: number;
+  risk_level: string;
+  drivers: RiskSummaryDriver[];
+  methodology_version: string;
+}
+
 // ─── Top-level contract ────────────────────────────────────────────
 
 export interface CanonicalDecision {
@@ -63,6 +151,7 @@ export interface CanonicalDecision {
   horizon_days: number;
 
   regime: string;
+  vix: number;
 
   macro_score: number | null;
 
@@ -73,6 +162,11 @@ export interface CanonicalDecision {
     shap_values: ShapValue[];
     probability_up: number;
     expected_return: number;
+    expected_volatility: number;
+    confidence_interval: {
+      lower: number;
+      upper: number;
+    };
   };
 
   decision: {
@@ -92,7 +186,13 @@ export interface CanonicalDecision {
     rag_score: { value: number };
   };
 
+  gate: GateInfo;
   sizing?: SizingInfo | null;
+  fusion: FusionInfo;
+  costs: CostsInfo;
+  economic: EconomicInfo;
+  quality: QualityInfo;
+  risk: RiskSummary;
 }
 
 // ─── Hook ──────────────────────────────────────────────────────────
