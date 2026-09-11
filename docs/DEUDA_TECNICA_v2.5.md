@@ -90,3 +90,38 @@
 | v2.3    | 30-ago-2026 | Risk Assessment Engine                                |
 | v2.4    | 10-sep-2026 | Frontend v2.4 (6 páginas canónicas)                   |
 | v2.5    | 11-sep-2026 | Baseline de ingeniería + auditoría 6/6 páginas        |
+
+---
+
+## v2.5.1 — Limpieza de repo + normalización de modelos (68aaccf)
+
+**Fecha**: 11 de septiembre de 2026
+
+### Completado
+
+- **Modelos normalizados**: `registry.json` (root + backend) apunta a `backend/models/*.pkl`; eliminados 9 `.pkl` duplicados del root
+- **Clutter eliminado** (156 archivos):
+  * 20+ backups `.bak*`/`.backup*`/`.manual`
+  * `src_backup_espanol/` (119 archivos)
+  * `_unused/` (14 archivos)
+  * `mockup/` (5 archivos)
+  * `HistoricalPage.tsx`, `common/Header.tsx`
+  * `ngrok-*.zip` (13.9 MB), `commandos.md`, `start_backend.sh`, `VERSION*.txt`
+- **`.gitignore` robusto**: `*.bak*`, `*.backup*`, `*.manual`, `*.zip`, `src_backup_*/`
+
+### Impacto
+
+- Bundle CSS: 35.48 KB → 31.45 KB (**-4.03 KB**)
+- Backups eliminados: 20+ → 0
+- Archivos en repo: -156
+- `/drivers` → 200 en todos los pares (runtime verificado)
+
+### Pendiente (v2.6)
+
+Los gaps del reporte de análisis que requieren auditoría cuantitativa:
+- Fake L4 providers en canonical pipeline
+- `run_benchmarks.py` roto
+- Layer 4 PIT unwired
+- LLM dead code
+- `/drivers` `macro_drivers` hardcoded
+- Research sprawl en experiments/
