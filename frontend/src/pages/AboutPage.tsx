@@ -82,19 +82,19 @@ export function AboutPage(): JSX.Element {
           </p>
           <div className="space-y-3 ml-4">
             <div className="flex items-start gap-3">
-              <span className="text-meridian font-mono text-base font-bold min-w-[140px]">Dornbusch (1976)</span>
+              <span className="text-meridian font-mono text-base font-bold shrink-0">Dornbusch (1976)</span>
               <span className="text-base">— Exchange Rate Overshooting. Monetary policy and interest-rate differentials can produce short- and medium-term deviations in exchange rates, supporting macroeconomic drivers in FX analysis.</span>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-meridian font-mono text-base font-bold min-w-[140px]">White (2000)</span>
+              <span className="text-meridian font-mono text-base font-bold shrink-0">White (2000)</span>
               <span className="text-base">— Reality Check for Data Snooping. Highlights the danger of selecting apparently successful trading strategies through repeated experimentation, supporting MeridianFX's emphasis on robust evaluation and avoiding overfitting.</span>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-meridian font-mono text-base font-bold min-w-[140px]">Platt (1999)</span>
+              <span className="text-meridian font-mono text-base font-bold shrink-0">Platt (1999)</span>
               <span className="text-base">— Probability Calibration. Establishes the importance of transforming model scores into meaningful probabilities, supporting MeridianFX's use of calibrated probabilities rather than raw model confidence.</span>
             </div>
             <div className="flex items-start gap-3">
-              <span className="text-meridian font-mono text-base font-bold min-w-[140px]">Lopez de Prado (2018)</span>
+              <span className="text-meridian font-mono text-base font-bold shrink-0">Lopez de Prado (2018)</span>
               <span className="text-base">— Financial Machine Learning. Provides a framework for applying machine learning to financial problems while addressing issues such as non-stationarity, overfitting, validation and backtesting.</span>
             </div>
           </div>

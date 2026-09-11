@@ -57,8 +57,8 @@ export function RankingTable({
       </div>
 
       {/* Table */}
-      <div className="border border-line rounded-xl overflow-hidden">
-        <div className="grid grid-cols-[0.4fr_1fr_0.8fr_0.6fr_0.6fr_0.9fr] items-center px-4 py-2.5 text-[10.5px] uppercase tracking-wider text-muted bg-panel-2 border-b border-line font-semibold">
+      <div className="border border-line rounded-xl overflow-hidden overflow-x-auto">
+        <div className="grid grid-cols-[0.4fr_1fr_0.8fr_0.6fr_0.6fr_0.9fr] min-w-[560px] items-center px-4 py-2.5 text-[10.5px] uppercase tracking-wider text-muted bg-panel-2 border-b border-line font-semibold">
           <span>#</span>
           <span>Par</span>
           <span>Señal</span>

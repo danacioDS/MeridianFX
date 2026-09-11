@@ -87,8 +87,8 @@ export function PriceChartWithHover({ history, currentPrice, pair }: PriceChartW
       )}
 
       {/* Gráfico */}
-      <div className="h-52 w-full bg-panel-2 rounded-lg p-4 relative">
-        <div className="flex items-end h-40 gap-0.5">
+      <div className="h-40 md:h-52 w-full bg-panel-2 rounded-lg p-4 relative">
+        <div className="flex items-end h-28 md:h-40 gap-0.5">
           {filtered.map((point, i) => {
             const height = ((point.close - minPrice) / range) * 100;
             const isLast = i === filtered.length - 1;
