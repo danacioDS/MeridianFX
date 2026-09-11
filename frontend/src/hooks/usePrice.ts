@@ -2,16 +2,13 @@
  * usePrice — Spot price + historical OHLCV.
  *
  * Consumes: GET /v1/fx/{pair}/price?period={period}
- *
- * ⚠️  Types are defined locally in MarketPage.
- *     This hook stays untyped to avoid breaking legacy pages that
- *     access fields not in the canonical price contract.
  */
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, type UseQueryResult } from "@tanstack/react-query";
+import type { PriceResponse } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-async function fetchPrice(pair: string, period: string) {
+async function fetchPrice(pair: string, period: string): Promise<PriceResponse> {
   const response = await fetch(`${API_URL}/v1/fx/${pair}/price?period=${period}`);
   if (!response.ok) {
     throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -19,8 +16,11 @@ async function fetchPrice(pair: string, period: string) {
   return response.json();
 }
 
-export function usePrice(pair: string, period: string = "1y") {
-  return useQuery({
+export function usePrice(
+  pair: string,
+  period: string = "1y"
+): UseQueryResult<PriceResponse, Error> {
+  return useQuery<PriceResponse, Error>({
     queryKey: ["price", pair, period],
     queryFn: () => fetchPrice(pair, period),
     enabled: !!pair,

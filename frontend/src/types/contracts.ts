@@ -210,6 +210,40 @@ export interface RankingResponse {
   as_of: string;
 }
 
+/* ───────────────────────── 7.3b PriceResponse ──────────────────────── */
+
+/** Historical OHLCV point. */
+export interface PricePoint {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+/** Spot price + historical OHLCV. Layer 1 v5.1 §7.2. */
+export interface PriceResponse {
+  pair: string;
+  base: string;
+  quote: string;
+  base_name: string;
+  quote_name: string;
+  current_price: number;
+  previous_price: number;
+  change_abs: number;
+  change_percent: number;
+  direction: string;
+  probability: number;
+  period: string;
+  source: string;
+  freshness: string;
+  last_date: string;
+  timestamp: string;
+  history: PricePoint[];
+  info: Record<string, unknown>;
+}
+
 /* ───────────────────────── 7.4 PerformanceResponse ──────────────────────── */
 
 /** Evaluation period selectable by the user. Layer 1 v5.1 §7.4. */
