@@ -5,6 +5,7 @@ interface MarketMetaProps {
   lastDate: string | null | undefined;
   source: string | null | undefined;
   freshness: string | null | undefined;
+  volatility?: number | null | undefined;
 }
 
 export function MarketMeta({
@@ -12,6 +13,7 @@ export function MarketMeta({
   lastDate,
   source,
   freshness,
+  volatility,
 }: MarketMetaProps): JSX.Element {
   return (
     <div className="p-4 bg-panel-2 rounded-lg border border-line">
@@ -19,7 +21,7 @@ export function MarketMeta({
         Data metadata
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         <div>
           <div className="text-xs text-muted">As of</div>
           <div className="text-sm text-ink">

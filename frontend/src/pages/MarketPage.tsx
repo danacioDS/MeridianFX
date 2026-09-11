@@ -165,6 +165,7 @@ export function MarketPage(): JSX.Element {
         lastDate={price?.last_date}
         source={price?.source}
         freshness={price?.freshness}
+        volatility={dashboard.volatility}
       />
     </section>
   );
