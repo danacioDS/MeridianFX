@@ -3,13 +3,6 @@
  *
  * ⚠️  Presentational ONLY. All values come from the backend.
  */
-interface MacroRegime {
-  risk: string;
-  policy: string;
-  growth: string;
-  inflation: string;
-}
-
 interface MacroHeroProps {
   regime: string;
   macroRegime: MacroRegime | null;
@@ -24,6 +17,7 @@ const STATUS_STYLES: Record<string, { color: string; bg: string; border: string 
 };
 
 import { EmptyState } from "../common";
+import type { MacroRegime } from "../../types/contracts";
 
 export function MacroHero({
   regime,

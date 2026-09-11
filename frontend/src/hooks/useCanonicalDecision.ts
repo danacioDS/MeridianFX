@@ -12,19 +12,13 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/api';
+import type { MacroRegime } from '../types/contracts';
 
 // ─── Sub-contracts ─────────────────────────────────────────────────
 
 export interface ShapValue {
   feature: string;
   value: number;
-}
-
-export interface MacroRegime {
-  risk: string;
-  policy: string;
-  growth: string;
-  inflation: string;
 }
 
 export interface MacroDataStatus {
