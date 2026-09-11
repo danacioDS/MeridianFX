@@ -11,6 +11,7 @@ import {
   ModelExplanation,
   MarketIntelligenceHero,
   LeadingSignals,
+  IntelligenceBrief,
 } from "../components/global";
 import { PriceChartSignalIQ } from "../components/global/PriceChartSignalIQ";
 import {
