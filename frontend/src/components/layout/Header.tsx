@@ -6,7 +6,7 @@ interface HeaderProps {
   version?: string;
 }
 
-export function Header({ subtitle = "Financial Intelligence", version = "v2.4" }: HeaderProps): JSX.Element {
+export function Header({ subtitle = "Financial Intelligence", version = "v2.5" }: HeaderProps): JSX.Element {
   const [liveData, setLiveData] = useState(false);
   const [time, setTime] = useState("");
 

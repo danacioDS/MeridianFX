@@ -66,7 +66,10 @@ export function DecisionPage(): JSX.Element {
 
   const { decision, artifact, signals, regime, economic, costs, gate, quality, fusion } = data;
   const shapValues = artifact?.shap_values ?? [];
-  const expectedReturn = artifact?.expected_return ?? 0;
+  const expectedReturn =
+    economic === null || economic === undefined
+      ? null
+      : (artifact?.expected_return ?? 0);
   const quantScore = signals?.quant_score?.value ?? 0;
   const macroScore = signals?.macro_score?.value ?? 0;
   const ragScore = signals?.rag_score?.value ?? 0;
