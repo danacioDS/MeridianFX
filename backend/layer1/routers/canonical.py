@@ -6,17 +6,18 @@ from fastapi import APIRouter, HTTPException
 from backend.layer2.pipeline_bridge import PipelineBridge
 from backend.src.meridian_fx.decision.pipeline import DecisionPipeline
 from backend.src.meridian_fx.decision.validation.validate_integration import (
-    FakeFeatureStore, FakeDataQualityRegistry, FakeFreshnessRegistry, FakeDriftRegistry
+    FakeDataQualityRegistry, FakeFreshnessRegistry, FakeDriftRegistry
 )
+from backend.src.meridian_fx.decision.quality.real_providers import RealFeatureStore
 
 router = APIRouter(tags=["canonical"])
 
 # Inicializar pipeline (usando fake providers por ahora)
 pipeline = DecisionPipeline(
-    feature_store=FakeFeatureStore(vix=15.0),
-    data_quality_registry=FakeDataQualityRegistry(0.90),
-    freshness_registry=FakeFreshnessRegistry(3.0),
-    drift_registry=FakeDriftRegistry(0.05)
+    feature_store=RealFeatureStore(),                       # VIX real (Yahoo)
+    data_quality_registry=FakeDataQualityRegistry(0.90),    # TODO v2.7
+    freshness_registry=FakeFreshnessRegistry(3.0),          # TODO v2.7
+    drift_registry=FakeDriftRegistry(0.05)                  # TODO v2.7
 )
 
 bridge = PipelineBridge(pipeline)
