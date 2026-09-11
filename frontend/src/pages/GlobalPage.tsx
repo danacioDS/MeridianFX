@@ -77,13 +77,10 @@ export function GlobalPage(): JSX.Element {
   const data = dashboard.data;
   const intelligence = marketIntelligence.data;
 
-  const opportunities = rankingData?.opportunities || [];
-  const topOpportunity =
-    opportunities.length > 0 ? opportunities[0] : null;
-  const totalActionable = opportunities.filter(
-    (o: any) => o.actionable
-  ).length;
-  const totalPairs = opportunities.length;
+  const opportunities = rankingData?.opportunities ?? [];
+  const topOpportunity = rankingData?.top_opportunity ?? null;
+  const totalActionable = rankingData?.total_actionable ?? 0;
+  const totalPairs = rankingData?.total_pairs ?? 0;
 
   return (
     <section className="flex flex-col gap-6">
