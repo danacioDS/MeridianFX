@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.layer1.routers import ranking, drivers, forecast, performance, status, historical, interpretation, price, model_comparison, forecast_dashboard, intelligence, canonical
+from backend.layer1.routers import ranking, forecast, performance, status, historical, interpretation, price, model_comparison, forecast_dashboard, intelligence, canonical
 
 app = FastAPI(title="Meridian FX API", version="1.0.0")
 
@@ -30,7 +30,6 @@ app.add_middleware(
 
 # Incluir routers - CORREGIDO
 app.include_router(ranking.router, prefix="/v1/fx", tags=["ranking"])
-app.include_router(drivers.router, prefix="/v1/fx", tags=["drivers"])
 app.include_router(forecast.router, prefix="/v1/fx", tags=["forecast"])
 app.include_router(performance.router, prefix="/v1/fx", tags=["performance"])
 app.include_router(status.router, prefix="/v1", tags=["status"])
