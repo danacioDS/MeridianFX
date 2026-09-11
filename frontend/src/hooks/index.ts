@@ -1,19 +1,13 @@
+// Active hooks (v2.5)
 export * from "./useActivePair";
-export * from "./useDrivers";
+export * from "./useCanonicalDecision";
+export * from "./useCanonicalRisk";
 export * from "./useForecast";
-export * from "./useHistorical";
-export * from "./usePerformance";
+export * from "./useForecastDashboard";
+export * from "./useMarketIntelligence";
 export * from "./usePerformancePeriod";
 export * from "./usePolling";
-export * from "./useRanking";
-export * from "./useStatus";
-export * from "./useInterpretation";
-export * from "./useMacro";
 export * from "./usePrice";
-export * from "./useForecastDashboard";
-export * from "./useMacroContext";  // 👈 Añadir esta línea
+export * from "./useRanking";
 
-export { useCanonicalDecision } from "./useCanonicalDecision";
 export type { CanonicalDecision } from "./useCanonicalDecision";
-export * from "./useCanonicalRisk";
-export * from "./useMarketIntelligence";

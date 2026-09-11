@@ -1,5 +1,5 @@
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { apiClient } from "../services/api";
+import { apiClient } from "../../../services/api";
 
 interface HistoricalData {
   pair: string;
