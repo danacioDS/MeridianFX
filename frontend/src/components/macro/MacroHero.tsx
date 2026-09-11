@@ -23,6 +23,8 @@ const STATUS_STYLES: Record<string, { color: string; bg: string; border: string 
   UNAVAILABLE: { color: "text-muted",  bg: "bg-panel-2",   border: "border-line" },
 };
 
+import { EmptyState } from "../common";
+
 export function MacroHero({
   regime,
   macroRegime,
@@ -70,7 +72,7 @@ export function MacroHero({
           </div>
         </div>
       ) : (
-        <div className="text-sm text-muted">No macro regime available.</div>
+        <EmptyState title="No macro regime available" />
       )}
 
       <div className="mt-4 pt-4 border-t border-line">

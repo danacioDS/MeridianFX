@@ -43,7 +43,7 @@ export function GlobalPage(): JSX.Element {
     dashboard.isLoading ||
     marketIntelligence.isLoading
   ) {
-    return <LoadingSpinner label={`Cargando datos para ${pair}...`} />;
+    return <LoadingSpinner label={`Loading data for ${pair}...`} />;
   }
 
   if (ranking.isError) {

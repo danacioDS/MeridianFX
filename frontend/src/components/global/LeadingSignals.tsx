@@ -5,6 +5,8 @@
  *     edge_ratio, and opportunity_score all come from the backend.
  *     No transformation of economic semantics is performed here.
  */
+import { EmptyState } from "../common";
+
 interface LeadingSignal {
   pair: string;
   direction: string;         // "bullish" | "bearish"
@@ -20,11 +22,7 @@ interface LeadingSignalsProps {
 
 export function LeadingSignals({ signals }: LeadingSignalsProps): JSX.Element {
   if (!signals || signals.length === 0) {
-    return (
-      <div className="text-sm text-muted py-4 text-center">
-        No leading signals available
-      </div>
-    );
+    return <EmptyState title="No leading signals available" />;
   }
 
   return (

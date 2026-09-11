@@ -10,11 +10,13 @@ interface RiskDriversPanelProps {
   drivers: RiskDriver[];
 }
 
+import { EmptyState } from "../common";
+
 export function RiskDriversPanel({ drivers }: RiskDriversPanelProps): JSX.Element {
   if (!drivers || drivers.length === 0) {
     return (
       <div className="text-sm text-muted">
-        No risk drivers available.
+        <EmptyState title="No risk drivers available" />
       </div>
     );
   }

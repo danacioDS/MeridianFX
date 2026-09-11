@@ -16,6 +16,7 @@
 import {
   ApiError,
   LoadingSpinner,
+  EmptyState,
   Panel,
   UniverseSelector,
 } from "../components/common";
@@ -151,9 +152,10 @@ export function MarketPage(): JSX.Element {
 
   if (!dashboard) {
     return (
-      <div className="text-center text-muted py-8">
-        No market data available for {pair}
-      </div>
+      <EmptyState
+        title="No market data available"
+        message={pair}
+      />
     );
   }
 

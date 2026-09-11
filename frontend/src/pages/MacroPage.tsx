@@ -19,6 +19,7 @@
 import {
   ApiError,
   LoadingSpinner,
+  EmptyState,
   Panel,
   UniverseSelector,
 } from "../components/common";
@@ -57,9 +58,10 @@ export function MacroPage(): JSX.Element {
 
   if (!data) {
     return (
-      <div className="text-center text-muted py-8">
-        No macro data available for {pair}
-      </div>
+      <EmptyState
+        title="No macro data available"
+        message={pair}
+      />
     );
   }
 

@@ -6,6 +6,7 @@
  *     direction values provided by the backend.
  */
 import type { RankedOpportunity } from "../../types/contracts";
+import { EmptyState } from "../common";
 
 interface RankingTableProps {
   opportunities: RankedOpportunity[];
@@ -24,9 +25,7 @@ export function RankingTable({
 }: RankingTableProps): JSX.Element {
   if (!opportunities || opportunities.length === 0) {
     return (
-      <div className="text-sm text-ink-soft py-6 text-center">
-        No opportunities available
-      </div>
+      <EmptyState title="No opportunities available" />
     );
   }
 

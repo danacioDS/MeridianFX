@@ -11,6 +11,7 @@ import { safeToFixed } from "../utils/safeFormat";
 import {
   ApiError,
   LoadingSpinner,
+  EmptyState,
   Panel,
   UniverseSelector,
 } from "../components/common";
@@ -52,9 +53,10 @@ export function DecisionPage(): JSX.Element {
 
   if (!data) {
     return (
-      <div className="text-center text-muted py-8">
-        No decision available for {pair}
-      </div>
+      <EmptyState
+        title="No decision available"
+        message={pair}
+      />
     );
   }
 

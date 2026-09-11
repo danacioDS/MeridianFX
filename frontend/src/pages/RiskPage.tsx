@@ -10,6 +10,7 @@
 import {
   ApiError,
   LoadingSpinner,
+  EmptyState,
   Panel,
   UniverseSelector,
 } from "../components/common";
@@ -44,9 +45,10 @@ export function RiskPage(): JSX.Element {
 
   if (!data) {
     return (
-      <div className="text-center text-muted py-8">
-        No risk assessment available for {pair}
-      </div>
+      <EmptyState
+        title="No risk assessment available"
+        message={pair}
+      />
     );
   }
 
