@@ -190,8 +190,6 @@ export interface RankedOpportunity {
   decision_quality: "HIGH" | "MEDIUM" | "LOW";
   /** Position size. */
   position_size: number;
-  /** Decision id of the opportunity. */
-  decision_id: string;
 }
 
 /** Opportunity ranking snapshot. Layer 1 v5.1 §7.3. */
