@@ -89,11 +89,12 @@ class DecisionEngineAdapter:
         # No invertir la probabilidad cuando direction == DOWN.
         probability_up = probability
         
-        # 5. Construir confidence_interval (expected_volatility ya está en decimal, no bps)
-        # La volatilidad en bps debe dividirse por 10000 para obtener decimal
-        vol_decimal = expected_volatility / 10000
-        lower = max(0.0, probability_up - vol_decimal * 0.5)
-        upper = min(1.0, probability_up + vol_decimal * 0.5)
+        # 5. Construir confidence_interval
+        # expected_volatility ya está en decimal (0.0374 = 3.74% anual)
+        # El intervalo se construye como ±50% de la volatilidad alrededor de la probabilidad
+        delta = expected_volatility * 0.5
+        lower = max(0.0, probability_up - delta)
+        upper = min(1.0, probability_up + delta)
         confidence_interval = ConfidenceInterval(lower=lower, upper=upper)
         
         # 6. Construir shap_values
