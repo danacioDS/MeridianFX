@@ -7,7 +7,7 @@ interface RankingCardProps {
 
 export function RankingCard({ rank, opportunity }: RankingCardProps): JSX.Element {
   const isActionable = opportunity.actionable;
-  const isUp = String(opportunity.direction) === "UP";
+  const isUp = opportunity.direction === "UP";
   const scorePercent = Math.round((opportunity.opportunity_score || 0) * 100);
   const edge = opportunity.edge_ratio || 0;
 

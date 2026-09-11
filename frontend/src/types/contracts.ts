@@ -176,8 +176,8 @@ export interface RankedOpportunity {
   rank: number;
   /** Currency pair. */
   pair: string;
-  /** Opportunity direction (LONG | SHORT | NEUTRAL). */
-  direction: DecisionDirection;
+  /** Opportunity direction (UP | DOWN). */
+  direction: "UP" | "DOWN";
   /** Opportunity score (Layer 2). */
   opportunity_score: number;
   /** Edge ratio. */
@@ -186,12 +186,10 @@ export interface RankedOpportunity {
   actionable: boolean;
   /** Opportunity confidence. */
   confidence: number;
-  /** Decision quality score (Layer 2). */
-  decision_quality: number;
-  /** Position size. SUPPORTED field — distinct from position_size_recommendation (gap). */
+  /** Decision quality classification (HIGH | MEDIUM | LOW). */
+  decision_quality: "HIGH" | "MEDIUM" | "LOW";
+  /** Position size. */
   position_size: number;
-  /** Prediction id of the opportunity. */
-  prediction_id: string;
   /** Decision id of the opportunity. */
   decision_id: string;
 }
@@ -199,17 +197,19 @@ export interface RankedOpportunity {
 /** Opportunity ranking snapshot. Layer 1 v5.1 §7.3. */
 export interface RankingResponse {
   /** When the ranking snapshot was taken. */
-  snapshot_timestamp: string;
-  /** Point-in-time the underlying data was valid as of. */
-  as_of: string;
+  timestamp: string;
   /** Ranked opportunities (ordered by Layer 2). */
   opportunities: RankedOpportunity[];
-  /** Top opportunity pair — null when none. */
-  top_opportunity: string | null;
+  /** Top opportunity — full object, null when none. */
+  top_opportunity: RankedOpportunity | null;
   /** Count of actionable opportunities. */
   total_actionable: number;
   /** Total number of ranked pairs. */
   total_pairs: number;
+  /** Legacy snapshot timestamp. */
+  snapshot_timestamp: string;
+  /** Point-in-time the underlying data was valid as of. */
+  as_of: string;
 }
 
 /* ───────────────────────── 7.4 PerformanceResponse ──────────────────────── */

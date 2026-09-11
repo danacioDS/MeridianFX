@@ -75,47 +75,45 @@ describe("pairUniverseFromRanking", () => {
 
   it("returns all pairs from the ranking when available", () => {
     const ranking = {
-      snapshot_timestamp: "2026-08-27T00:00:00Z",
+      timestamp: "2026-08-27T00:00:00Z",
+        snapshot_timestamp: "2026-08-27T00:00:00Z",
       as_of: "2026-08-27T00:00:00Z",
       opportunities: [
         { 
           rank: 1, 
           pair: "EUR/USD", 
-          direction: "LONG" as const, 
+          direction: "UP" as const, 
           opportunity_score: 0.8, 
           edge_ratio: 1.2, 
           actionable: true, 
           confidence: 0.7, 
-          decision_quality: 0.8, 
-          position_size: 0.5, 
-          prediction_id: "p1", decision_id: "d1" 
+          decision_quality: "HIGH" as const, 
+          position_size: 0.5 
         },
         { 
           rank: 2, 
           pair: "GBP/USD", 
-          direction: "SHORT" as const, 
+          direction: "DOWN" as const, 
           opportunity_score: 0.6, 
           edge_ratio: 1.0, 
           actionable: false, 
           confidence: 0.5, 
-          decision_quality: 0.6, 
-          position_size: 0.3, 
-          prediction_id: "p2", decision_id: "d2" 
+          decision_quality: "MEDIUM" as const, 
+          position_size: 0.3 
         },
         { 
           rank: 3, 
           pair: "USD/JPY", 
-          direction: "LONG" as const, 
+          direction: "UP" as const, 
           opportunity_score: 0.5, 
           edge_ratio: 0.8, 
           actionable: false, 
           confidence: 0.4, 
-          decision_quality: 0.5, 
-          position_size: 0.2, 
-          prediction_id: "p3", decision_id: "d3" 
+          decision_quality: "LOW" as const, 
+          position_size: 0.2 
         },
       ],
-      top_opportunity: "EUR/USD",
+      top_opportunity: null,
       total_actionable: 1,
       total_pairs: 3,
     } satisfies RankingResponse;

@@ -69,7 +69,7 @@ export function RankingTable({
         </div>
 
         {opportunities.map((opp) => {
-          const isUp = String(opp.direction) === "UP";
+          const isUp = opp.direction === "UP";
           const scorePercent = Math.round((opp.opportunity_score || 0) * 100);
           const edge = opp.edge_ratio || 0;
           const isActionable = opp.actionable;

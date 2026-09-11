@@ -121,24 +121,23 @@ describe("DriversResponse — Layer 1 v5.1 §7.2", () => {
 describe("RankingResponse — Layer 1 v5.1 §7.3", () => {
   it("matches the contract field inventory (no missing, no extra)", () => {
     const fixture: RankingResponse = {
-      snapshot_timestamp: "2026-08-27T00:00:00.000Z",
+      timestamp: "2026-08-27T00:00:00.000Z",
+        snapshot_timestamp: "2026-08-27T00:00:00.000Z",
       as_of: "2026-08-27T00:00:00.000Z",
       opportunities: [
         {
           rank: 1,
           pair: "USDJPY",
-          direction: "LONG",
+          direction: "UP" as const,
           opportunity_score: 0.87,
           edge_ratio: 1.4,
           actionable: true,
           confidence: 0.72,
-          decision_quality: 0.8,
+          decision_quality: "HIGH" as const,
           position_size: 0.05,
-          prediction_id: "pred-001",
-          decision_id: "dec-001",
         },
       ],
-      top_opportunity: "USDJPY",
+      top_opportunity: null,
       total_actionable: 1,
       total_pairs: 4,
     };
@@ -155,21 +154,20 @@ describe("RankingResponse — Layer 1 v5.1 §7.3", () => {
 
   it("keeps position_size as the supported field (never recommendation)", () => {
     const fixture: RankingResponse = {
-      snapshot_timestamp: "2026-08-27T00:00:00.000Z",
+      timestamp: "2026-08-27T00:00:00.000Z",
+        snapshot_timestamp: "2026-08-27T00:00:00.000Z",
       as_of: "2026-08-27T00:00:00.000Z",
       opportunities: [
         {
           rank: 1,
           pair: "USDJPY",
-          direction: "LONG",
+          direction: "UP" as const,
           opportunity_score: 0.87,
           edge_ratio: 1.4,
           actionable: true,
           confidence: 0.72,
-          decision_quality: 0.8,
+          decision_quality: "HIGH" as const,
           position_size: 0.05,
-          prediction_id: "pred-001",
-          decision_id: "dec-001",
         },
       ],
       top_opportunity: null,
