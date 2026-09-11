@@ -87,3 +87,6 @@ cache/
 # Local dev scripts
 start.sh
 stop.sh
+
+# Backups temporales de refactors
+.trash*/

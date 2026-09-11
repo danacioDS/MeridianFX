@@ -6,7 +6,7 @@
  * series via props and renders the availability state when no series exists —
  * it never synthesizes one.
  */
-import { NotAvailable } from "../common/NotAvailable";
+import { NotAvailable } from "../../common/NotAvailable";
 
 /** A single probability point (future stream; currently unavailable). */
 export interface ProbabilityPoint {

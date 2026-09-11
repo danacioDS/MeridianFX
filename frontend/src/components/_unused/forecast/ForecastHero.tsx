@@ -1,14 +1,14 @@
 /**
  * Forecast hero — presentational only.
  */
-import type { ForecastResponse, PredictionInterval } from "../../types/contracts";
+import type { ForecastResponse, PredictionInterval } from "../../../types/contracts";
 import {
   formatDirection,
   formatPercent,
   formatProbability,
   getDirectionArrow,
-} from "../../utils";
-import { NotAvailable } from "../common/NotAvailable";
+} from "../../../utils";
+import { NotAvailable } from "../../common/NotAvailable";
 
 interface ForecastHeroProps {
   forecast: ForecastResponse | null;

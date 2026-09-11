@@ -5,7 +5,7 @@
  * The bar is a visual mapping of an already-authorized contract value —
  * no calculation is performed.
  */
-import { formatProbability } from "../../utils";
+import { formatProbability } from "../../../utils";
 
 interface ProbabilityGaugeProps {
   /** Backend probability (0..1) or null when unavailable. */

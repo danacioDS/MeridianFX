@@ -6,9 +6,9 @@
  * reason through lineage). The mockup's condition lists ("remains valid while",
  * "invalidated if") are NOT contract fields → NotAvailable. NO_DERIVATION.
  */
-import type { DecisionValidity } from "../../types/contracts";
-import { getStatusColor, getStatusLabel } from "../../utils/status";
-import { NotAvailable } from "../common/NotAvailable";
+import type { DecisionValidity } from "../../../types/contracts";
+import { getStatusColor, getStatusLabel } from "../../../utils/status";
+import { NotAvailable } from "../../common/NotAvailable";
 
 interface SignalValidityProps {
   /** Backend decision validity (StatusResponse.intelligence.decision_validity). */
