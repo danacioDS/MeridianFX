@@ -4,7 +4,6 @@ export * from "./NotAvailable";
 export * from "./EmptyState";
 export * from "./ApiError";
 export * from "./ThemeProvider";
-export * from "./Header";
 export * from "./StatusBadge";
 export * from "./RegimeBar";
 export * from "./UniverseSelector";
