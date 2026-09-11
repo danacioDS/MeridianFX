@@ -24,6 +24,8 @@ import {
   DecisionShapPanel,
   EconomicBreakdown,
   HardGates,
+  QualityMetrics,
+  SignalFusion,
 } from "../components/decision";
 import {
   useCanonicalDecision,
@@ -62,7 +64,7 @@ export function DecisionPage(): JSX.Element {
     );
   }
 
-  const { decision, artifact, signals, regime, economic, costs, gate } = data;
+  const { decision, artifact, signals, regime, economic, costs, gate, quality, fusion } = data;
   const shapValues = artifact?.shap_values ?? [];
   const expectedReturn = artifact?.expected_return ?? 0;
   const quantScore = signals?.quant_score?.value ?? 0;
@@ -134,6 +136,18 @@ export function DecisionPage(): JSX.Element {
             allPassed={gate.all_passed}
             thresholdsUsed={gate.thresholds_used}
             firstFailingGate={gate.first_failing_gate}
+          />
+        </Panel>
+      )}
+
+      {/* Quality Metrics — decision quality score + components */}
+      {quality && (
+        <Panel title="✨ Quality Metrics">
+          <QualityMetrics
+            score={quality.score}
+            level={quality.level}
+            components={quality.components}
+            fallbackStatus={quality.fallback_status}
           />
         </Panel>
       )}
@@ -226,6 +240,18 @@ export function DecisionPage(): JSX.Element {
           </div>
         </div>
       </Panel>
+
+      {/* Signal Fusion — weights + fusion result */}
+      {fusion && (
+        <Panel title="🧬 Signal Fusion">
+          <SignalFusion
+            weights={fusion.weights}
+            fusionScore={fusion.fusion_score}
+            direction={fusion.direction}
+            directionSign={fusion.direction_sign}
+          />
+        </Panel>
+      )}
 
       {/* Top SHAP drivers */}
       <Panel title="🔍 Top SHAP Drivers">
