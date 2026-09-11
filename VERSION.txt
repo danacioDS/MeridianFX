@@ -1,9 +1,0 @@
-Meridian FX - Version Estable
-================================
-Fecha: 2026-09-04
-Versión: v2.3.1-estable-20260904
-Estado: HEALTHY
-Endpoints: 8/8 funcionales
-Modelos XGBoost: 9 activos
-Tests Backend: 103/103 pasando
-SHAP: Funcional con 23 features

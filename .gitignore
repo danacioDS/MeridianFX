@@ -90,3 +90,11 @@ stop.sh
 
 # Backups temporales de refactors
 .trash*/
+
+# Archivos de respaldo (v2.5.1)
+*.bak*
+*.backup*
+*.manual
+*.zip
+src_backup_*/
+routers.backup_*
