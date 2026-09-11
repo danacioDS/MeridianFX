@@ -7,8 +7,8 @@
  *   - GET /v1/fx/{pair}/price?period=1y   → usePrice
  *   - GET /v1/fx/{pair}/forecast-dashboard → useForecastDashboard
  *
- * ⚠️ Types are defined locally. Hooks stay untyped to avoid breaking
- *    legacy pages.
+ * ⚠️ Dashboard types remain local until a canonical dashboard contract exists.
+ *    PriceResponse comes from the canonical types layer.
  * ⚠️ forecast-dashboard.expected_return is already expressed in %.
  * ⚠️ No analytical values are computed here.
  */
@@ -38,6 +38,8 @@ import {
   useForecastDashboard,
   pairUniverseFromRanking,
 } from "../hooks";
+
+import type { PriceResponse } from "../types";
 
 // ─── Local contract types ─────────────────────────────────────────
 
@@ -77,30 +79,6 @@ interface ForecastDashboard {
   forecasts: Record<"30d" | "60d" | "90d", DashboardForecast>;
 }
 
-interface PriceResponse {
-  pair: string;
-  base_name: string;
-  quote_name: string;
-  current_price: number;
-  previous_price: number;
-  change_abs: number;
-  change_percent: number;
-  direction: string;
-  probability: number;
-  period: string;
-  source: string;
-  freshness: string;
-  last_date: string;
-  timestamp: string;
-  history: Array<{
-    date: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-  }>;
-}
 
 // ─── Component ────────────────────────────────────────────────────
 
