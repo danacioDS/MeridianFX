@@ -1,6 +1,7 @@
 """
 Ranking Engine - Genera ranking de oportunidades con trazabilidad completa.
 """
+import time
 import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -29,8 +30,19 @@ class RankingEngine:
                 print(f"✅ {pair}: modelo activo")
             else:
                 print(f"⚠️ {pair}: sin modelo")
+        
+        # Caché de ranking (v2.6)
+        self._cache: Optional[Dict] = None
+        self._cache_time: float = 0
+        self._cache_ttl: int = 60  # segundos
     
     def get_ranking(self) -> Dict:
+        # ─── Caché (v2.6) ───
+        now = time.time()
+        if self._cache and (now - self._cache_time) < self._cache_ttl:
+            return self._cache
+        
+        # ─── Cálculo ───
         opportunities = []
         for pair in self.active_pairs:
             result = self._get_prediction(pair)
@@ -41,13 +53,18 @@ class RankingEngine:
         for i, opp in enumerate(opportunities):
             opp['rank'] = i + 1
         
-        return {
+        result = {
             'timestamp': datetime.now().isoformat(),
             'opportunities': opportunities,
             'top_opportunity': opportunities[0] if opportunities else None,
             'total_actionable': sum(1 for o in opportunities if o.get('actionable', False)),
             'total_pairs': len(opportunities)
         }
+        
+        # ─── Guardar en caché ───
+        self._cache = result
+        self._cache_time = now
+        return result
     
     def _get_prediction(self, pair: str) -> Optional[Dict]:
         try:
