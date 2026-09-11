@@ -122,7 +122,7 @@ describe("RankingResponse — Layer 1 v5.1 §7.3", () => {
   it("matches the contract field inventory (no missing, no extra)", () => {
     const fixture: RankingResponse = {
       timestamp: "2026-08-27T00:00:00.000Z",
-        snapshot_timestamp: "2026-08-27T00:00:00.000Z",
+      snapshot_timestamp: "2026-08-27T00:00:00.000Z",
       as_of: "2026-08-27T00:00:00.000Z",
       opportunities: [
         {
@@ -143,12 +143,13 @@ describe("RankingResponse — Layer 1 v5.1 §7.3", () => {
     };
 
     assertContractMatches(fixture, [
-      "snapshot_timestamp",
-      "as_of",
+      "timestamp",
       "opportunities",
       "top_opportunity",
       "total_actionable",
       "total_pairs",
+      "snapshot_timestamp",
+      "as_of",
     ]);
   });
 
