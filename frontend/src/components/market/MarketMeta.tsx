@@ -51,6 +51,13 @@ export function MarketMeta({
             {freshness || "N/A"}
           </div>
         </div>
+
+        <div>
+          <div className="text-xs text-muted">Volatility</div>
+          <div className="text-sm text-ink">
+            {volatility != null ? `${volatility.toFixed(2)}%` : "N/A"}
+          </div>
+        </div>
       </div>
     </div>
   );
