@@ -20,6 +20,7 @@ export function useRanking(): UseQueryResult<RankingResponse, Error> {
   return useQuery<RankingResponse, Error>({
     queryKey: ["ranking"],
     queryFn: fetchRanking,
-    refetchInterval: 30000,
+    refetchInterval: 5 * 60 * 1000,  // 5 min
+    staleTime: 5 * 60 * 1000,      // 5 min
   });
 }

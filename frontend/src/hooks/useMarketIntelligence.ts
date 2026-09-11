@@ -65,7 +65,7 @@ export function useMarketIntelligence(): UseQueryResult<MarketIntelligence, Erro
   return useQuery<MarketIntelligence, Error>({
     queryKey: ["market-intelligence"],
     queryFn: fetchMarketIntelligence,
-    staleTime: 30000,
-    refetchInterval: 60000,
+    staleTime: 5 * 60 * 1000,       // 5 min
+    refetchInterval: 5 * 60 * 1000, // 5 min
   });
 }

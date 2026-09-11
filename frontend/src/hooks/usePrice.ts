@@ -24,7 +24,7 @@ export function usePrice(
     queryKey: ["price", pair, period],
     queryFn: () => fetchPrice(pair, period),
     enabled: !!pair,
-    refetchInterval: 60000,
-    staleTime: 30000,
+    refetchInterval: 5 * 60 * 1000, // 5 min
+    staleTime: 5 * 60 * 1000,       // 5 min
   });
 }

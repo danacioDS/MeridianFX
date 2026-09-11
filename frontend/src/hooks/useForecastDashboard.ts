@@ -81,7 +81,7 @@ export function useForecastDashboard(
     queryKey: ["forecast-dashboard", pair],
     queryFn: () => fetchForecastDashboard(pair),
     enabled: !!pair,
-    refetchInterval: 30000,
-    staleTime: 15000,
+    refetchInterval: 5 * 60 * 1000, // 5 min
+    staleTime: 5 * 60 * 1000,       // 5 min
   });
 }
