@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import type { ForecastResponse } from '../types/contracts';
+import type { ForecastResponse } from '../../../types/contracts';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
