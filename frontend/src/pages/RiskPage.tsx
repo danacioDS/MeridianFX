@@ -84,13 +84,13 @@ export function RiskPage(): JSX.Element {
               <div>
                 <div className="text-xs text-muted">Signal validity</div>
                 <div className="font-semibold text-ink">
-                  {(data.decision_summary as { signal_validity?: string }).signal_validity ?? "—"}
+                  {data.decision_summary?.signal_validity ?? "—"}
                 </div>
               </div>
               <div>
                 <div className="text-xs text-muted">Macro status</div>
                 <div className="font-semibold text-ink">
-                  {(data.macro_data_status as { status?: string } | null)?.status ?? "—"}
+                  {data.macro_data_status?.status ?? "—"}
                 </div>
               </div>
             </div>
@@ -101,9 +101,9 @@ export function RiskPage(): JSX.Element {
   }
 
   const { risk: assessment, macro_data_status, decision_summary } = data;
-  const macroStatus = (macro_data_status as { status?: string } | null)?.status ?? "—";
-  const actionable = (decision_summary as { actionable?: boolean } | null)?.actionable;
-  const validity = (decision_summary as { signal_validity?: string } | null)?.signal_validity ?? "—";
+  const macroStatus = macro_data_status?.status ?? "—";
+  const actionable = decision_summary?.actionable;
+  const validity = decision_summary?.signal_validity ?? "—";
 
   return (
     <section className="flex flex-col gap-6">
