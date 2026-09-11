@@ -57,12 +57,12 @@ def calculate_forecast(pair: str, df: pd.DataFrame, horizon_days: int = 30) -> d
     """Calcula forecast usando DecisionEngine como fuente canónica."""
     try:
         # Usar el forecast canónico
-        forecast = engine.get_forecast(pair)
+        forecast = engine.get_forecast(pair, horizon_days)
         
         # Extraer valores canónicos
         direction = forecast.get("direction", "NEUTRAL")
         probability = forecast.get("probability", 0.5)
-        expected_return = forecast.get("expected_return", 0.0) * (horizon_days / 30)
+        expected_return = forecast.get("expected_return", 0.0)
         volatility = forecast.get("expected_volatility", 0.0)
         
         current_price = float(df["Close"].iloc[-1])

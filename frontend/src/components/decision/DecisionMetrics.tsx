@@ -26,7 +26,7 @@ export function DecisionMetrics({
     { label: "Edge Ratio",       value: edgeRatio.toFixed(2),                  hint: "Risk-adjusted edge" },
     { label: "Net Return",       value: `${netReturn.toFixed(2)} bps`,         hint: "After costs" },
     { label: "Position Size",    value: formatPositionSize(positionSize),      hint: "Suggested exposure" },
-    { label: "Expected Return",  value: `${expectedReturn.toFixed(2)}%`, hint: "Model estimate (backend under review)" },
+    { label: "Expected Return",  value: `${(expectedReturn / 100).toFixed(2)}%`, hint: "Model estimate (bps → %)" },
   ];
 
   return (
