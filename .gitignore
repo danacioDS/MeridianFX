@@ -83,3 +83,7 @@ mlruns/
 ión\ estable*
 
 cache/
+
+# Local dev scripts
+start.sh
+stop.sh
