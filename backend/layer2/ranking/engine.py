@@ -61,9 +61,15 @@ class RankingEngine:
             'total_pairs': len(opportunities)
         }
         
-        # ─── Guardar en caché ───
-        self._cache = result
-        self._cache_time = now
+        # ─── Guardar en caché solo si hay datos ───
+        # Un ranking vacío no se cachea: el siguiente request reintenta
+        if opportunities:
+            self._cache = result
+            self._cache_time = now
+        else:
+            self._cache = None
+            self._cache_time = 0
+
         return result
     
     def _get_prediction(self, pair: str) -> Optional[Dict]:

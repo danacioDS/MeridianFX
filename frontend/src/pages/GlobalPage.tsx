@@ -35,7 +35,7 @@ export function GlobalPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
   const dashboard = useForecastDashboard(pair);
-  const marketIntelligence = useMarketIntelligence();
+  const marketIntelligence = useMarketIntelligence(pair);
 
   const universe = pairUniverseFromRanking(ranking.data);
 
@@ -163,7 +163,7 @@ export function GlobalPage(): JSX.Element {
                       ? "▲ Bullish"
                       : "▼ Bearish"}
                   </span>{" "}
-                  ({(data.forecasts?.["30d"]?.probability || 0.5) * 100}%)
+                  ({((data.forecasts?.["30d"]?.probability || 0.5) * 100).toFixed(2)}%)
                 </div>
               </div>
             </div>
@@ -251,6 +251,7 @@ export function GlobalPage(): JSX.Element {
             actionableCount={intelligence.decision_view.actionable_count}
             totalPairs={intelligence.decision_view.total_pairs}
             summary={intelligence.summary}
+            selectedPairView={intelligence.selected_pair_view}
           />
 
             <IntelligenceBrief
