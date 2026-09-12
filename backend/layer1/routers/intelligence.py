@@ -226,10 +226,10 @@ def _build_selected_pair_view(
         status = "ACTIONABLE"
     elif edge_ratio == 0 and confidence == 0:
         narrative = (
-            f"{pair} no tiene modelo disponible o no tiene datos suficientes "
-            f"para producir una señal. El resto del universo se mantiene SELECTIVE."
+            f"{pair} no es accionable. Edge {edge_ratio:.2f}x por debajo del umbral. "
+            f"El resto del universo se mantiene SELECTIVE."
         )
-        status = "UNAVAILABLE"
+        status = "NOT_ACTIONABLE"
     else:
         narrative = (
             f"{pair} no es accionable. Edge {edge_ratio:.2f}x por debajo del umbral. "
