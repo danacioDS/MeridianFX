@@ -139,7 +139,7 @@ class DecisionPipeline:
         # ---- Signals (§3) --------------------------------------------------
         quant = raw_quant_score(artifact.probability_up)
         if inputs.required_data_missing:
-            macro = None
+            macro = 0.0  # neutral — no macro contribution when data is partial
         else:
             macro = raw_macro_score(
                 inputs.policy_differential,
@@ -157,11 +157,6 @@ class DecisionPipeline:
 
         # ---- Regime + Fusion (§4/§5) --------------------------------------
         regime = determine_regime(artifact.macro_regime.model_dump())
-
-        # Si macro_score es None, no podemos calcular fusión
-        if macro is None:
-            # Retornar decisión UNAVAILABLE directamente
-            return self._unavailable_decision(inputs, artifact, signals)
 
         return self._build_valid_path(inputs, artifact, as_of, signals, regime)
 

@@ -39,7 +39,7 @@ class HardGateEngine:
         gate_results: dict[GateState, bool] = {}
 
         # ---- Gate #1: UNAVAILABLE ----------------------------------------
-        model_available = ctx.model_loaded and not ctx.required_data_missing
+        model_available = ctx.model_loaded
         vix_missing = ctx.vix is None
         unavailable_failed = (not model_available) or vix_missing
         gate_results[GateState.UNAVAILABLE] = not unavailable_failed
@@ -171,6 +171,8 @@ class HardGateEngine:
     def _degraded_warnings(ctx: DecisionContext) -> list[str]:
         """§12 degraded conditions evaluated when all gates pass."""
         warnings: list[str] = []
+        if ctx.required_data_missing:
+            warnings.append("required data missing (macro incomplete)")
         if ctx.data_coverage_pct is not None and (
             0.80 <= ctx.data_coverage_pct < 0.95
         ):
