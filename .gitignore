@@ -98,3 +98,4 @@ stop.sh
 *.zip
 src_backup_*/
 routers.backup_*
+backend/venv/
