@@ -451,45 +451,22 @@ sudo fuser -k 5174/tcp 2>/dev/null
 
 Crea `~/repo_lab/MeridianFX/start.sh`:
 
-```bash
-cat > ~/repo_lab/MeridianFX/start.sh <<'EOF'
-#!/bin/bash
-cd ~/repo_lab/MeridianFX
 
-pkill -f "uvicorn backend.layer1.main" 2>/dev/null
-pkill -f "vite preview" 2>/dev/null
-sleep 2
+## BACKEND
 
-echo "→ Backend..."
-PYTHONPATH=.:backend:backend/src setsid uvicorn backend.layer1.main:app \
-  --host 0.0.0.0 --port 8000 > /tmp/meridianfx_backend.log 2>&1 < /dev/null &
-sleep 8
+# ¿Qué está corriendo en 5173?
+curl -s -o /dev/null -w "Frontend :5173 → HTTP %{http_code}\n" http://localhost:5173/
 
-echo "→ Frontend..."
-cd frontend
-setsid npx vite preview --host 0.0.0.0 --port 5173 > /tmp/meridianfx_frontend.log 2>&1 < /dev/null &
-sleep 4
+# ¿Y el backend?
+curl -s -o /dev/null -w "Backend :8000 → HTTP %{http_code}\n" http://localhost:8000/v1/status
 
-cd ~/repo_lab/MeridianFX
-echo
-curl -s -o /dev/null -w "Backend  :8000 → HTTP %{http_code}\n" "http://localhost:8000/v1/status"
-curl -s -o /dev/null -w "Frontend :5173 → HTTP %{http_code}\n" "http://localhost:5173/"
-echo
-echo "Abre: http://localhost:5173/"
-EOF
+# ¿Quién ocupa los puertos?
+sudo lsof -i :5173 -i :8000 2>/dev/null | head -10
 
-chmod +x ~/repo_lab/MeridianFX/start.sh
+## FRONTEND
 
-cat > ~/repo_lab/MeridianFX/stop.sh <<'EOF'
-#!/bin/bash
-pkill -f "uvicorn backend.layer1.main" 2>/dev/null
-pkill -f "vite" 2>/dev/null
-sleep 1
-echo "✅ Servicios detenidos"
-EOF
-
-chmod +x ~/repo_lab/MeridianFX/stop.sh
-```
+cd ~/repo_lab/MeridianFX/frontend
+npx vite preview --host 0.0.0.0 --port 5173
 
 **Uso**:
 ```bash
