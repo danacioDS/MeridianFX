@@ -11,7 +11,7 @@ import hashlib
 from typing import Any, Dict
 
 
-PROMPT_VERSION = "v1"
+PROMPT_VERSION = "v3"
 
 
 def compute_narrative_key(decision_result: Dict[str, Any]) -> str:
@@ -83,6 +83,10 @@ RULES:
 - Do NOT recommend any action.
 - Do NOT use the words "buy" or "sell".
 - Do NOT invent data. Use only what is provided.
+- Edge ratio is dimensionless and equals net return divided by the required minimum edge in basis points.
+- The required minimum edge is expressed in basis points (bps), not as an edge-ratio threshold.
+- Actionability is determined by edge ratio >= 1.0 together with the hard gates. Do not compare edge ratio directly to the required minimum edge value.
+- Do not invent qualitative thresholds, conviction levels, rankings, or trading standards that are not explicitly provided.
 - Be direct and informative, not promotional."""
 
 

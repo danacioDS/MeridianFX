@@ -89,12 +89,12 @@ class GeminiProvider(LLMProvider):
 
 
 class FallbackLLM(LLMProvider):
-    """Proveedor de fallback basado en reglas"""
-    
+    """Proveedor de fallback determinista basado en el prompt."""
+
     @property
     def name(self) -> str:
         return "rule_based"
-    
+
     async def generate(
         self,
         system_prompt: str,
@@ -102,51 +102,76 @@ class FallbackLLM(LLMProvider):
         temperature: float = 0.3,
         max_tokens: int = 500,
     ) -> str:
-        """Genera interpretación basada en reglas económicas."""
         return self._generate_fallback(user_prompt)
-    
+
     def _generate_fallback(self, user_prompt: str) -> str:
-        """Genera interpretación económica determinista."""
         import re
-        
-        # Extraer información del prompt
-        direction_match = re.search(r'direction[:"]*\s*([A-Z_]+)', user_prompt)
-        direction = direction_match.group(1) if direction_match else "UNKNOWN"
-        
-        prob_match = re.search(r'probability[:"]*\s*([\d.]+)', user_prompt)
-        probability = float(prob_match.group(1)) if prob_match else 0.5
-        
-        edge_match = re.search(r'edge_ratio[:"]*\s*([\d.]+)', user_prompt)
-        edge = float(edge_match.group(1)) if edge_match else 0
-        
-        min_edge_match = re.search(r'minimum_edge[:"]*\s*([\d.]+)', user_prompt)
-        min_edge = float(min_edge_match.group(1)) if min_edge_match else 1.5
-        
-        actionable = edge >= min_edge
-        
-        direction_es = "alcista" if direction == "UP" else "bajista"
-        
-        bullets = [
-            f"El modelo mantiene un sesgo {direction_es} para USD/JPY con una probabilidad del {probability:.0f}%.",
-        ]
-        
-        if actionable:
-            bullets.append(
-                f"El edge económico de {edge:.1f}x supera el mínimo requerido de {min_edge:.1f}x, "
-                f"haciendo que la señal sea económicamente accionable."
-            )
-        else:
-            bullets.append(
-                f"El edge económico de {edge:.1f}x no alcanza el mínimo requerido de {min_edge:.1f}x, "
-                f"por lo que la señal no es accionable actualmente."
-            )
-        
-        bullets.append(
-            "El entorno de riesgo actual es consistente con la dirección de la señal."
+
+        pair_match = re.search(
+            r"PAIR:\s*([A-Z]{3}/[A-Z]{3})",
+            user_prompt,
+            re.IGNORECASE,
         )
-        
-        bullets.append(
-            "MeridianFX recomienda monitorear la evolución del edge y las condiciones macro."
+        pair = pair_match.group(1).upper() if pair_match else "UNKNOWN"
+
+        direction_match = re.search(
+            r"Direction:\s*([A-Z_]+)",
+            user_prompt,
+            re.IGNORECASE,
         )
-        
-        return "\n".join([f"• {b}" for b in bullets])
+        direction = direction_match.group(1).upper() if direction_match else "NEUTRAL"
+
+        confidence_match = re.search(
+            r"Confidence:\s*([0-9.]+)%",
+            user_prompt,
+            re.IGNORECASE,
+        )
+        confidence = float(confidence_match.group(1)) if confidence_match else 0.0
+
+        edge_match = re.search(
+            r"Edge ratio:\s*([0-9.]+)",
+            user_prompt,
+            re.IGNORECASE,
+        )
+        edge = float(edge_match.group(1)) if edge_match else 0.0
+
+        min_edge_match = re.search(
+            r"Required minimum edge:\s*([0-9.]+)",
+            user_prompt,
+            re.IGNORECASE,
+        )
+        min_edge = float(min_edge_match.group(1)) if min_edge_match else 0.0
+
+        actionable_match = re.search(
+            r"Actionable:\s*(YES|NO)",
+            user_prompt,
+            re.IGNORECASE,
+        )
+        actionable = (
+            actionable_match.group(1).upper() == "YES"
+            if actionable_match
+            else False
+        )
+
+        direction_label = {
+            "LONG": "bullish",
+            "SHORT": "bearish",
+            "UP": "bullish",
+            "DOWN": "bearish",
+            "NEUTRAL": "neutral",
+        }.get(direction, "neutral")
+
+        action_text = "reaches" if actionable else "does not reach"
+        actionable_text = "is" if actionable else "is not"
+
+        return (
+            f"• The model maintains a {direction_label} bias for {pair} "
+            f"with a confidence level of {confidence:.1f}%.\n"
+            f"• The economic edge ratio is {edge:.2f}x and {action_text} "
+            f"the required minimum of {min_edge:.2f}x, so the signal "
+            f"{actionable_text} currently actionable.\n"
+            f"• The current risk environment is consistent with the direction "
+            f"of the signal.\n"
+            f"• MeridianFX recommends monitoring the evolution of the edge "
+            f"and macro conditions."
+        )
