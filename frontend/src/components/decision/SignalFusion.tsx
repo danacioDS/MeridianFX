@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 /**
  * SignalFusion — Weights and result of the signal fusion step.
  *
@@ -17,9 +19,20 @@ interface SignalFusionProps {
 }
 
 interface WeightBarProps {
-  label: string;
+  label: ReactNode;
   value: number;
   color: string;
+}
+
+function KeywordBadge(): JSX.Element {
+  return (
+    <span
+      title="Keyword-based sentiment scorer; no retrieval or generation — see README Current Limitations."
+      className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-amber-soft text-amber cursor-help"
+    >
+      ⚠ keyword-based
+    </span>
+  );
 }
 
 function WeightBar({ label, value, color }: WeightBarProps): JSX.Element {
@@ -28,7 +41,7 @@ function WeightBar({ label, value, color }: WeightBarProps): JSX.Element {
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-baseline text-sm">
-        <span className="text-muted">{label}</span>
+        <span className="text-muted flex items-center gap-1.5">{label}</span>
         <span className="font-mono text-ink-soft">{value.toFixed(2)}</span>
       </div>
       <div className="w-full h-2 bg-panel-2 rounded-full overflow-hidden">
@@ -56,7 +69,16 @@ export function SignalFusion({
       <div className="space-y-3">
         <WeightBar label="Quant" value={weights.quant} color="bg-violet" />
         <WeightBar label="Macro" value={weights.macro} color="bg-meridian" />
-        <WeightBar label="RAG" value={weights.rag} color="bg-amber" />
+        <WeightBar
+          label={
+            <span className="flex items-center gap-1.5">
+              Central Bank Sentiment
+              <KeywordBadge />
+            </span>
+          }
+          value={weights.rag}
+          color="bg-amber"
+        />
       </div>
 
       {/* Fusion result */}

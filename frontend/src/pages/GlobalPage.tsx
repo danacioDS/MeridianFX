@@ -23,6 +23,20 @@ import { useForecastDashboard } from "../hooks/useForecastDashboard";
 import { useMarketIntelligence } from "../hooks/useMarketIntelligence";
 
 /**
+ * ModelDivergenceNotice — flags that the Global ranking and the canonical
+ * Decision pipeline use different models and may disagree on direction.
+ */
+function ModelDivergenceNotice(): JSX.Element {
+  return (
+    <div className="text-xs font-mono px-3 py-2 rounded-lg bg-amber-soft text-amber border border-line">
+      ⚠ Model divergence — Global ranking (legacy registry model) and the
+      canonical Decision pipeline use different models and may produce
+      different signals for the same pair.
+    </div>
+  );
+}
+
+/**
  * Global Page — Executive market intelligence overview.
  *
  * Aggregate intelligence comes directly from /v1/market-intelligence.
@@ -196,6 +210,7 @@ export function GlobalPage(): JSX.Element {
                         data.spot.price * (1 + f.expected_return / 100);
 
                       return (
+      <ModelDivergenceNotice />
                         <div
                           key={h}
                           className="p-4 bg-panel-2 rounded-lg border border-line"
