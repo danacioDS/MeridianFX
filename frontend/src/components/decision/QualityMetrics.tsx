@@ -22,15 +22,30 @@ interface QualityMetricsProps {
 interface MetricBarProps {
   label: string;
   value: number;
+  badge?: JSX.Element;
 }
 
-function MetricBar({ label, value }: MetricBarProps): JSX.Element {
+function StubBadge(props: { tooltip: string }): JSX.Element {
+  return (
+    <span
+      title={props.tooltip}
+      className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-amber-soft text-amber cursor-help"
+    >
+      ⚠ STUB
+    </span>
+  );
+}
+
+function MetricBar({ label, value, badge }: MetricBarProps): JSX.Element {
   const pct = Math.max(0, Math.min(1, value)) * 100;
 
   return (
     <div className="space-y-1">
       <div className="flex justify-between items-baseline text-sm">
-        <span className="text-muted">{label}</span>
+        <span className="text-muted flex items-center gap-1.5">
+          {label}
+          {badge}
+        </span>
         <span className="font-mono text-ink-soft">{value.toFixed(2)}</span>
       </div>
       <div className="w-full h-2 bg-panel-2 rounded-full overflow-hidden">
@@ -78,7 +93,11 @@ export function QualityMetrics({
       {/* Component bars */}
       <div className="space-y-3">
         <MetricBar label="Confidence" value={components.confidence} />
-        <MetricBar label="Freshness" value={components.freshness} />
+        <MetricBar
+          label="Freshness"
+          value={components.freshness}
+          badge={<StubBadge tooltip="Placeholder value, not a live measurement — see README Current Limitations." />}
+        />
         <MetricBar
           label="Regime Alignment"
           value={components.regime_alignment}
@@ -86,14 +105,20 @@ export function QualityMetrics({
         <MetricBar
           label="Data Quality"
           value={components.data_quality_score}
+          badge={<StubBadge tooltip="Placeholder value, not a live measurement — see README Current Limitations." />}
         />
-        <MetricBar label="Drift Score" value={components.drift_score} />
+        <MetricBar
+          label="Drift Score"
+          value={components.drift_score}
+          badge={<StubBadge tooltip="Placeholder value, not a live measurement — see README Current Limitations." />}
+        />
       </div>
 
       {/* Data quality label */}
-      <div className="text-xs text-muted">
+      <div className="text-xs text-muted flex items-center gap-1.5">
         Data Quality:{" "}
         <span className="text-ink font-medium">{components.data_quality}</span>
+        <StubBadge tooltip="Placeholder value, not a live measurement — see README Current Limitations." />
       </div>
 
       {/* Fallback status badges */}

@@ -210,11 +210,11 @@ export function GlobalPage(): JSX.Element {
                         data.spot.price * (1 + f.expected_return / 100);
 
                       return (
-      <ModelDivergenceNotice />
                         <div
                           key={h}
                           className="p-4 bg-panel-2 rounded-lg border border-line"
                         >
+        <ModelDivergenceNotice />
                           <div className="text-xs text-muted">{h}</div>
 
                           <div
