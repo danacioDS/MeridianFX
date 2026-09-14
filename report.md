@@ -1,6 +1,6 @@
 # Meridian FX — Repository Report
 
-**Date:** 2026-09-11 · **Branch:** `main` (in sync with `origin/main`) · **History:** 163 commits (2026-08-25 → 2026-09-11) · **Head commit:** `e300e3a` "v2.6.6-fix: integrar bloque Volatility en MarketMeta" · **Latest tag:** `v2.5` (2026-09-11; the 9 v2.6.x commits are post-tag, untagged)
+**Date:** 2026-09-14 · **Branch:** `main` (in sync with `origin/main`) · **History:** 174 commits (2026-08-25 → 2026-09-14) · **Head commit:** `e301138` "chore(registry): apply promotion gate to registry.json" · **Latest tag:** `v2.5` (2026-09-11; 27 post-tag commits — the v2.6.x line and this v2.7 cycle — remain untagged)
 
 This is an analysis of the repository as it stands today: what it is, what it contains, how it is governed, its verification status, and its known gaps and risks.
 
@@ -23,19 +23,19 @@ It answers its product questions through a **9-pair canonical universe** (USD/JP
 | What could invalidate the signal? | Decision page (signal validity / hard gates) |
 | How risky is it / how good has Meridian been? | Risk page / performance surface |
 
-### What changed since the last report (2026-09-09)
+### What changed since the last report (2026-09-11)
 
-This cycle (**2026-09-09 → 2026-09-11, 68 commits, tag `v2.0` → HEAD `e300e3a`**) was a **full product re-platform**: the backend gained dynamic macro semantics, expected-return/volatility/thresholds, and a Risk Assessment Engine; the frontend was rebuilt around the **canonical pipeline**; the repo was cleaned; and the frontend finally compiles again.
+This cycle (**2026-09-11 → 2026-09-14, 7 commits, HEAD `e300e3a` → `e301138`**) tightened the canonical pipeline (partial-data resilience, honest horizon semantics), added a **persistent LLM narrative layer** behind a new router, introduced a **registry promotion gate** that deactivated 9 legacy models, and extended the Decision page. It is effectively the **v2.7** engineering pass, though nothing is tagged.
 
-1. **Backend v2.1–v2.3 — dynamic decisions + risk.** `v2.1` (`591af11`) added `inflation_differential` + resilient FRED fallback; `v2.2`/`v2.2.1` made **expected return, volatility, and thresholds configurable** and added sizing config (`BASE_SIZE`, `MAX_EXPOSURE`, `HISTORICAL_RELIABILITY`); `v2.3` (`27c90ec`) shipped the **Risk Assessment Engine** (`src/.../risk/engine.py`: vol .30 / macro .25 / model .20 / regime .15 / edge .10, LOW/MODERATE/HIGH/EXTREME) plus **`GET /v1/canonical/{pair}/risk`**. ✅
-2. **Frontend v2.4 — canonical re-platform (the headline).** Sprints 1–8 replaced the old 8-page dashboard with **6 canonical pages — Global · Market · Macro · Risk · Decision · About** — each E2E (hook → component → page): `useCanonicalDecision`, `useCanonicalRisk`, `useMarketIntelligence`, `useForecastDashboard`, `usePrice`, `useRanking`; Decision page renders sizing inline; Risk page renders 5-driver risk; 7 legacy pages + `TabNav` removed (`5bd324e`); self-hosted fonts (Google Fonts dropped), `EmptyState`, mobile responsive, query `staleTime` 5 min. **The v2.4/ex-Sprint work also closed the long-standing compile break: `npm run typecheck`, `build`, and all tests are green.** ✅
-3. **Frontend canonical contracts (v2.5 Fase 3).** `ActionableInfo` uses dynamic thresholds; Decision page renders **Economic Breakdown + Hard Gates (Fase 3.1), Quality Metrics + Signal Fusion (Fase 3.2)**; Global page drives on canonical data (3.8); MacroRegime deduped (MacroPanel deleted); hooks/contracts consolidated and typed (F6); Market page consumes `PriceResponse` (F7). ✅
-4. **Backend polish (v2.5.2→v2.6).** Header version + expected-return fixes; ranking cache **TTL 60 s** (`9639ef4`; cold ~5.4 s → warm 0.001 s); favicon; **VIX real in the canonical pipeline** via `RealFeatureStore` (`de05ec6` — Yahoo `^VIX`, replacing `FakeFeatureStore`); **`/drivers` endpoint removed** (`82c9e80`, deleting the hardcoded `macro_drivers` VIX 16.8 / RA 72 / RISK_ON); `RankingTable` enriched (Confidence/Quality/Position); `IntelligenceBrief` on Global; Volatility block in `MarketMeta` (`e300e3a`). ✅
-5. **Repo hygiene + model normalization (v2.5.1).** `e31ed31` deleted `src_backup_espanol/` (~130 files), `mockup/`, `_unused/`, the 13.9 MB `ngrok-*.zip`, `commandos.md`, `start_backend.sh`, `VERSION*.txt`, all `*.bak`/`*.backup` litter; normalized both `models/registry.json` copies to **`backend/models/*.pkl`** paths; added gitignore rules for `*.bak*`, `*.backup*`, `.trash*/`, `src_backup_*/`; `start.sh`/`stop.sh` made local-only (`a017cd7`). `docs/DEUDA_TECNICA_v2.5.md` supersedes the v2.4 debt ledger. ✅
-6. **Canonical pipeline now on real data (mostly).** `/v1/canonical/{pair}/decision` and `/risk` run on **real VIX**, real Logistic_24 forecasts, and real macro — live-smoke on 2026-09-11 returned actionable SHORT for EUR/USD and GBP/USD, `INSUFFICIENT_EDGE` for USD/JPY, and `MODEL_UNAVAILABLE` for USD/CNY (dataset-dependent). Remaining fakes: the **3 quality/freshness/drift registries** (explicit TODO v2.7). 🟡
-7. **Untouched red items from last cycle:** `run_benchmarks.py` still crashes (`engine.xgb_model`), `layer4/tests/pit_tests.py` still won't parse, `experiments/run.py` E0–E7 still hardcoded, ARIMA still needs absent `statsmodels`, and the LLM chain is **still entirely unwired** (no router imports `llm/*` at all — stronger than before).
+1. **Partial-macro resilience (v2.7 pipeline, `c31f65b`).** `DecisionPipeline.build` now feeds a neutral `macro=0.0` when `required_data_missing`, the early return that short-circuited the whole pipeline is gone, and `HardGateEngine` keys availability on `model_loaded` only — `required_data_missing` demotes to a **degraded warning** instead of `MODEL_UNAVAILABLE`. Result: **9/9 pairs produce real decisions** (5 actionable, 4 `INSUFFICIENT_EDGE`) and all 7 gates run for every pair. This closes the USD/CNY `MODEL_UNAVAILABLE` false positive caused by `PARTIAL` macro status. ✅
+2. **Persistent LLM narratives (v2.7 narrative, `621e5be` + `f0179ee`).** New `backend/layer2/narrative/` (repository · generator · service · prompt_builder) with **`GET /v1/canonical/{pair}/narrative`** (cache-first) and **`POST /v1/canonical/{pair}/narrative/regenerate`** (admin, `X-Admin-Token`). A stable `narrative_key` (who/what/evidence/model/data) invalidates the **no-TTL SQLite cache** only when the logical decision changes; Groq `qwen/qwen3.8-27b` via `LLMFallbackManager` is primary, the deterministic fallback is **never persisted** so the next request retries the LLM. **This partially revives the previously fully-unwired LLM layer** — `LLMFallbackManager` is now reachable through the narrative router (though `EconomicInterpreter` and the `/interpretation` macro block still are not). ✅
+3. **Honest horizon semantics (v2.7, `2a53c98`).** `horizon_days` default **30 → 5**, matching the **Logistic_24 training horizon** — now threaded into the economic filter (was hardcoded 30) and the `expected_return` volatility scaling `(2P−1)·σ·√(h/365)`; the `NameError` that previously forced fallback is fixed and a duplicate calculation removed. The API now documents that `horizon_days` is a **volatility-scaling factor, not a per-horizon model**; true 5/30/90d models are deferred to v3.0. ✅
+4. **Registry promotion gate (v2.7, `2a53c98` + `e301138`).** `layer2/models/registry.py` now enforces `MIN_AUC=0.52` + `MIN_N_SAMPLES=300` before a model activates; `registry_adapter.py` double-defends the lifecycle; `model_selector.py` serves **DEPLOYED only**; new `scripts/audit_registry.py` + `scripts/apply_gate.py`. Applied retroactively: **9/10 legacy registry models deactivated — only USD/CHF (auc 0.733, n=319) remains active**. The canonical decision pipeline (Logistic_24, untracked) is unaffected, but the **legacy `/v1/fx/ranking` surface collapses to 1 pair** (RankingEngine iterates only registry-active pairs), which also narrows the frontend pair universe (see §7). ⚠️
+5. **Honesty renames + deprecated tools (v2.7, `2a53c98`).** `Fake*Registry` → **`Stub*Registry`** (they are placeholders, not fakes), `CentralBankRAGEngine` → **`CentralBankSentimentEngine`** (keyword scorer, not RAG), `train_models.py` marked **DEPRECATED**. README gains a **`## Current Limitations`** section documenting the stub registries, the gate, horizon semantics, LLM scope, sentiment reality, and the absence of CI/CD. ✅
+6. **Frontend provenance + narrative blocks (v2.7, `f0179ee`).** New `DecisionProvenance` (WHO/WHAT/EVIDENCE/MODEL/DATA traceability) + `DecisionNarrative` components, new **`useCanonicalNarrative`** hook (via `apiClient`), `useCanonicalDecision`/`useCanonicalRisk` default **5d**, and contract extensions (`artifact`: `prediction_id`, `model_id`, `model_version`, `regime_id`, `rag_signal_ids`, `feature_snapshot_id`, `dataset_id`, `feature_version`, `as_of`, `research_gate_status`; `decision`: `decision_id`, `prediction_id`, `timestamp`, `as_of`, `horizon_days`). ✅
+7. **Config & hygiene (`5790e9b`, `5c303de`).** README quickstart rewritten; `.gitignore` adds `backend/venv/`; `requirements.txt` adds `python-dotenv`. ✅
 
-**Balance sheet:** the headline gain is a coherent **canonical product loop** — real-VIX decision + risk endpoints, a green frontend that consumes them, and a cleaned repo. The costs: three fake L4 registries and a live-data-dependent `MODEL_UNAVAILABLE` for one pair remain, the Docker image still can't resolve the canonical models, the frontend ships 1.4 MB unminified with Spanish UI strings under `lang="en"`, and the quarter's newest surfaces (canonical risk, RealFeatureStore, RiskEngine, ranking cache, the 6 pages) have not passed the governance freeze loop.
+**Balance sheet:** the headline gains are a pipeline that now **decides on all 9 pairs**, a **persistent, retry-able LLM narrative** behind a cache-first endpoint, and an honest, gate-enforced registry. The costs: the legacy **ranking surface (and the frontend universe it drives) shrinks to USD/CHF** with no canonical ranking replacement, `frontend/.env.production` no longer pins the production API URL, the Docker image still lacks root `models/`, the three **stub** L4 registries survive (now honestly named), the ~1.4 MB unminified bundle persists, and none of the new surfaces (pipeline resilience, narrative layer, promotion gate, provenance blocks) have gone through the governance freeze loop.
 
 ---
 
@@ -44,17 +44,19 @@ This cycle (**2026-09-09 → 2026-09-11, 68 commits, tag `v2.0` → HEAD `e300e3
 ```
 MeridianFX/
 ├── docs/                        Frozen specs + governance + model_selection + MACRO_COVERAGE
-│                                + DEUDA_TECNICA_v2.5.md (NEW — debt ledger)
+│                                + DEUDA_TECNICA_v2.5.md
 ├── backend/                     Python backend
-│   ├── layer1/                  FastAPI delivery API — 11 routers (canonical decision+risk, intelligence,
-│   │                            performance, price, forecast-dashboard, model-comparison…; NO /drivers)
+│   ├── layer1/                  FastAPI delivery API — 12 routers (canonical decision+risk+narrative+regenerate,
+│   │                            intelligence, performance, price, forecast-dashboard, model-comparison…; NO /drivers)
 │   ├── layer2/                  Live engine — Logistic_24 loader + XGBoost/registry, SHAP, data providers,
-│   │                            FRED macro (21 provider files), ranking (60s cache), status, pipeline_bridge
-│   ├── layer3/                  Research layer — artifacts, evaluation, experiments, models, regime, RAG, gate
+│   │                            FRED macro (21 provider files), ranking (60s cache, 1 active pair), status,
+│   │                            pipeline_bridge, narrative (NEW — SQLite-persisted LLM layer)
+│   ├── layer3/                  Research layer — artifacts, evaluation, experiments, models, regime,
+│   │                            sentiment (CentralBankSentimentEngine), gate
 │   ├── layer4/                  Data-quality layer — PIT validator, config policies, lineage
 │   ├── src/meridian_fx/decision/  Contract-governed Decision Engine (8-stage pipeline, RiskEngine,
-│   │                            RealFeatureStore, 132 tests)
-│   ├── models/                  models/registry.json (10 entries, backend/models/*.pkl) + 10 .pkl
+│   │                            RealFeatureStore, Stub* registries, 132 tests)
+│   ├── models/                  models/registry.json (10 entries — 1 ACTIVE, 9 below gate; backend/models/*.pkl)
 │   ├── tests/                   Backend pytest suite (13 files, 132 tests)
 │   ├── pyproject.toml · requirements.txt · docker-compose.yml
 ├── models/                      Root artifacts: canonical/ (10 Logistic_24 .joblib + metadata),
@@ -66,51 +68,53 @@ MeridianFX/
 ├── research_gate.py · research_gate_results{,v2}.json · research_validation_*
 ├── research_walkforward.py + 8 variants + *_results.json
 ├── shadow_test.py · shadow_test_simple.py · monitor_daily.py · monitor_model.py
-├── scripts/audit_consistency.py             NEW — repo audit script
-├── cache/ · logs/ · venv/                  Runtime state (gitignored)
+├── scripts/audit_consistency.py · scripts/audit_registry.py · scripts/apply_gate.py   REGISTRY GATE (NEW)
+├── cache/ · logs/ · venv/                  Runtime state (gitignored; backend/venv/ now ignored too)
 ├── frontend/                    React + TypeScript + Vite contract-driven dashboard
-│   ├── .env.production          VITE_API_URL=https://meridianfx.onrender.com  (RESTORED)
+│   ├── .env.production          Comment-only placeholder for local dev (see §9)
 │   ├── src/pages/               Global · Market · Macro · Risk · Decision · About (6 canonical pages)
-│   ├── src/hooks/               10 hooks incl. useCanonicalDecision, useCanonicalRisk
+│   ├── src/hooks/               11 hooks incl. useCanonicalDecision, useCanonicalRisk, useCanonicalNarrative
+│   ├── src/components/decision/ DecisionHero, Provenance (NEW), Narrative (NEW), HardGates, …
 │   ├── src/types/contracts.ts   Layer 1 §7 mirror (+ canonical contracts inside hooks)
 │   └── vercel.json · _headers · _redirects
 ├── .env                         Runtime secrets + config (keys present, gitignored)
-├── README.md                    Product overview + quickstart (v2.5.1 — stale)
+├── README.md                    Product overview + quickstart (updated) + "Current Limitations" section
 ├── report.md                    This document
-└── architecture.md              System architecture (2026-09-11)
+└── architecture.md              System architecture (2026-09-14)
 ```
 
-> **Working-tree hygiene:** `main` in sync with `origin/main`, **clean** — the clutter inventory from the last report is gone (Spanish backup, ngrok zip, backups, VERSION files, commandos.md). Remaining runtime/ignored noise: `venv/`, `cache/`, `logs/`, `frontend/.trash-v2.5/` (46 archived files on disk), and `train_models.py.backup_target_alignment` (untracked, gitignored).
+> **Working-tree hygiene:** `main` in sync with `origin/main`, **clean**. Remaining runtime/ignored noise: `venv/`, `backend/venv/`, `cache/`, `logs/`, `frontend/.trash-v2.5/` (46 archived files on disk).
 
 ---
 
-## 3. Backend — the two engines (roles stable, wiring advanced)
+## 3. Backend — the two engines (now three production surfaces)
 
 | Package | Role | Hygiene |
 | --- | --- | --- |
 | `backend/src/meridian_fx/decision/` | Contract-governed Decision Engine (frozen to L2 spec) + **RiskEngine** | verified ✅ (132 tests) |
-| `backend/layer2/` | Live engine the API actually runs (data + ML + status + ranking cache + bridge) | wired into most routers |
-| `backend/layer3/` | Research/evaluation layer (models, walk-forward, research gate) | wired via `model_comparison`; `run_benchmarks.py` broken |
+| `backend/layer2/` | Live engine the API actually runs (data + ML + status + ranking cache + bridge + **narrative**) | wired into most routers |
+| `backend/layer3/` | Research/evaluation layer (models, walk-forward, research gate, sentiment) | wired via `model_comparison`; `run_benchmarks.py` broken |
 | `backend/layer4/` | Data-quality/PIT layer | only `PITValidator` is referenced (by tests) |
 
 ### 3.1 `src/meridian_fx/decision/` — the contract-governed Decision Engine
 
-Frozen against `docs/Product_specification/Layer_02.md` v3.4.1. **Verification:** 132 passed across 13 files (from `backend/` with repo root + backend on `PYTHONPATH`). This cycle added the **Risk Engine** (`risk/engine.py`, methodology v2.3.0, 26 tests) and **`real_providers.py`** (`RealFeatureStore` — Yahoo `^VIX`, 60 s TTL, failure → `UNAVAILABLE`).
+Frozen against `docs/Product_specification/Layer_02.md` v3.4.1. **Verification:** 132 passed across 13 files (from `backend/` with repo root + backend on `PYTHONPATH`). This cycle the **pipeline became partial-data tolerant**: `DecisionPipeline.build` neutralizes the macro signal (`macro=0.0`) when `required_data_missing` and `HardGateEngine` reports availability from `model_loaded` only, turning incomplete macro data into a **degradation warning** instead of a `MODEL_UNAVAILABLE` rejection. The `Fake*` quality registries are renamed **`Stub*`** (honest placeholders, still TODO v2.7); `RealFeatureStore` (Yahoo `^VIX`) unchanged.
 
 ### 3.2 `layer2/` — the live engine
 
-- **Model resolution (rewired):** `DecisionEngine` now loads **Logistic_24 canonical models** per pair via `_load_canonical_model` (hardcoded 9-pair map → repo-root `models/canonical/*.joblib`) and falls back to **registry** models (`backend/models/*.pkl`, 10 entries) for xgb/logistic, then heuristics. PIT `policy_diff` computed via `MacroService.get_historical_policy_rate`.
-- **Ranking cache:** `RankingEngine` caches for 60 s (`9639ef4`), fixing transient "0 pares" and cutting warm latency to ~0.001 s.
-- **Pipeline bridge:** `PipelineBridge` assembles real macro (FRED or simulated), differentials (`MacroDifferentialProvider.calculate`/`calculate_historical`, PIT `merge_asof`), forecast → `PredictionArtifact` via `DecisionEngineAdapter`; the **router** injects `RealFeatureStore` for VIX.
-- **Status engine, data failover, macros:** unchanged in role; `StatusEngine` still reads CWD-relative `models/registry.json` (works from repo root).
+- **Model resolution:** `DecisionEngine` loads **Logistic_24 canonical models** per pair via `_load_canonical_model` (canonical `.joblib` first), then registry models (`backend/models/*.pkl`) for xgb/logistic (now **only USD/CHF is active** after the gate), then heuristics. PIT `policy_diff` via `MacroService.get_historical_policy_rate`.
+- **Horizon semantics (changed):** `horizon_days` default is **5** (Logistic_24's training horizon) across adapters, bridge and routers; the economic filter consumes `horizon_days` (not hardcoded 30); `expected_return = (2P−1)·σ·√(h/365)`.
+- **Ranking cache + gate side-effect:** `RankingEngine` caches 60 s, but now iterates **only registry-active pairs → `/v1/fx/ranking` serves USD/CHF only**.
+- **Narrative layer (NEW):** `backend/layer2/narrative/{repository,generator,service,prompt_builder}.py` — SQLite-persisted (`backend/cache/narratives.db`), stable `narrative_key`, no TTL, Groq `qwen/qwen3.8-27b` via `LLMFallbackManager`, deterministic fallback never persisted.
+- **Pipeline bridge / status / data failover / macros:** unchanged in role; `StatusEngine` still reads CWD-relative `models/registry.json` (works from repo root).
 
-**Key observation:** the canonical-logistic path is now the *primary* model source and registry is secondary, but both still resolve **CWD-relative** — and the Docker image copies only `backend/`, so `models/canonical/` (and the root `models/registry.json` StatusEngine needs) do not exist inside the container.
+**Key observation:** the canonical-logistic path remains the *primary* model source; registry is secondary and — after the promotion gate — nearly empty (1 active). Both still resolve **CWD-relative**, and the Docker image copies only `backend/`, so `models/canonical/` (and the root `models/registry.json` StatusEngine needs) do not exist inside the container.
 
 ---
 
-## 4. Backend — Layer 1 FastAPI delivery API (11 routers, deployed)
+## 4. Backend — Layer 1 FastAPI delivery API (12 routers, deployed)
 
-`backend/layer1/` is a **real FastAPI app** (v1.0.0). CORS covers localhost/Render/Vercel/Cloudflare/ngrok + `*`. **11 routers** plus `/` and `/health` (the **`drivers` router was removed** in v2.6.3). All routes verified 200 via TestClient on 2026-09-11.
+`backend/layer1/` is a **real FastAPI app** (v1.0.0). CORS covers localhost/Render/Vercel/Cloudflare/ngrok + `*`. **12 routers** plus `/` and `/health` (the **`drivers` router was removed** earlier in v2.6.3; **`narrative` is new** this cycle). All routes verified 200 via TestClient on 2026-09-11; 132 backend tests green on 2026-09-14.
 
 ### 4.1 Endpoints — correctness updated per running service
 
@@ -118,11 +122,13 @@ Frozen against `docs/Product_specification/Layer_02.md` v3.4.1. **Verification:*
 | --- | --- | --- | --- |
 | GET | `/` , `/health` | root + health | ✅ |
 | GET | `/v1/status` | real `StatusEngine` | ✅ (`HEALTHY`) |
-| GET | `/v1/market-intelligence` | deterministic English narrative over `RankingEngine` | ✅ |
-| GET | `/v1/fx/ranking` | `RankingEngine`, live, 9 pairs, **60 s cache** | ✅ (network) |
-| GET | `/v1/canonical/{pair}/decision` | **`DecisionPipeline`** via `PipelineBridge` — VIX **real**, 3 L4 registries fake | ✅ 200 — real decisions (EUR/USD/GBP/USD actionable; USD/JPY INSUFFICIENT_EDGE; USD/CNY MODEL_UNAVAILABLE in smoke) |
-| GET | `/v1/canonical/{pair}/risk` | **`RiskEngine`** (same bridge) | ✅ 200 — real risk (e.g. EUR/USD MODERATE 30.5, VIX 15.8) |
-| GET | `/v1/fx/{base}/{quote}/forecast` | `DecisionEngine.get_forecast` — Logistic_24 → heuristic (was `FORECAST_DATA`) | ✅ live (lineage block hardcoded) |
+| GET | `/v1/market-intelligence` | deterministic English narrative over `RankingEngine` — **now single-pair** (USD/CHF) | ✅ / ⚠️ |
+| GET | `/v1/fx/ranking` | `RankingEngine`, live, **60 s cache** — **1 pair (USD/CHF)** after the gate | ✅ / ⚠️ |
+| GET | `/v1/canonical/{pair}/decision` | `DecisionPipeline` via `PipelineBridge` — VIX real, 3 **Stub** registries, `horizon_days` default 5, **9/9 pairs** | ✅ 200 — 5 actionable / 4 INSUFFICIENT_EDGE |
+| GET | `/v1/canonical/{pair}/risk` | `RiskEngine` (same bridge) | ✅ 200 — real risk |
+| GET | `/v1/canonical/{pair}/narrative` | **NEW** — cache-first persistent LLM narrative (SQLite, no TTL, Groq primary) | ✅ |
+| POST | `/v1/canonical/{pair}/narrative/regenerate` | **NEW** — admin regeneration (`X-Admin-Token: $ADMIN_TOKEN`; 503 if unconfigured) | ✅ |
+| GET | `/v1/fx/{base}/{quote}/forecast` | `DecisionEngine.get_forecast` — Logistic_24 → heuristic | ✅ live (lineage block hardcoded) |
 | GET | `/v1/fx/performance/{pair}?period=` | `models/registry.json` metrics + hardcoded derivations | ✅ / ⚠️ derived |
 | GET | `/v1/fx/{pair}/historical` | `layer2` data + features (random-synthetic fallback) | ✅ / ⚠️ fallback |
 | GET | `/v1/fx/interpretation?pair=&include_macro=` | inline rule-based narrative over live forecast; macro hardcoded | ⚠️ rule-based |
@@ -130,17 +136,18 @@ Frozen against `docs/Product_specification/Layer_02.md` v3.4.1. **Verification:*
 | GET | `/v1/fx/{pair}/forecast-dashboard` | **live** — spot, trends, volatility, Logistic_24/XGBoost 30/60/90d, macro | ✅ (network) |
 | GET | `/v1/fx/{pair}/model-comparison` | Layer 3 `WalkForwardEvaluator.evaluate_expanding` (in-memory cache) | ✅ 200 (slow) |
 
-> **Removed/changed this cycle:** `/drivers` deleted (`82c9e80`) with its hardcoded `macro_drivers`; `FORECAST_DATA` is dead code (no imports); **LLM layer (`llm/`) is entirely unreachable** — no router imports `EconomicInterpreter`/`LLMFallbackManager`; `layer1/decision/` is a standalone dead subsystem; `interpretation`'s `include_macro` returns a hardcoded `NEUTRAL`/"Contexto macro no disponible" block.
+> **Changed this cycle:** `canonical` default `horizon_days` **30 → 5**; `narrative` routers added (12 total); `Fake*Registry` → `Stub*Registry`. **Removed earlier:** `/drivers` (`82c9e80`); `FORECAST_DATA` is dead code. **LLM layer:** `LLMFallbackManager` is **now reachable** via the narrative endpoint (Groq `qwen/qwen3.8-27b`); `EconomicInterpreter` is still unimported by any router and `/interpretation`'s `include_macro` still returns a hardcoded `NEUTRAL`/"Contexto macro no disponible" block.
 
 ### 4.2 Model resolution now
 
-The old "6-of-9 pairs 404" fault line is **largely resolved at the repo root**: registry paths were normalized to `backend/models/*.pkl` (v2.5.1), all 10 artifacts exist, and the canonical Logistic_24 cover all 9 pairs. Remaining path hazards are the Docker image (no root `models/`), `train_models.py` (still writes legacy `models/*.pkl` paths), and `StatusEngine`'s CWD-relative `models/registry.json`. Canonical `/decision` still depends on live macro/model data per pair (USD/CNY returned `MODEL_UNAVAILABLE` in the smoke run).
+The canonical Logistic_24 cover all 9 pairs and are the **primary** decision source; registry paths are normalized to `backend/models/*.pkl` but **9/10 are below the promotion gate and deactivated** — only USD/CHF remains servable from the registry (ranking). Remaining path hazards: the Docker image (no root `models/`), `train_models.py` (deprecated, still writes legacy `models/*.pkl` paths), and `StatusEngine`'s CWD-relative `models/registry.json`. `USD/CNY` `MODEL_UNAVAILABLE` on partial macro is **resolved by design** — partial macro now degrades instead of invalidating (9/9 pairs decide).
 
 ### 4.3 Supporting modules
 
 - **`adapters/`** — `DecisionEngineAdapter` (legacy engine → `PredictionArtifact`, used by bridge) and `DecisionAdapter` (`to_performance_response` in use; drivers-era methods dead).
-- **`routers/canonical.py`** — pipeline = `RealFeatureStore()` + `FakeDataQualityRegistry(0.90)` + `FakeFreshnessRegistry(3.0)` + `FakeDriftRegistry(0.05)`; TODO marker for v2.7 real registries.
-- **`data/forecast_data.py`** — dead; **`llm/`** — dead; **`decision/`** — dead.
+- **`routers/canonical.py`** — pipeline = `RealFeatureStore()` + `StubDataQualityRegistry(0.90)` + `StubFreshnessRegistry(3.0)` + `StubDriftRegistry(0.05)`; TODO marker for v2.7 real registries.
+- **`routers/narrative.py`** — constructs `SqliteNarrativeRepository` + `NarrativeGenerator` + `NarrativeService` singletons at import time; reuses the canonical `bridge`.
+- **`data/forecast_data.py`** — dead; **`llm/`** — now partially reached via narrative (`LLMFallbackManager`); **`decision/`** — dead.
 
 ---
 
@@ -159,7 +166,7 @@ The **only** live coupler remains `layer1/routers/model_comparison.py` (working)
 | `macro/regime.py` | `MacroRegimeEngine` | Regime classification | ✅ works |
 | `models/arima.py` | `ARIMAModel` | ARIMA control | ⚠️ unrunnable — `statsmodels` absent |
 | `models/elastic_net.py` / `models/ensemble.py` | control models | ✅ works | |
-| `rag/agents.py` | `CentralBankRAGEngine` | Fed/BoJ sentiment | ⚠️ keyword scorer, not real RAG |
+| `rag/agents.py` | `CentralBankSentimentEngine` (`was CentralBankRAGEngine`) | Fed/BoJ sentiment | ⚠️ keyword scorer, not real RAG |
 | `research_gate/*` | gate/real_gate/full_gate | 4-gate approval | ⚠️ `gate.py` works; `full_gate.py` passes `features={}` |
 
 ### 5.1 Research Gate pipeline (repo root, unchanged)
@@ -181,7 +188,7 @@ Canonical training (`train_canonical_model*`, `train_multi_pairs`) → `models/c
 | `lineage/models.py` | Provenance | ✅ implemented, **standalone** |
 | `tests/pit_tests.py` | layer-4 unit tests | ❌ still **syntactically corrupted** (SyntaxError line 90) |
 
-**Live wiring:** only `backend/tests/test_pit_adversarial.py` exercises `PITValidator`. Runtime forecast paths still don't validate PIT.
+**Live wiring:** only `backend/tests/test_pit_adversarial.py` exercises `PITValidator`. Runtime forecast paths still don't validate PIT; the canonical pipeline's three L4 registries are **stubs**.
 
 ---
 
@@ -189,46 +196,48 @@ Canonical training (`train_canonical_model*`, `train_multi_pairs`) → `models/c
 
 Stack: **React 18 · TS 5 · Vite 5 (5174) · Tailwind 3 · TanStack Query 5 · axios · date-fns · React Router 6 · Recharts 2**. `src_backup_espanol/` (the Spanish backup) and all legacy pages are gone.
 
-### 7.1 Routes & composition (6 pages, 10 hooks)
+### 7.1 Routes & composition (6 pages, 11 hooks)
 
 | Path | Page | Hooks → data |
 | --- | --- | --- |
 | `/` | GlobalPage | `useRanking`, `useActivePair`, `useForecastDashboard`, `useMarketIntelligence` |
 | `/market` | MarketPage | `useRanking`, `useActivePair`, `usePrice` (1y), `useForecastDashboard` |
-| `/macro` | MacroPage | `useRanking`, `useActivePair`, `useCanonicalDecision(pair, 30)` |
-| `/risk` | RiskPage | `useRanking`, `useActivePair`, `useCanonicalRisk(pair, 30)` |
-| `/decision` | DecisionPage | `useRanking`, `useActivePair`, `useCanonicalDecision(pair, 30)` |
+| `/macro` | MacroPage | `useRanking`, `useActivePair`, `useCanonicalDecision(pair, 5)` |
+| `/risk` | RiskPage | `useRanking`, `useActivePair`, `useCanonicalRisk(pair, 5)` |
+| `/decision` | DecisionPage | `useRanking`, `useActivePair`, `useCanonicalDecision(pair, 5)`, `useCanonicalNarrative` |
 | `/about` | AboutPage | (narrative) |
 
-Removed: Forecast/Drivers/Evaluation/Status/Price/Models pages + `TabNav` (v2.4 Sprint 8), HistoricalPage/mockup/`_unused` (v2.5.1), `services/drivers.ts` (v2.6.3). **Hooks (10):** `useCanonicalDecision`, `useCanonicalRisk` (60 s refresh), `useForecastDashboard`, `useMarketIntelligence`, `usePrice`, `useRanking`, `useActivePair`, `useForecast`, `usePerformancePeriod` (nav), `usePolling` (**unused**). Canonical decision/risk contracts are declared inside their hooks; `types/contracts.ts` remains the frozen Layer 1 §7 mirror; `types/gaps.ts` `CONTRACT_GAP_MAP` G1–G5.
+Removed: Forecast/Drivers/Evaluation/Status/Price/Models pages + `TabNav` (v2.4 Sprint 8), HistoricalPage/mockup/`_unused` (v2.5.1), `services/drivers.ts` (v2.6.3). **Hooks (11):** `useCanonicalDecision`, `useCanonicalRisk`, `useCanonicalNarrative` (NEW — `apiClient`, 5 min staleTime), `useForecastDashboard`, `useMarketIntelligence`, `usePrice`, `useRanking`, `useActivePair`, `useForecast`, `usePerformancePeriod` (nav), `usePolling` (**unused**). Canonical decision/risk/narrative contracts are declared inside their hooks; `types/contracts.ts` remains the frozen Layer 1 §7 mirror; `types/gaps.ts` `CONTRACT_GAP_MAP` G1–G5.
+
+**⚠️ Pair universe side-effect:** `pairUniverseFromRanking(ranking)` returns the ranking's pairs when non-empty — and `/v1/fx/ranking` now returns **only USD/CHF**. The frontend universe thereby collapses to USD/CHF on live data (falling back to the 9-pair `FX_PAIRS` only when ranking is empty/errors). The canonical decision/risk/narrative endpoints still serve all 9 pairs; the frontend simply no longer offers the other 8 in the selector while ranking is single-pair.
 
 ### 7.2 Presentational surface
 
-`common/*` (11 exported), `decision/*`, `forecast/*`, `global/*` (ActionableInfo, IntelligenceBrief, LeadingSignals, RankingTable, PriceChartSignalIQ…), `market/*` (MarketHero, HistoricalChart, MarketMeta w/ Volatility), `macro/*` (MacroHero, PolicyDifferentials, MacroMeta), `risk/*` (RiskScoreCard, RiskDriversPanel, RiskDriverBar), `layout/*`. Sizing inline in DecisionPage. Orphans: `common/MarketConvention.tsx`, `usePolling`, `utils/status.ts` (test-only).
+`common/*` (11 exported), `decision/*` (**12** — DecisionHero, DecisionMetrics, DecisionShapPanel, DecisionValidity, EconomicBreakdown, HardGates, QualityMetrics, SignalFusion, **DecisionProvenance, DecisionNarrative**), `forecast/*`, `global/*` (ActionableInfo, IntelligenceBrief, LeadingSignals, RankingTable, PriceChartSignalIQ…), `market/*` (MarketHero, HistoricalChart, MarketMeta w/ Volatility), `macro/*` (MacroHero, PolicyDifferentials, MacroMeta), `risk/*` (RiskScoreCard, RiskDriversPanel, RiskDriverBar), `layout/*`. Decision page renders **sizing inline**, the new **Provenance** block (WHO/WHAT/EVIDENCE/MODEL/DATA), and the **Narrative** block. Orphans: `common/MarketConvention.tsx`, `usePolling`, `utils/status.ts` (test-only).
 
 ### 7.3 Verification — all green
 
-| Check | Previous report (09-09) | Now (09-11) |
+| Check | Previous report (09-11) | Now (09-14) |
 | --- | --- | --- |
-| Backend pytest | 103 passed / 13 files | **132 passed** ✅ (RiskEngine +26, signals_fusion +17, gates +18…) |
-| Frontend typecheck | ❌ FAILS (~20 errors) | ✅ **PASS** |
-| Frontend tests | 53 passed / 2 FAILED | **56 passed / 0 failed** (7 files) |
-| Frontend build | ❌ FAILS | ✅ **PASS** (1,422 kB / 293 kB gzip, minify off) |
+| Backend pytest | 132 passed / 13 files | **132 passed** ✅ (13 files) |
+| Frontend typecheck | ✅ PASS | ✅ **PASS** |
+| Frontend tests | 56 passed / 0 failed (7 files) | **56 passed / 0 failed** ✅ (7 files) |
+| Frontend build | ✅ PASS (1,422 kB / 293 kB gzip) | ✅ **PASS** (1,434 kB / 296 kB gzip, minify off) |
 
-**Root cause of the old break (resolved):** the `9d0b62f` `UniverseSelector`/`useActivePair` refactor was fully migrated — legacy pages that passed the removed `currencies` prop were deleted in v2.4 Sprint 8, and `useActivePair.test.tsx` was rewritten. No compile errors remain.
+**Root cause of the old break (still resolved):** the `9d0b62f` `UniverseSelector`/`useActivePair` refactor was fully migrated — no compile errors remain.
 
 ### 7.4 Remaining frontend caveats
 
-Spanish UI strings with `lang="en"`; 4 hooks use raw `fetch` (no retry/backoff) instead of `apiClient`; bundle 1,422 kB unminified with warning suppressed; `.trash-v2.5/` (46 archived files) still on disk; `usePolling` and `MarketConvention` orphaned.
+Spanish UI strings with `lang="en"`; 4 hooks use raw `fetch` (no retry/backoff) instead of `apiClient` (the new `useCanonicalNarrative` correctly uses `apiClient`, while `useCanonicalDecision`/`useCanonicalRisk` still use raw fetch); bundle 1,434 kB unminified with warning suppressed; `.trash-v2.5/` (46 archived files) still on disk; `usePolling` and `MarketConvention` orphaned; **single-pair universe on live ranking** (see 7.1).
 
 ---
 
 ## 8. Models & training
 
-- **Production registry** (`models/registry.json`, identical at root/backend): **10 models, all `active: true`, `v1.0`** — 9 XGBoost + 1 logistic (USD/JPY), paths normalized to **`backend/models/*.pkl`** (v2.5.1; all on disk). In-registry AUCs **0.380–0.733** (USD/CHF best 0.733; USD/CNY worst 0.380; USD/JPY xgb 0.408 vs logistic 0.448).
-- **Canonical Logistic_24** (`models/canonical/`, v2.0-era, now the **primary runtime model**): 9 per-pair `.joblib` (+ extended, unloaded) with PIT `policy_diff`, loaded by `engine._load_canonical_model`. Not in the registry.
+- **Production registry** (`models/registry.json`, identical at root/backend): **10 models, `v1.0`** — 9 XGBoost + 1 logistic (USD/JPY), paths normalized to `backend/models/*.pkl`. **After the v2.7 promotion gate (MIN_AUC 0.52, MIN_N_SAMPLES 300): 9/10 deactivated — only USD/CHF xgb (auc 0.733, n=319) is `active: true`**; in-registry AUCs 0.380–0.733.
+- **Canonical Logistic_24** (`models/canonical/`, v2.0-era, the runtime's **primary** decision model): 9 per-pair `.joblib` (+ extended, unloaded) with PIT `policy_diff`, loaded by `engine._load_canonical_model`, trained on a **5-day forward target**. Not in the registry.
 - **Experimental** (`models/experimental/`): USD/BOB h20 (CANDIDATE_WITH_WARNINGS) + EUR/USD h10 (CANDIDATE) via the v2 gate — **unconsumed** by the API.
-- `backend/layer2/models/` — `model_selector.py`/`registry_adapter.py` unwired; `trainer.py` empty. `train_models.py` writes the **legacy** `models/*.pkl` convention (inconsistent with the normalized registry).
+- `backend/layer2/models/` — `registry.py` now enforces the promotion gate + lifecycle; `model_selector.py` filters `DEPLOYED` only; `registry_adapter.py` double-defends. `trainer.py` empty; **`train_models.py` deprecated** (still writes the legacy `models/*.pkl` convention).
 
 ---
 
@@ -242,51 +251,52 @@ Spanish UI strings with `lang="en"`; 4 hooks use raw `fetch` (no retry/backoff) 
 | **Local** | `docker-compose.yml` (:10000, mounts models+cache); `start.sh` (uvicorn :8000) / `stop.sh` | untracked + gitignored |
 
 Operations caveats (updated):
-- **`frontend/.env.production` RESTORED** (`2c0cbb9`) → `VITE_API_URL=https://meridianfx.onrender.com`; local `.env` still localhost:8000. The prior "production builds target localhost" flag is **resolved**.
-- **Docker image gap (new):** `Dockerfile` copies only `backend/`, so the containered app has **no root `models/`** — `_load_canonical_model` (`models/canonical/*.joblib`), `StatusEngine` (`models/registry.json`) and any root-script registry read fail inside the image; the registry-based xgb path (`backend/models/*.pkl`) does resolve. Unverified against the deployed image; a fix (copy `models/` or mount it pre-deploy) is pending.
-- Local smoke (`TestClient`, 2026-09-11): `/v1/status` `HEALTHY`; data failover Yahoo→Alpha live.
+- **`frontend/.env.production` is now a comment-only placeholder** ("temporalmente vacío para desarrollo local", `d917ca0`) — the prior report's "RESTORED → onrender" note is stale. Fetch-based hooks fall back to `localhost:8000`; `apiClient` uses `VITE_API_URL` with no fallback (relative-URL requests). Deploy pipelines (Cloudflare/Vercel) must inject `VITE_API_URL` at build time; `.env.production.onrender` and `.env.local` are gitignored.
+- **Docker image gap (unchanged, top ops risk):** `Dockerfile` copies only `backend/`, so the containered app has no root `models/` — `_load_canonical_model` (`models/canonical/*.joblib`), `StatusEngine` (`models/registry.json`) fail inside the image; the registry xgb path (`backend/models/*.pkl`) does resolve.
+- **Ranking exposes a single pair in production after the gate** — USD/CHF only; no canonical ranking backend yet (see §7.1).
+- Local smoke (`TestClient`, 2026-09-11 / pytest 2026-09-14): `/v1/status` `HEALTHY`; 132 backend tests green.
 
 ---
 
 ## 10. Models of verification & governance (unchanged)
 
-The repo remains **prompt-first** (`docs/Prompts/`) with **Contract/** policing fidelity. Frozen specs and freeze artifacts unchanged (L1 v5.1, L2 v3.4.1, L3 v5.0, L4 v3.1.1; traceability 61/12; gaps 16; freeze 0 blocking). **NEW this cycle:** `docs/DEUDA_TECNICA_v2.5.md` (debt ledger superseding the v2.4 file); pre-existing `MACRO_COVERAGE.md` and the model-selection report unchanged.
+The repo remains **prompt-first** (`docs/Prompts/`) with **Contract/** policing fidelity. Frozen specs and freeze artifacts unchanged (L1 v5.1, L2 v3.4.1, L3 v5.0, L4 v3.1.1; traceability 61/12; gaps 16; freeze 0 blocking). `docs/DEUDA_TECNICA_v2.5.md` and `MACRO_COVERAGE.md` unchanged.
 
-> **Not** pushed through the traceability → gaps → freeze loop: canonical decision **+ risk** endpoints & `pipeline_bridge`, **RealFeatureStore/real-VIX**, **RiskEngine**, **ranking cache**, `/v1/market-intelligence`, canonical Logistic_24 as the runtime model, the **canonical frontend pages** (Market/Macro/Risk/Decision), walkforward/shadow research, and the v2.5.1 cleanup. README lags at v2.5.1 vs HEAD v2.6.6 (and there is no v2.6 tag).
+> **Not** pushed through the traceability → gaps → freeze loop: the narrative layer (`/narrative`, `narrative_key`, SQLite), the partial-macro pipeline semantics, the registry promotion gate + deactivation of 9 models, horizon-days 5 semantics, `Stub*` renames, the **canonical frontend pages** (Market/Macro/Risk/Decision incl. Provenance/Narrative), plus all surfaces already listed before (canonical decision/risk, RealFeatureStore, RiskEngine, ranking cache, walkforward/shadow research, v2.5.1 cleanup). **No tag beyond `v2.5`**; README top header still claims v2.5.1 (though quickstart + Current Limitations were added this cycle).
 
 ---
 
 ## 11. Current status & known gaps
 
 **Green**
-- Backend pytest **132/132** (13 files); frontend typecheck/build/tests **all pass** (56/56). The long-standing compile break is **closed**.
-- **Canonical product loop live:** `/v1/canonical/{pair}/decision` + `/risk` return real per-pair output (real VIX, Logistic_24, macro) — e.g. EUR/USD `actionable SHORT`, GBP/USD `SHORT`, USD/JPY `INSUFFICIENT_EDGE`.
-- **Risk Assessment Engine** (v2.3): 5 weighted drivers, LOW→EXTREME, 26 tests, `/risk` endpoint.
-- **Frontend v2.4 re-platform:** 6 canonical pages, 10 hooks, dynamic thresholds/hard-gates/quality metrics/signal fusion, empty states, mobile responsive, self-hosted fonts, 5-minute staleTime, backend ranking cache (60 s).
-- **Repo hygiene + model normalization:** all flagged clutter removed; registries identical with `backend/models/*.pkl`; `.env.production` restored.
-- `main` in sync with `origin/main`, working tree clean.
+- Backend pytest **132/132** (13 files); frontend typecheck/build/tests **all pass** (56/56).
+- **Canonical pipeline decides for 9/9 pairs** — partial macro now degrades instead of blocking (`USD/CNY` `MODEL_UNAVAILABLE` false positive closed).
+- **Persistent LLM narratives live:** cache-first `/v1/canonical/{pair}/narrative` (SQLite, no TTL, Groq `qwen/qwen3.8-27b`, fallback never persisted) with admin regenerate; Decision page renders Provenance + Narrative.
+- **Registry promotion gate enforced:** `audit_registry.py`/`apply_gate.py`, `DEPLOYED`-only selection, 9/10 legacy models deactivated.
+- **Honest naming + docs:** `Stub*Registry`, `CentralBankSentimentEngine`, `train_models.py` deprecated, README `## Current Limitations`.
+- `main` in sync with `origin/main`, working tree clean; `backend/venv/` + `python-dotenv` handled.
 
 **Red / attention**
-1. **Canonical pipeline still runs 3 fake L4 registries** (DQ/Freshness/Drift; TODO v2.7) — VIX real, quality gating not.
+1. **Legacy ranking collapsed to USD/CHF** after the gate — and the **frontend pair selector inherits it** (universe = ranking pairs). No canonical ranking backend yet; the visible product currently offers a single pair on live data.
 2. **Docker model gap:** the image copies only `backend/` → canonical Logistic_24 (`models/canonical/`) and `StatusEngine`'s `models/registry.json` unresolvable inside the container.
-3. **USD/CNY canonical decision flipped `MODEL_UNAVAILABLE`** in live smoke while EUR/USD/GBP/USD were actionable — live-data dependency; needs monitoring.
-4. **Model-path convention still split/CWD-relative**: `train_models.py` writes legacy `models/*.pkl`; `engine` canonical vs registry vs `StatusEngine` paths diverge.
+3. **Canonical pipeline still runs 3 Stub L4 registries** (DQ/Freshness/Drift; TODO v2.7) — VIX real, quality gating not.
+4. **Model-path convention still split/CWD-relative:** `engine` canonical vs registry vs `StatusEngine` paths diverge; `train_models.py` (deprecated) still writes legacy paths.
 5. **Layer 3 tail** — `run_benchmarks.py` crashes (`engine.xgb_model`); `run.py` E0–E7 hardcoded; ARIMA unrunnable; L3 registry schema incompatible.
 6. **Layer 4** unwired; `layer4/tests/pit_tests.py` still corrupted.
-7. **LLM chain entirely unwired** — `layer1/llm/*` unreachable; `/interpretation` rule-based with hardcoded macro block.
+7. **LLM partial:** narrative now uses `LLMFallbackManager` (Groq), but `EconomicInterpreter` is still unimported and `/interpretation` still has a hardcoded macro block.
 8. **Hardcoded/simulated remnants** — `/historical` random fallback; `/performance` hardcoded ece/max_dd/regime table; `/status` `database=NOT_CONFIGURED`; FRED simulated without key; dead `FORECAST_DATA`/`layer1/decision/`/drivers adapter methods.
-9. **Frontend debt** — 4 hooks raw-fetch (no retry); `usePolling` + `MarketConvention` orphans; `.trash-v2.5/` on disk; Spanish strings / `lang="en"`; 1,422 kB bundle unminified.
-10. **Governance lag** — newest surfaces (canonical risk, RealFeatureStore, RiskEngine, ranking cache, 6 pages, research bundle) not through the freeze loop; **no v2.6 tag**; README stale at v2.5.1.
+9. **Frontend debt** — 4 hooks raw-fetch (no retry); `usePolling` + `MarketConvention` orphans; `.trash-v2.5/` on disk; Spanish strings / `lang="en"`; 1,434 kB bundle unminified; single-pair universe on live ranking.
+10. **Governance/ops lag** — newest surfaces (narrative, pipeline resilience, promotion gate, provenance blocks) not through the freeze loop; **no tag beyond v2.5**; README header stale at v2.5.1; production `VITE_API_URL` not pinned in the repo.
 
 ---
 
 ## 12. Recommendations
 
-1. **Finish the canonical pipeline (v2.7):** replace the three fake L4 registries with real `PITValidator`-backed, freshness/drift-aware providers; then push the canonical logistic path + `/risk` + RealFeatureStore through the governance loop.
-2. **Fix model resolution & Docker (top ops risk):** copy `models/` into the Docker image (or mount it) so `models/canonical/*.joblib` and `models/registry.json` resolve in Render; align `train_models.py` with the `backend/models/*.pkl` convention; add a resolution-union test for all 9 pairs across repo-root and container CWDs.
-3. **Investigate the USD/CNY `MODEL_UNAVAILABLE`** canonical decision (live-data route vs regression) and add per-pair canonical health to `/v1/status`.
+1. **Restore a 9-pair surface before it ships as-is:** either back the ranking/market-intelligence endpoints with the canonical pipeline (9/9 decision/risk/narrative) or keep the frontend universe on canonical/`FX_PAIRS` independent of the legacy registry ranking.
+2. **Finish the canonical pipeline (v2.7→v2.8):** replace the three `Stub` L4 registries with real `PITValidator`-backed, freshness/drift-aware providers; then push the canonical logistic path + `/risk` + narrative + RealFeatureStore through the governance loop.
+3. **Fix model resolution & Docker (top ops risk):** copy `models/` into the Docker image (or mount it) so `models/canonical/*.joblib` and `models/registry.json` resolve in Render; delete or align `train_models.py`; add a resolution-union smoke test for all 9 pairs across repo-root and container CWDs.
 4. **Cut the Layer 3/4 tail:** port `run_benchmarks.py` to `_get_model_for_pair` (or delete), replace hardcoded `run.py`, decide on `statsmodels`, repair `layer4/tests/pit_tests.py`, reconcile L3 registry schema.
-5. **Resolve the LLM question:** wire `EconomicInterpreter`/`LLMFallbackManager` into `/interpretation` (or delete `llm/`); remove the hardcoded `include_macro` block and remaining FORECAST/performance/status hardcodes.
-6. **Frontend hardening:** unify transport (4 fetch hooks → `apiClient`), delete `.trash-v2.5/` + orphans (`usePolling`, `MarketConvention`), fix `lang="en"` vs Spanish copy, and consider code-splitting + `minify` for the 1.4 MB bundle (as the deploy stage, not the dev default).
-7. **Close the ops/governance book:** tag the v2.6.x line (or bump README/versioning to the real HEAD), re-add a v2.6 debt ledger, and route the canonical surfaces + research bundle through traceability → gaps → freeze → validation.
-8. **Re-run the audit loop** (`scripts/audit_consistency.py`) after the v2.7 work; keep the repo-hygiene invariants (no backups, no Spanish backup tree, singleton registry).
+5. **Resolve the LLM question fully:** either wire `EconomicInterpreter` into `/interpretation` or delete it; remove the hardcoded `include_macro` block; make the narrative layer's `ADMIN_TOKEN`/SQLite path deployment-aware (Postgres/Neon migration is designed in the Protocol).
+6. **Frontend hardening:** unify transport (remaining 4 fetch hooks → `apiClient`), delete `.trash-v2.5/` + orphans (`usePolling`, `MarketConvention`), fix `lang="en"` vs Spanish copy, and consider code-splitting + `minify` for the 1.4 MB bundle.
+7. **Close the ops/governance book:** pin `VITE_API_URL` for production builds (un-block the committed `.env.production`), tag the v2.6/v2.7 line (or bump README/versioning to the real HEAD), re-add a post-v2.5 debt ledger, and route the canonical surfaces + research bundle through traceability → gaps → freeze → validation.
+8. **Re-run the audit loop** (`scripts/audit_consistency.py`, plus the new `scripts/audit_registry.py`) after the v2.7→v2.8 work; keep the repo-hygiene invariants (no backups, no Spanish backup tree, singleton registry).
