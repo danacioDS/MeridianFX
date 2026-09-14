@@ -26,6 +26,8 @@ import {
   HardGates,
   QualityMetrics,
   SignalFusion,
+  DecisionProvenance,
+  DecisionNarrative,
 } from "../components/decision";
 import {
   useCanonicalDecision,
@@ -37,7 +39,7 @@ import {
 export function DecisionPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
-  const canonical = useCanonicalDecision(pair, 30);
+  const canonical = useCanonicalDecision(pair, 5);
   const universe = pairUniverseFromRanking(ranking.data);
 
   if (canonical.isLoading) {
@@ -103,6 +105,12 @@ export function DecisionPage(): JSX.Element {
           signalValidity={decision.signal_validity ?? "UNAVAILABLE"}
         />
       )}
+
+      {/* Provenance: WHO / WHAT / EVIDENCE / MODEL / DATA */}
+      {data && <DecisionProvenance decision={data} />}
+
+      {/* Narrative: LLM-generated explanation */}
+      <DecisionNarrative pair={pair} horizonDays={data?.horizon_days ?? 5} />
 
       {/* Metrics: Edge + Net Return + Position Size + Expected Return */}
       {decision && (

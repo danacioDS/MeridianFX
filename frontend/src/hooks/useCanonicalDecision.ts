@@ -152,8 +152,12 @@ export interface CanonicalDecision {
   macro_data_status: MacroDataStatus;
 
   artifact: {
-    macro_regime: MacroRegime;
-    shap_values: ShapValue[];
+    prediction_id: string;
+    model_id: string;
+    model_version: string;
+    pair: string;
+    prediction_timestamp: string;
+    horizon_days: number;
     probability_up: number;
     expected_return: number;
     expected_volatility: number;
@@ -161,9 +165,25 @@ export interface CanonicalDecision {
       lower: number;
       upper: number;
     };
+    regime_id: string;
+    macro_regime: MacroRegime;
+    rag_signal_ids: string[];
+    shap_values: ShapValue[];
+    feature_snapshot_id: string;
+    dataset_id: string;
+    feature_version: string;
+    as_of: string;
+    research_gate_status: string;
+    created_at: string;
   };
 
   decision: {
+    decision_id: string;
+    prediction_id: string;
+    pair: string;
+    timestamp: string;
+    as_of: string;
+    horizon_days: number;
     direction: string;
     confidence: number;
     actionable: boolean;
@@ -191,7 +211,7 @@ export interface CanonicalDecision {
 
 // ─── Hook ──────────────────────────────────────────────────────────
 
-export function useCanonicalDecision(pair: string, horizonDays: number = 30) {
+export function useCanonicalDecision(pair: string, horizonDays: number = 5) {
   const url = `/v1/canonical/${pair}/decision?horizon_days=${horizonDays}`;
 
   return useQuery<CanonicalDecision>({

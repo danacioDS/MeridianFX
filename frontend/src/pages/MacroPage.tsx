@@ -39,7 +39,7 @@ export function MacroPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
   const universe = pairUniverseFromRanking(ranking.data);
-  const decision = useCanonicalDecision(pair, 30);
+  const decision = useCanonicalDecision(pair, 5);
 
   if (decision.isLoading) {
     return <LoadingSpinner label={`Loading macro context for ${pair}...`} />;

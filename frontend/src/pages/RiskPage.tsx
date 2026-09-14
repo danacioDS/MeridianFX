@@ -26,7 +26,7 @@ export function RiskPage(): JSX.Element {
   const { pair, setPair } = useActivePair();
   const ranking = useRanking();
   const universe = pairUniverseFromRanking(ranking.data);
-  const risk = useCanonicalRisk(pair, 30);
+  const risk = useCanonicalRisk(pair, 5);
 
   if (risk.isLoading) {
     return <LoadingSpinner label={`Loading risk assessment for ${pair}...`} />;
