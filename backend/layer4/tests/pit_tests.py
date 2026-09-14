@@ -121,24 +121,6 @@ class PITTestRunner:
         """Run all 5 tests including T3."""
         results = self.run_all(feature, prediction_timestamp)
         results["T3"] = self.test_t3_pit_propagation(derived, inputs)
-        """Run all 5 tests on a feature."""
-        results = {
-            'T1': self.test_t1_feature_availability(feature, prediction_timestamp),
-            'T5': self.test_t5_no_interpolation(feature),
-        }
-        
-        if 'vintages' in feature:
-            results['T2'] = self.test_t2_vintage_selection(
-                feature['vintages'], prediction_timestamp
-            )
-        
-        if 'target_start' in feature and 'target_end' in feature:
-            results['T4'] = self.test_t4_target_timing(
-                prediction_timestamp,
-                feature['target_start'],
-                feature['target_end']
-            )
-        
         return results
     
     def summary(self) -> Dict[str, Any]:
