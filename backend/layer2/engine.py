@@ -331,19 +331,19 @@ class DecisionEngine:
                     print(f"⚠️ SHAP falló: {e}")
             
             # 5. Economic filter (recibe expected_return y volatility)
+            # Nota: expected_return es escalado de volatilidad, no predicción multi-horizonte.
+            # Ver README §Model Horizon Semantics.
             volatility = self._calculate_volatility(df)
+            expected_return = (2 * probability - 1) * volatility * (horizon_days / 365) ** 0.5
             log_pred['expected_volatility'] = volatility
-            log_pred['expected_return'] = (2 * probability - 1) * volatility * (30 / 365) ** 0.5
+            log_pred['expected_return'] = expected_return
             filtered = self.economic_filter.apply(log_pred)
             
             # 6. Determinar dirección
             direction = "UP" if probability > 0.5 + DIRECTION_THRESHOLD else "DOWN" if probability < 0.5 - DIRECTION_THRESHOLD else "NEUTRAL"
             
-            # Expected return implícito: probability-volatility
-            # Fórmula: (2P - 1) × volatility × √(horizon_days / 365)
-            volatility = self._calculate_volatility(df)
-            # horizon_days viene como parámetro
-            expected_return = (2 * probability - 1) * volatility * (horizon_days / 365) ** 0.5
+            # expected_return ya fue calculado arriba (línea ~344)
+            # usando el horizonte solicitado
             
             response = {
                 'direction': direction,

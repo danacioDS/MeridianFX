@@ -33,8 +33,16 @@ class RegistryAdapter:
         """
         Convert a Layer 2 registry entry to a Layer 3 ModelArtifact.
         """
-        # Determine lifecycle based on active flag
-        lifecycle = "DEPLOYED" if entry.get('active', False) else "CANDIDATE"
+        # Determine lifecycle with double-defense gate:
+        # A model is DEPLOYED only if BOTH:
+        #   1. active flag is True
+        #   2. metrics pass the gate (auc >= 0.52, n_samples >= 300)
+        # This prevents manual mistakes in the registry from leaking
+        # low-quality models to production.
+        from .registry import _passes_gate  # noqa
+        active = entry.get('active', False)
+        passes_gate = _passes_gate(entry.get('metrics', {}))
+        lifecycle = "DEPLOYED" if (active and passes_gate) else "CANDIDATE"
         
         return {
             'model_id': entry.get('model_id', ''),

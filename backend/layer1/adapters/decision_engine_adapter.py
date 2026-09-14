@@ -61,7 +61,7 @@ class DecisionEngineAdapter:
     def get_prediction_artifact(
         self,
         pair: str,
-        horizon_days: int = 30,
+        horizon_days: int = 5,
         macro_regime: Optional[MacroRegime] = None,
     ) -> Optional[PredictionArtifact]:
         """

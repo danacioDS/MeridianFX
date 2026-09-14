@@ -26,7 +26,7 @@ _service = NarrativeService(_repository, _generator)
 
 
 @router.get("/{pair:path}/narrative")
-async def get_canonical_narrative(pair: str, horizon_days: int = 30):
+async def get_canonical_narrative(pair: str, horizon_days: int = 5):
     """
     Return the narrative for the given decision.
 
@@ -47,7 +47,7 @@ async def get_canonical_narrative(pair: str, horizon_days: int = 30):
 @router.post("/{pair:path}/narrative/regenerate")
 async def regenerate_canonical_narrative(
     pair: str,
-    horizon_days: int = 30,
+    horizon_days: int = 5,
     x_admin_token: str = Header(default=""),
 ):
     """

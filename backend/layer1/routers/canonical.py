@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException
 from backend.layer2.pipeline_bridge import PipelineBridge
 from backend.src.meridian_fx.decision.pipeline import DecisionPipeline
 from backend.src.meridian_fx.decision.validation.validate_integration import (
-    FakeDataQualityRegistry, FakeFreshnessRegistry, FakeDriftRegistry
+    StubDataQualityRegistry, StubFreshnessRegistry, StubDriftRegistry
 )
 from backend.src.meridian_fx.decision.quality.real_providers import RealFeatureStore
 
@@ -15,15 +15,15 @@ router = APIRouter(tags=["canonical"])
 # Inicializar pipeline (usando fake providers por ahora)
 pipeline = DecisionPipeline(
     feature_store=RealFeatureStore(),                       # VIX real (Yahoo)
-    data_quality_registry=FakeDataQualityRegistry(0.90),    # TODO v2.7
-    freshness_registry=FakeFreshnessRegistry(3.0),          # TODO v2.7
-    drift_registry=FakeDriftRegistry(0.05)                  # TODO v2.7
+    data_quality_registry=StubDataQualityRegistry(0.90),    # TODO v2.7
+    freshness_registry=StubFreshnessRegistry(3.0),          # TODO v2.7
+    drift_registry=StubDriftRegistry(0.05)                  # TODO v2.7
 )
 
 bridge = PipelineBridge(pipeline)
 
 @router.get("/{pair:path}/decision")
-async def get_canonical_decision(pair: str, horizon_days: int = 30):
+async def get_canonical_decision(pair: str, horizon_days: int = 5):
     """
     Obtiene decisión del pipeline canónico.
     """
@@ -38,7 +38,7 @@ async def get_canonical_decision(pair: str, horizon_days: int = 30):
 
 
 @router.get("/{pair:path}/risk")
-async def get_canonical_risk(pair: str, horizon_days: int = 30):
+async def get_canonical_risk(pair: str, horizon_days: int = 5):
     """
     Obtiene el Risk Assessment canónico para un par.
     """

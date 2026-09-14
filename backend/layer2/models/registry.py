@@ -1,10 +1,33 @@
 """
 Model Registry - Gestión de versiones de modelos.
+
+Promotion policy (v2.5.1+):
+    A model is promoted to DEPLOYED only if it passes the promotion gate.
+    The gate is defined by MIN_AUC and MIN_N_SAMPLES below.
+    Models below the gate remain CANDIDATE and are not served to users.
+
+    See scripts/audit_registry.py for the audit tool.
 """
 import json
 import os
 from datetime import datetime
 from typing import Dict, List, Optional
+
+# Promotion gate — a model must satisfy BOTH conditions to be DEPLOYED.
+MIN_AUC = 0.52
+MIN_N_SAMPLES = 300
+
+
+def _passes_gate(metrics: Dict) -> bool:
+    """Check whether a model's metrics satisfy the promotion gate."""
+    auc = metrics.get("auc", 0.0)
+    n = metrics.get("n_samples", 0)
+    try:
+        auc = float(auc)
+        n = int(n)
+    except (ValueError, TypeError):
+        return False
+    return auc >= MIN_AUC and n >= MIN_N_SAMPLES
 
 class ModelRegistry:
     def __init__(self, registry_path: str = "models/registry.json"):
@@ -52,27 +75,47 @@ class ModelRegistry:
         }
         
         self.registry['models'].append(entry)
-        
-        # Si es mejor que el actual, activarlo
-        current = self.get_active(pair, model_type)
-        if current is None or clean_metrics.get('auc', 0) > current.get('metrics', {}).get('auc', 0):
-            self.activate(pair, model_type, model_id)
-        
+
+        # Promotion policy (v2.5.1+):
+        # A model is only activated if it passes the gate AND is better
+        # than the current active model. Otherwise it stays CANDIDATE.
+        passes_gate = _passes_gate(clean_metrics)
+
+        if passes_gate:
+            current = self.get_active(pair, model_type)
+            if current is None or clean_metrics.get('auc', 0) > current.get('metrics', {}).get('auc', 0):
+                self.activate(pair, model_type, model_id)
+
         self._save()
         return model_id
     
-    def activate(self, pair: str, model_type: str, model_id: str):
-        """Activa un modelo específico."""
+    def activate(self, pair: str, model_type: str, model_id: str, force: bool = False):
+        """Activa un modelo específico.
+
+        By default, refuses to activate a model that does not pass the gate.
+        Use force=True to override (e.g. for migration scripts).
+        """
+        target = None
+        for entry in self.registry['models']:
+            if entry['model_id'] == model_id:
+                target = entry
+                break
+
+        if target is None:
+            raise ValueError(f"Model {model_id} not found")
+
+        if not force and not _passes_gate(target.get('metrics', {})):
+            raise ValueError(
+                f"Model {model_id} does not pass the promotion gate "
+                f"(auc >= {MIN_AUC}, n_samples >= {MIN_N_SAMPLES})"
+            )
+
         for entry in self.registry['models']:
             if entry['pair'] == pair and entry['model_type'] == model_type:
                 entry['active'] = False
-        
-        for entry in self.registry['models']:
-            if entry['model_id'] == model_id:
-                entry['active'] = True
-                self.registry['current'][f"{pair}_{model_type}"] = model_id
-                break
-        
+
+        target['active'] = True
+        self.registry['current'][f"{pair}_{model_type}"] = model_id
         self._save()
     
     def get_active(self, pair: str, model_type: str) -> Optional[Dict]:

@@ -304,6 +304,69 @@ El frontend es **contract-driven**. Todos los datos de dominio vienen de los con
 
 ---
 
+
+---
+
+## Current Limitations (v2.5.1)
+
+This section documents the known gaps between the product's marketing and
+the current state of the code. It exists to make the project's boundaries
+explicit rather than implicit.
+
+### Data quality governance
+
+- **`StubDataQualityRegistry`, `StubFreshnessRegistry`, `StubDriftRegistry`**
+  return fixed placeholder values (`0.90`, `3.0`, `0.05`) pending v2.7.
+  The "Quality Metrics" and "Data Quality: good" scores shown in the UI
+  are **not measurements**; they are placeholders.
+- Only **VIX** (`RealFeatureStore`) and **macro data** (FRED, when the API
+  key is present) come from real sources in the canonical pipeline.
+
+### Model registry and promotion
+
+- **`models/registry.json`** contains legacy XGBoost models used only by
+  the `/v1/fx/ranking` endpoint (RankingEngine). It is **not** the source
+  of truth for the canonical decision pipeline.
+- The canonical decision pipeline (`/v1/canonical/{pair}/decision`) uses
+  **Logistic_24 models** from `models/canonical/*.joblib`. These models
+  are **not tracked in `registry.json`** and their AUCs have not been
+  measured with the same methodology.
+- A promotion gate (`scripts/audit_registry.py`, `scripts/apply_gate.py`)
+  now enforces `auc >= 0.52` and `n_samples >= 300` for legacy registry
+  models. After applying the gate, **only USD/CHF remains active** in the
+  registry; the other 9 models are `CANDIDATE` and are not served.
+- **`train_models.py` is deprecated** (see its docstring).
+
+### Horizon semantics
+
+- **The Logistic_24 models are trained on a 5-day forward target.**
+  The API's `horizon_days` parameter is **not a per-horizon model**;
+  it is a volatility-scaling factor:
+  `expected_return = (2P - 1) × volatility × sqrt(horizon_days / 365)`.
+- Multi-horizon models (5d, 30d, 90d) are planned for v3.0.
+
+### LLM chain
+
+- The LLM chain (`backend/layer1/llm/`) is **only used by the narrative
+  layer** introduced in v2.5. Other endpoints use rule-based logic.
+- The narrative layer uses **Groq (`qwen/qwen3.8-27b`)** with a
+  deterministic template fallback. Fallback narratives are **not
+  persisted** so the next request retries the LLM.
+
+### Sentiment analysis
+
+- `backend/layer3/rag/agents.py` is a **keyword-based sentiment scorer**,
+  not Retrieval-Augmented Generation. It uses a dictionary of
+  hawkish/dovish terms with no embeddings, vector store, or retrieval.
+  The class was renamed to `CentralBankSentimentEngine`; the directory
+  name is retained for now.
+
+### CI/CD
+
+- No CI/CD is configured. Typecheck, tests, and quality gates are run
+  manually.
+
+
 ## License
 
 © 2026 Stratus Intelligence. All rights reserved.

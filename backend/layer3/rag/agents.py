@@ -1,12 +1,14 @@
 """
-RAG Agents — Layer 3 v5.0 §6
+⚠️  NOMENCLATURE NOTE (v2.5.1+)
 
-Central Bank RAG Engine:
-- Fed sentiment extraction
-- BoJ sentiment extraction
-- Sentiment classification
-- Expectation gap calculation
-"""
+This module is a KEYWORD-BASED sentiment scorer, not Retrieval-Augmented
+Generation (RAG). It uses a dictionary of hawkish/dovish terms, not
+embeddings, vector stores, or retrieval.
+
+The class was renamed from CentralBankRAGEngine to CentralBankSentimentEngine.
+The directory name (layer3/rag/) is retained for now to avoid breaking imports;
+a future refactor will move it to layer3/sentiment/.
+
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any
 from datetime import datetime
@@ -38,7 +40,7 @@ class RagSignal:
         }
 
 
-class CentralBankRAGEngine:
+class CentralBankSentimentEngine:
     """
     Central Bank RAG Engine.
     

@@ -1,5 +1,20 @@
 """
 Script para entrenar modelos XGBoost para todos los pares.
+
+⚠️  DEPRECATED (v2.5.1+)
+
+This script produces XGBoost models that are only consumed by the
+legacy /v1/fx/ranking endpoint (RankingEngine).
+
+The canonical decision pipeline (/v1/canonical/{pair}/decision)
+does NOT use these models. It uses models/canonical/logistic_24_*.joblib
+via DecisionEngine._load_canonical_model.
+
+The registry promotion gate (backend/layer2/models/registry.py) now
+enforces MIN_AUC=0.52 and MIN_N_SAMPLES=300. Models trained by this
+script must satisfy the gate to be activated.
+
+See README §Model Horizon Semantics and §Current Limitations.
 """
 from backend.layer2.models.xgboost_model import XGBoostModel
 from backend.layer2.data.provider import DataProvider

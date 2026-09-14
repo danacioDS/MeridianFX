@@ -29,8 +29,15 @@ class ModelSelector:
         3. CANDIDATE models
         """
         artifacts = self.adapter.get_model_artifact_by_pair(pair)
-        pair_models = [a for a in artifacts if a.get('model_type') == model_type]
-        
+        # Only consider models that the adapter marked as DEPLOYED.
+        # The adapter already filters by the promotion gate, so this is
+        # the final safety net.
+        pair_models = [
+            a for a in artifacts
+            if a.get('model_type') == model_type
+            and a.get('lifecycle') == 'DEPLOYED'
+        ]
+
         if not pair_models:
             return None
         

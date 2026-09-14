@@ -48,7 +48,7 @@ UTC = timezone.utc
 # ---------------------------------------------------------------------------
 # Layer 4 test doubles (consume the frozen L4 interface — no implementation)
 # ---------------------------------------------------------------------------
-class FakeFeatureStore:
+class StubFeatureStore:
     version = "L4-feature-store-fake"
 
     def __init__(self, vix: float | None = 15.0) -> None:
@@ -67,7 +67,7 @@ class FakeFeatureStore:
         self._vix = vix
 
 
-class FakeDataQualityRegistry:
+class StubDataQualityRegistry:
     version = "L4-data-quality-registry-fake"
 
     def __init__(self, score: float = 0.90) -> None:
@@ -90,7 +90,7 @@ class FakeDataQualityRegistry:
         self._score = score
 
 
-class FakeFreshnessRegistry:
+class StubFreshnessRegistry:
     version = "L4-freshness-registry-fake"
 
     def __init__(self, age_hours: float = 3.0) -> None:
@@ -103,7 +103,7 @@ class FakeFreshnessRegistry:
         self._age_hours = age_hours
 
 
-class FakeDriftRegistry:
+class StubDriftRegistry:
     version = "L4-drift-registry-fake"
 
     def __init__(self, psi: float | None = 0.05) -> None:
@@ -251,10 +251,10 @@ def run_integration_suite(
     report = ValidationReport(target="Layer 2 v3.4.1 integration")
     results: list[DatasetResult] = []
     registry = DecisionRegistry()
-    store = FakeFeatureStore(vix=15.0)
-    dq = FakeDataQualityRegistry(0.90)
-    fresh = FakeFreshnessRegistry(3.0)
-    drift = FakeDriftRegistry(0.05)
+    store = StubFeatureStore(vix=15.0)
+    dq = StubDataQualityRegistry(0.90)
+    fresh = StubFreshnessRegistry(3.0)
+    drift = StubDriftRegistry(0.05)
     pipeline = DecisionPipeline(store, dq, fresh, drift)
 
     for case in cases or DEFAULT_CASES:

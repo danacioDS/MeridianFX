@@ -72,15 +72,15 @@ class TestMandatoryIntegrationSuite:
 def _pipeline():
     from meridian_fx.decision.pipeline import DecisionPipeline
     from meridian_fx.decision.validation.validate_integration import (
-        FakeDataQualityRegistry,
-        FakeDriftRegistry,
-        FakeFeatureStore,
-        FakeFreshnessRegistry,
+        StubDataQualityRegistry,
+        StubDriftRegistry,
+        StubFeatureStore,
+        StubFreshnessRegistry,
     )
 
     return DecisionPipeline(
-        FakeFeatureStore(15.0),
-        FakeDataQualityRegistry(0.90),
-        FakeFreshnessRegistry(3.0),
-        FakeDriftRegistry(0.05),
+        StubFeatureStore(15.0),
+        StubDataQualityRegistry(0.90),
+        StubFreshnessRegistry(3.0),
+        StubDriftRegistry(0.05),
     )

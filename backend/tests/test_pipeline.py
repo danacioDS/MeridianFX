@@ -6,10 +6,10 @@ from meridian_fx.decision.contracts import Direction, RejectionReason, SignalVal
 from meridian_fx.decision.gates import GateState
 from meridian_fx.decision.pipeline import DecisionPipeline
 from meridian_fx.decision.validation.validate_integration import (
-    FakeDataQualityRegistry,
-    FakeDriftRegistry,
-    FakeFeatureStore,
-    FakeFreshnessRegistry,
+    StubDataQualityRegistry,
+    StubDriftRegistry,
+    StubFeatureStore,
+    StubFreshnessRegistry,
     scenario_dataset_d,
     scenario_dataset_d2,
 )
@@ -17,10 +17,10 @@ from meridian_fx.decision.validation.validate_integration import (
 
 def build_pipeline(store=None, dq=None, fresh=None, drift=None):
     return DecisionPipeline(
-        store or FakeFeatureStore(15.0),
-        dq or FakeDataQualityRegistry(0.90),
-        fresh or FakeFreshnessRegistry(3.0),
-        drift or FakeDriftRegistry(0.05),
+        store or StubFeatureStore(15.0),
+        dq or StubDataQualityRegistry(0.90),
+        fresh or StubFreshnessRegistry(3.0),
+        drift or StubDriftRegistry(0.05),
     )
 
 
@@ -54,7 +54,7 @@ def test_dataset_d_invalid_end_to_end(dataset_d):
 
 
 def test_vix_unavailable_propagates(dataset_d2):
-    pipeline = build_pipeline(store=FakeFeatureStore(vix=None))
+    pipeline = build_pipeline(store=StubFeatureStore(vix=None))
     decision = pipeline.build(dataset_d2).decision
     assert decision.signal_validity == SignalValidity.UNAVAILABLE
     assert decision.rejection_reason == RejectionReason.VIX_UNAVAILABLE
@@ -63,7 +63,7 @@ def test_vix_unavailable_propagates(dataset_d2):
 
 
 def test_degraded_quality_gate(dataset_d2):
-    pipeline = build_pipeline(dq=FakeDataQualityRegistry(0.50))
+    pipeline = build_pipeline(dq=StubDataQualityRegistry(0.50))
     outcome = pipeline.build(dataset_d2)
     assert outcome.gate.first_failing_gate == GateState.DATA_QUALITY
     assert outcome.decision.signal_validity == SignalValidity.DEGRADED
@@ -122,6 +122,6 @@ def test_safe_mode_integration(dataset_d2):
     from meridian_fx.decision.registries import SafeModeConfig, SafeModeRegistry
 
     registry = SafeModeRegistry(SafeModeConfig(vix_floor=40.0))
-    decision = build_pipeline(store=FakeFeatureStore(45.0)).build(dataset_d2).decision
+    decision = build_pipeline(store=StubFeatureStore(45.0)).build(dataset_d2).decision
     snapshot = registry.evaluate(decision.pair, utcnow(), vix=45.0, data_quality_score=0.9)
     assert snapshot.state.value == "ON"  # safety daemon observes high-VIX state

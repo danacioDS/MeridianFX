@@ -46,7 +46,7 @@ class PipelineBridge:
         self.macro_transformer = MacroTransformer()
         self.differential_provider = MacroDifferentialProvider()
     
-    async def evaluate_pair(self, pair: str, horizon_days: int = 30) -> Dict[str, Any]:
+    async def evaluate_pair(self, pair: str, horizon_days: int = 5) -> Dict[str, Any]:
         """
         Evalúa un par usando el pipeline canónico.
         Versión async que obtiene el régimen macro correctamente.

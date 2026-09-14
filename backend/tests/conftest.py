@@ -21,10 +21,10 @@ from meridian_fx.decision.contracts import (
 )
 from meridian_fx.decision.contracts.providers import DataQualityStatus
 from meridian_fx.decision.validation.validate_integration import (
-    FakeDataQualityRegistry,
-    FakeDriftRegistry,
-    FakeFeatureStore,
-    FakeFreshnessRegistry,
+    StubDataQualityRegistry,
+    StubDriftRegistry,
+    StubFeatureStore,
+    StubFreshnessRegistry,
 )
 from meridian_fx.decision.validation.validate_integration import (
     scenario_dataset_d,
@@ -32,28 +32,28 @@ from meridian_fx.decision.validation.validate_integration import (
 )
 
 
-class FakeDataQualityRegistry2(FakeDataQualityRegistry):
+class StubDataQualityRegistry2(StubDataQualityRegistry):
     """Alias so tests may construct providers directly."""
 
 
 @pytest.fixture
 def store():
-    return FakeFeatureStore(vix=15.0)
+    return StubFeatureStore(vix=15.0)
 
 
 @pytest.fixture
 def dq_registry():
-    return FakeDataQualityRegistry(0.90)
+    return StubDataQualityRegistry(0.90)
 
 
 @pytest.fixture
 def freshness_registry():
-    return FakeFreshnessRegistry(3.0)
+    return StubFreshnessRegistry(3.0)
 
 
 @pytest.fixture
 def drift_registry():
-    return FakeDriftRegistry(0.05)
+    return StubDriftRegistry(0.05)
 
 
 @pytest.fixture
@@ -100,8 +100,8 @@ def dataset_d2():
 
 
 __all__ = [
-    "FakeFeatureStore",
-    "FakeDataQualityRegistry",
-    "FakeFreshnessRegistry",
-    "FakeDriftRegistry",
+    "StubFeatureStore",
+    "StubDataQualityRegistry",
+    "StubFreshnessRegistry",
+    "StubDriftRegistry",
 ]

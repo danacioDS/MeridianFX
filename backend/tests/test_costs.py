@@ -10,7 +10,7 @@ from meridian_fx.decision.filter import (
     PairCategory,
     VixUnavailableError,
 )
-from meridian_fx.decision.validation.validate_integration import FakeFeatureStore
+from meridian_fx.decision.validation.validate_integration import StubFeatureStore
 
 
 class TestCostCatalog:
@@ -65,14 +65,14 @@ class TestVixFromLayer4:
     def test_vix_from_feature_store(self):
         from datetime import datetime, timezone
 
-        store = FakeFeatureStore(vix=18.0)
+        store = StubFeatureStore(vix=18.0)
         as_of = datetime(2026, 1, 5, 10, 30, tzinfo=timezone.utc)
         assert CostCalculator.vix_from_feature_store("USDJPY", store, as_of=as_of) == pytest.approx(18.0)
 
     def test_vix_missing_raises(self):
         from datetime import datetime, timezone
 
-        store = FakeFeatureStore(vix=None)
+        store = StubFeatureStore(vix=None)
         with pytest.raises(VixUnavailableError):
             CostCalculator.vix_from_feature_store(
                 "USDJPY", store, as_of=datetime(2026, 1, 5, tzinfo=timezone.utc)

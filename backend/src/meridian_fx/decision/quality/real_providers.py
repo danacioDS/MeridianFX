@@ -1,6 +1,6 @@
 """Real providers for the Decision Pipeline (v2.6).
 
-Replaces FakeFeatureStore with a real VIX provider backed by Yahoo Finance.
+Replaces StubFeatureStore with a real VIX provider backed by Yahoo Finance.
 The other 3 registries (DataQuality, Freshness, Drift) remain Fake for now
 (deferred to v2.7).
 """
