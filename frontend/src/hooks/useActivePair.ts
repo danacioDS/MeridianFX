@@ -12,15 +12,20 @@ import type { RankingResponse } from "../types";
 export const DEFAULT_PAIR_UNIVERSE = [...FX_PAIRS];
 
 /**
- * Returns the pair universe from the ranking, or the MVP universe
- * when ranking data is unavailable.
+ * Returns the canonical pair universe.
+ *
+ * Historically this derived the universe from the ranking response, but
+ * after the v2.7 registry promotion gate the legacy ranking collapsed to
+ * a single pair (USD/CHF), which would have narrowed the entire UI to one
+ * pair. The canonical decision/risk/narrative pipelines still cover all
+ * 9 pairs, so the universe is now pinned to FX_PAIRS.
+ *
+ * The `ranking` argument is kept for backward compatibility but is no
+ * longer used to define the universe.
  */
 export function pairUniverseFromRanking(
-  ranking?: RankingResponse | null,
+  _ranking?: RankingResponse | null,
 ): string[] {
-  if (ranking?.opportunities?.length) {
-    return ranking.opportunities.map((opp) => opp.pair);
-  }
   return [...DEFAULT_PAIR_UNIVERSE];
 }
 

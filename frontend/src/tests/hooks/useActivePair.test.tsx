@@ -119,6 +119,11 @@ describe("pairUniverseFromRanking", () => {
     } satisfies RankingResponse;
 
     const result = pairUniverseFromRanking(ranking);
-    expect(result).toEqual(["EUR/USD", "GBP/USD", "USD/JPY"]);
+    // v2.7: the universe is pinned to FX_PAIRS regardless of the ranking.
+    // After the registry promotion gate, the legacy ranking collapsed to a
+    // single pair (USD/CHF); the canonical pipeline still covers all 9.
+    expect(result).toEqual([...FX_PAIRS]);
+    // Explicit: the ranking's pairs no longer influence the universe.
+    expect(result).not.toEqual(["EUR/USD", "GBP/USD", "USD/JPY"]);
   });
 });
