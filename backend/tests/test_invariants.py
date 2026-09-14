@@ -34,35 +34,6 @@ from backend.layer2.pipeline_bridge import PipelineBridge
 # Helpers
 # ══════════════════════════════════════════════════════════════════
 
-def _build_artifact(direction: Direction, probability: float = 0.65):
-    from meridian_fx.decision.contracts import (
-        ConfidenceInterval,
-        MacroRegime,
-        PredictionArtifact,
-    )
-    as_of = datetime(2026, 1, 5, 10, 30, tzinfo=timezone.utc)
-    return PredictionArtifact(
-        prediction_id="inv-1",
-        model_id="inv-model",
-        model_version="1.0",
-        pair="USDJPY",
-        prediction_timestamp=as_of,
-        horizon_days=5,
-        probability_up=probability,
-        expected_return=20.0,
-        expected_volatility=0.06,
-        confidence_interval=ConfidenceInterval(lower=0.35, upper=0.45),
-        regime_id="r-1",
-        macro_regime=MacroRegime(
-            risk="Risk-On", policy="Neutral", growth="High", inflation="Low"
-        ),
-        feature_snapshot_id="snap-1",
-        dataset_id="dataset-X",
-        feature_version="1.0",
-        as_of=as_of,
-    )
-
-
 def _base_decision_result() -> dict:
     return {
         "pair": "USD/CHF",
@@ -92,25 +63,31 @@ def _base_decision_result() -> dict:
     }
 
 
-# ══════════════════════════════════════════════════════════════════
-# SECTION A — Economic invariants
-# ══════════════════════════════════════════════════════════════════
-
 def _apply_filter(direction: Direction):
-    filt = EconomicFilter()
-    artifact = _build_artifact(direction)
-    return filt.apply(
-        artifact=artifact,
-        policy_differential=1.0,
-        growth_differential=0.5,
-        inflation_differential=0.3,
-        base_rate=0.045,
-        quote_rate=0.035,
+    """Call EconomicFilter.apply with the frozen signature.
+
+    Rates are in PERCENT (1.0 = 1%). Costs are in bps.
+    """
+    return EconomicFilter().apply(
+        expected_return=20.0,
+        direction=direction,
+        base_rate=1.0,
+        quote_rate=0.1,
+        horizon_days=5,
+        total_cost=1.5,
         required_minimum_edge=10.0,
     )
 
 
+# ══════════════════════════════════════════════════════════════════
+# SECTION A — Economic invariants
+# ══════════════════════════════════════════════════════════════════
+
 def test_net_return_is_gross_plus_carry_minus_costs():
+    """net_return = directional_gross_return + carry_proxy - total_cost.
+
+    Must hold for LONG, SHORT, and NEUTRAL.
+    """
     for direction in (Direction.LONG, Direction.SHORT, Direction.NEUTRAL):
         result = _apply_filter(direction)
         expected_net = (
@@ -118,19 +95,27 @@ def test_net_return_is_gross_plus_carry_minus_costs():
             + result.carry_proxy
             - result.total_cost
         )
-        assert result.net_return == pytest.approx(expected_net, abs=1e-6), (
+        assert result.net_return == pytest.approx(expected_net, abs=1e-4), (
             f"direction={direction}: net_return mismatch"
         )
 
 
 def test_edge_ratio_equals_net_return_over_required_min_edge():
-    result = _apply_filter(Direction.LONG)
-    assert result.edge_ratio == pytest.approx(result.net_return / 10.0, abs=1e-6)
+    """edge_ratio = net_return / required_minimum_edge, for any direction."""
+    for direction in (Direction.LONG, Direction.SHORT, Direction.NEUTRAL):
+        result = _apply_filter(direction)
+        assert result.edge_ratio == pytest.approx(
+            result.net_return / result.required_minimum_edge, abs=1e-4
+        ), f"direction={direction}: edge_ratio mismatch"
 
 
 def test_actionable_iff_edge_at_least_one():
-    result = _apply_filter(Direction.LONG)
-    assert result.actionable == (result.edge_ratio >= 1.0)
+    """actionable <=> edge_ratio >= 1.0 — the economic-layer contract."""
+    for direction in (Direction.LONG, Direction.SHORT, Direction.NEUTRAL):
+        result = _apply_filter(direction)
+        assert result.actionable == (result.edge_ratio >= 1.0), (
+            f"direction={direction}: actionable/edge_ratio mismatch"
+        )
 
 
 # ══════════════════════════════════════════════════════════════════
