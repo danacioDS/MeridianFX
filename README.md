@@ -4,7 +4,7 @@
 **A Stratus Intelligence Project**
 Developed by **Daniel Canedo, MSc in Economics**
 
-**Versión actual: v2.5.1** (baseline estable de ingeniería · tag `v2.5` · HEAD `c878c53`)
+**Versión actual: v2.7** (honesty & hardening release · tag `v2.7` pendiente)
 
 ---
 
@@ -12,9 +12,9 @@ Developed by **Daniel Canedo, MSc in Economics**
 
 Meridian FX es una plataforma cuantitativa de inteligencia FX que transforma datos de mercado, indicadores macroeconómicos y señales textuales en **inteligencia financiera accionable, trazable, explicable y medible**.
 
-No produce únicamente predicciones. Produce **salidas de decisión estructuradas con gobernanza completa**: cada forecast se descompone en drivers económicos (SHAP), contexto de régimen macro, sentimiento de bancos centrales basado en RAG, y condiciones explícitas de invalidación.
+No produce únicamente predicciones. Produce **salidas de decisión estructuradas con gobernanza completa**: cada forecast se descompone en drivers económicos (SHAP), contexto de régimen macro, sentimiento de bancos centrales basado en keywords, y condiciones explícitas de invalidación.
 
-**Scope actual:** 9 pares FX (USD/JPY, EUR/USD, GBP/USD, USD/CNY, USD/MXN, USD/BRL, USD/ARS, USD/BOB, USD/CHF) con horizontes de forecast a 30/60/90 días.
+**Scope actual:** 9 pares FX (USD/JPY, EUR/USD, GBP/USD, USD/CNY, USD/MXN, USD/BRL, USD/ARS, USD/BOB, USD/CHF) con horizonte canónico de 5 días (ver *Horizon semantics* en Current Limitations).
 
 ---
 
@@ -67,7 +67,7 @@ No produce únicamente predicciones. Produce **salidas de decisión estructurada
 |-------|-----|------------|
 | **Layer 1** — Delivery API | REST endpoints, response contracts | FastAPI, Uvicorn, Pydantic |
 | **Layer 2** — Live Engine | Logistic_24 + XGBoost + SHAP + PIT | Python, scikit-learn, XGBoost, SHAP |
-| **Layer 3** — Research | Walk-forward, benchmarks, RAG | Python, ARIMA, Elastic Net, Ensemble |
+| **Layer 3** — Research | Walk-forward, benchmarks, keyword sentiment | Python, ARIMA, Elastic Net, Ensemble |
 | **Layer 4** — Data Quality | PIT validation, Lineage, Config | Python, PITValidator |
 | **Frontend** — Dashboard | Contract-driven presentational UI | React 18, TypeScript 5, Vite 5, Tailwind 3 |
 
@@ -108,14 +108,14 @@ No produce únicamente predicciones. Produce **salidas de decisión estructurada
 ### 📊 Global Intelligence
 - Market Intelligence hero (system-wide status)
 - SignalIQ-style price chart con hover interactivo
-- Forecasts Logistic_24 a 30/60/90 días con intervalos de confianza al 95%
+- Forecasts Logistic_24 (target 5d) con intervalos de confianza al 95%
 - Opportunity ranking con edge ratio y actionable status
 - Leading signals (top 5 oportunidades)
 
 ### 📈 Market
 - Precio spot + chart histórico OHLCV
 - Trend cards (1m / 3m / 6m / 1y)
-- Forecast 30/60/90 días
+- Forecast con horizonte 5d (el parámetro `horizon_days` escala volatilidad)
 
 ### 🌐 Macro
 - Macro regime (4 ejes: risk / policy / growth / inflation)
@@ -132,7 +132,7 @@ No produce únicamente predicciones. Produce **salidas de decisión estructurada
 - **Economic Breakdown** (gross, carry, cost, net, edge, required min)
 - **Hard Gates** (7 filters + thresholds)
 - **Quality Metrics** (score + 5 components)
-- **Signal Fusion** (quant/macro/rag weights)
+- **Signal Fusion** (quant/macro/sentiment weights)
 - Position sizing + multipliers
 - SHAP drivers (top 10)
 
@@ -257,7 +257,7 @@ VITE_API_URL=https://meridianfx.onrender.com
 |----------|--------|-------------|
 | `/v1/status` | GET | System status (StatusEngine) |
 | `/v1/market-intelligence` | GET | English narrative synthesis |
-| `/v1/fx/ranking` | GET | Opportunity ranking (9 pairs) |
+| `/v1/fx/ranking` | GET | Opportunity ranking (legacy registry; 1 pair active post-gate) |
 | `/v1/fx/{base}/{quote}/forecast` | GET | Point forecast (Logistic_24) |
 | `/v1/fx/{pair}/forecast-dashboard` | GET | Full dashboard (trends, volatility, forecasts) |
 | `/v1/fx/{pair}/price` | GET | Spot + historical OHLCV |
@@ -301,13 +301,14 @@ El frontend es **contract-driven**. Todos los datos de dominio vienen de los con
 | v2.4 | Sep 2026 | Frontend rebuild (6 canonical pages) |
 | v2.5 | Sep 2026 | Engineering baseline + 6/6 page audit |
 | **v2.5.1** | **Sep 2026** | **Repo cleanup + model normalization** |
+| **v2.7** | **Sep 2026** | **Registry promotion gate, stub→honest renames, 5d horizon semantics, LLM narrative + provenance, 9-pair universe fix, Docker models/ fix, UI honesty pass** |
 
 ---
 
 
 ---
 
-## Current Limitations (v2.5.1)
+## Current Limitations (v2.7)
 
 This section documents the known gaps between the product's marketing and
 the current state of the code. It exists to make the project's boundaries
@@ -316,9 +317,9 @@ explicit rather than implicit.
 ### Data quality governance
 
 - **`StubDataQualityRegistry`, `StubFreshnessRegistry`, `StubDriftRegistry`**
-  return fixed placeholder values (`0.90`, `3.0`, `0.05`) pending v2.7.
-  The "Quality Metrics" and "Data Quality: good" scores shown in the UI
-  are **not measurements**; they are placeholders.
+  return fixed placeholder values (`0.90`, `3.0`, `0.05`).
+  The UI labels them with a **⚠ STUB badge** (QualityMetrics component);
+  they are **not measurements** and must not be read as governance.
 - Only **VIX** (`RealFeatureStore`) and **macro data** (FRED, when the API
   key is present) come from real sources in the canonical pipeline.
 

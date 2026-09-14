@@ -86,7 +86,7 @@ class PITTestRunner:
         self.results.append(result)
         return result.passed
     
-    def run_all(self, feature: Dict[str, Any], 
+    def run_all(self, feature: Dict[str, Any], prediction_timestamp: str) -> Dict[str, Any]:
         """Run all 5 tests on a feature."""
         results = {
             "T1": self.test_t1_feature_availability(feature, prediction_timestamp),
@@ -121,8 +121,6 @@ class PITTestRunner:
         """Run all 5 tests including T3."""
         results = self.run_all(feature, prediction_timestamp)
         results["T3"] = self.test_t3_pit_propagation(derived, inputs)
-        return results/g
-                prediction_timestamp: datetime) -> Dict[str, bool]:
         """Run all 5 tests on a feature."""
         results = {
             'T1': self.test_t1_feature_availability(feature, prediction_timestamp),

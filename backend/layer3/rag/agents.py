@@ -108,7 +108,7 @@ class CentralBankSentimentEngine:
         """
         Process Federal Reserve communication.
         
-        §6.1: FOMC statements, press conferences, meeting minutes
+        Section 6.1: FOMC statements, press conferences, meeting minutes
         """
         sentiment = self._extract_sentiment(text)
         expectation_gap = sentiment - expected_sentiment
@@ -129,7 +129,7 @@ class CentralBankSentimentEngine:
         """
         Process Bank of Japan communication.
         
-        §6.1: Policy statements, press conferences, outlook report
+        Section 6.1: Policy statements, press conferences, outlook report
         """
         sentiment = self._extract_sentiment(text)
         expectation_gap = sentiment - expected_sentiment
@@ -149,7 +149,7 @@ class CentralBankSentimentEngine:
         """
         Get RAG features for model input.
         
-        §6.3: RAG outputs as features
+        Section 6.3: RAG outputs as features
         """
         return {
             'fed_sentiment_score': fed_signal.sentiment_score,
