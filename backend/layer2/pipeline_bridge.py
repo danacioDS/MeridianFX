@@ -4,7 +4,8 @@ Reutiliza DecisionEngineAdapter para construir PredictionArtifact.
 """
 
 from typing import Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import asyncio
 
 from backend.src.meridian_fx.decision.pipeline import DecisionPipeline, PipelineInputs
 from backend.src.meridian_fx.decision.contracts import PredictionArtifact
@@ -45,8 +46,55 @@ class PipelineBridge:
         self.macro_service = MacroService()
         self.macro_transformer = MacroTransformer()
         self.differential_provider = MacroDifferentialProvider()
+
+        # --- Cache de decisión (in-memory, por bucket de minuto) ---
+        self._decision_cache: Dict[str, tuple[datetime, Dict[str, Any]]] = {}
+        self._cache_lock = asyncio.Lock()
+        self._cache_ttl = timedelta(minutes=1)
     
-    async def evaluate_pair(self, pair: str, horizon_days: int = 5) -> Dict[str, Any]:
+    async def evaluate_pair(
+        self,
+        pair: str,
+        horizon_days: int = 5,
+        *,
+        force_refresh: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Evalúa un par usando el pipeline canónico.
+
+        Cache-first por bucket de minuto. Dentro del mismo minuto, dos
+        llamadas devuelven exactamente el mismo decision_result (mismo
+        as_of, mismo net_return, misma narrative_key).
+
+        force_refresh=True salta el cache y repuebla.
+        """
+        bucket = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M")
+        cache_key = f"{pair}|{horizon_days}|{bucket}"
+
+        async with self._cache_lock:
+            hit = self._decision_cache.get(cache_key)
+            if hit and not force_refresh:
+                stored_at, cached_result = hit
+                if datetime.now(timezone.utc) - stored_at < self._cache_ttl:
+                    result = dict(cached_result)
+                    result["_cache"] = {"hit": True, "bucket": bucket}
+                    return result
+
+        result = await self._evaluate_pair_uncached(pair, horizon_days)
+
+        async with self._cache_lock:
+            now = datetime.now(timezone.utc)
+            self._decision_cache[cache_key] = (now, result)
+            cutoff = now - self._cache_ttl
+            self._decision_cache = {
+                k: v for k, v in self._decision_cache.items() if v[0] > cutoff
+            }
+
+        result = dict(result)
+        result["_cache"] = {"hit": False, "bucket": bucket}
+        return result
+
+    async def _evaluate_pair_uncached(self, pair: str, horizon_days: int = 5) -> Dict[str, Any]:
         """
         Evalúa un par usando el pipeline canónico.
         Versión async que obtiene el régimen macro correctamente.
