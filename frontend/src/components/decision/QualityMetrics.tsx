@@ -114,11 +114,20 @@ export function QualityMetrics({
         />
       </div>
 
-      {/* Data quality label */}
-      <div className="text-xs text-muted flex items-center gap-1.5">
-        Data Quality:{" "}
-        <span className="text-ink font-medium">{components.data_quality}</span>
-        <StubBadge tooltip="Placeholder value, not a live measurement — see README Current Limitations." />
+      {/* Data quality label — `data_quality` is a backend categorical state
+          (good / acceptable / degraded). The NUMERIC score above it is the
+          placeholder; the badge clarifies which part is stubbed. */}
+      <div className="text-xs text-muted flex items-center gap-2 flex-wrap">
+        <span>
+          Data Quality:{" "}
+          <span className="text-ink font-medium">{components.data_quality}</span>
+        </span>
+        <span
+          title="The numeric score above is a placeholder. `data_quality` (good/acceptable/degraded) is a backend state — see README Current Limitations."
+          className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-amber-soft text-amber cursor-help"
+        >
+          ⚠ STUB SCORE
+        </span>
       </div>
 
       {/* Fallback status badges */}

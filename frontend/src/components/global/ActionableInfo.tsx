@@ -56,13 +56,12 @@ export function ActionableInfo({
               - Slippage - Fees
             </div>
             <div>
-              <span className="text-muted">3. Edge Ratio =</span> |Net Return| /
-              Volatility
+              <span className="text-muted">3. Edge Ratio =</span> Net Return /
+              Required Minimum Edge
             </div>
             <div>
-              <span className="text-muted">4. Actionable =</span> Edge Ratio ≥{" "}
-              {hasEvaluation ? requiredMinimumEdge : "[del sistema]"}{" "}
-              <span className="text-muted">AND</span> Net Return &gt; 0
+              <span className="text-muted">4. Actionable when:</span>{" "}
+              Edge Ratio ≥ 1.0 <span className="text-muted">AND</span> all hard gates pass
             </div>
           </div>
           <div className="mt-2 text-xs text-muted border-t border-border pt-2">
@@ -90,13 +89,13 @@ export function ActionableInfo({
           </p>
           {hasEvaluation && (
             <div className="mt-2 flex items-center gap-2 text-xs">
-              <span className="text-bull">✅ Pasa:</span>
+              <span className="text-bull">✅ Actionable:</span>
               <span className="text-text-secondary">
-                Edge ≥ {requiredMinimumEdge}
+                Edge Ratio ≥ 1.0
               </span>
-              <span className="text-bear ml-2">❌ No pasa:</span>
+              <span className="text-bear ml-2">❌ Not actionable:</span>
               <span className="text-text-secondary">
-                Edge &lt; {requiredMinimumEdge}
+                Edge Ratio &lt; 1.0
               </span>
             </div>
           )}
@@ -108,29 +107,25 @@ export function ActionableInfo({
         {hasEvaluation ? (
           <>
             <div>
-              🔹 <span className="text-text-primary">Umbral Edge Mínimo:</span>{" "}
-              {requiredMinimumEdge}x
+              🔹 <span className="text-text-primary">Required Minimum Edge:</span>{" "}
+              {requiredMinimumEdge.toFixed(2)} bps
             </div>
             <div>
-              💡 <span className="text-text-primary">Interpretación:</span> "No
-              edge" = no supera el umbral
+              💡 <span className="text-text-primary">Interpretación:</span>{" "}
+              Edge Ratio &lt; 1.0 means Net Return is below the required minimum.
             </div>
           </>
         ) : (
           <div className="w-full">
             <div>
-              ⚠️{" "}
+              ℹ️{" "}
               <span className="text-text-primary">
-                Economic evaluation unavailable
+                No economic evaluation is available for this pair.
               </span>
             </div>
-            <div className="mt-1">
-              Reason:{" "}
-              <span className="font-mono">MODEL_UNAVAILABLE</span>
-            </div>
             <div className="mt-1 text-[11px]">
-              El backend no ha calculado el umbral mínimo para este par.
-              No se muestran valores por defecto.
+              The backend did not provide the minimum required edge, so no
+              default value is shown. See the Model divergence notice for context.
             </div>
           </div>
         )}

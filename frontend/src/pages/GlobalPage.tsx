@@ -28,10 +28,17 @@ import { useMarketIntelligence } from "../hooks/useMarketIntelligence";
  */
 function ModelDivergenceNotice(): JSX.Element {
   return (
-    <div className="text-xs font-mono px-3 py-2 rounded-lg bg-amber-soft text-amber border border-line">
-      ⚠ Model divergence — Global ranking (legacy registry model) and the
-      canonical Decision pipeline use different models and may produce
-      different signals for the same pair.
+    <div className="space-y-2 mb-4">
+      <div className="text-xs font-mono px-3 py-2 rounded-lg bg-amber-soft text-amber border border-line">
+        ⚠ Model divergence — Global ranking (legacy registry model) and the
+        canonical Decision pipeline use different models and may produce
+        different signals for the same pair.
+      </div>
+      <div className="text-xs font-mono px-3 py-2 rounded-lg bg-panel-2 text-muted border border-line">
+        ℹ The three horizons use the same Logistic_24 signal, with expected
+        return scaled by volatility for 30/60/90 days. They are not separate
+        multi-horizon models.
+      </div>
     </div>
   );
 }
@@ -195,6 +202,8 @@ export function GlobalPage(): JSX.Element {
                 🔮 Logistic_24 Forecast
               </h3>
 
+              <ModelDivergenceNotice />
+
               {data.forecasts && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -214,7 +223,6 @@ export function GlobalPage(): JSX.Element {
                           key={h}
                           className="p-4 bg-panel-2 rounded-lg border border-line"
                         >
-        <ModelDivergenceNotice />
                           <div className="text-xs text-muted">{h}</div>
 
                           <div
