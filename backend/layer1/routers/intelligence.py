@@ -40,15 +40,25 @@ def _build_context(ranking: Dict[str, Any]) -> Dict[str, Any]:
 
     if actionable:
         context = (
-            f"The current MeridianFX decision layer identifies "
-            f"{len(actionable)} actionable opportunity "
-            f"{'across the monitored FX universe' if len(actionable) > 1 else 'in the monitored FX universe'}."
+            f"The decision layer has identified {len(actionable)} actionable "
+            f"opportunity"
+            f"{'ies' if len(actionable) > 1 else ''} "
+            f"across the monitored FX universe. An actionable signal "
+            f"means: the model has a directional view, the expected return "
+            f"after costs (net return) is large enough to exceed the "
+            f"required minimum edge, and all hard gates have passed."
         )
     else:
         context = (
-            "The current MeridianFX decision layer remains selective. "
-            "No monitored opportunity currently satisfies the full economic "
-            "criteria required for an actionable signal."
+            "The MeridianFX decision layer is currently SELECTIVE. This "
+            "means the system has evaluated every pair in the monitored "
+            "universe and found that none currently satisfies the full "
+            "set of economic criteria required for an actionable signal. "
+            "In practical terms: a model may have a directional view, but "
+            "the expected profit after transaction costs is not large "
+            "enough, relative to the required minimum edge, to justify "
+            "exposure. The system therefore prefers no position over a "
+            "marginal one."
         )
 
     return {
@@ -201,10 +211,12 @@ def _build_selected_pair_view(
         return {
             "pair": pair,
             "available": False,
-            "reason": "PAIR_NOT_IN_UNIVERSE",
+            "reason": "PAIR_NOT_IN_RANKING",
             "narrative": (
-                f"{pair} no forma parte del universo monitoreado "
-                f"({len(opportunities)} pares)."
+                f"{pair} is not part of the monitored ranking universe. "
+                f"The ranking currently tracks {len(opportunities)} pair(s) "
+                f"that passed the registry promotion gate. The canonical "
+                f"Decision pipeline still evaluates this pair separately."
             ),
         }
 
@@ -219,21 +231,22 @@ def _build_selected_pair_view(
     # Narrative depends on the state
     if actionable:
         narrative = (
-            f"{pair} pasa el filtro económico. "
-            f"Dirección {direction_label} con confianza {confidence * 100:.1f}% "
-            f"y edge {edge_ratio:.2f}x."
+            f"{pair} passes the economic filter. "
+            f"Direction: {direction_label}, confidence {confidence * 100:.1f}%, "
+            f"edge {edge_ratio:.2f}x."
         )
         status = "ACTIONABLE"
     elif edge_ratio == 0 and confidence == 0:
         narrative = (
-            f"{pair} no es accionable. Edge {edge_ratio:.2f}x por debajo del umbral. "
-            f"El resto del universo se mantiene SELECTIVE."
+            f"{pair} is not actionable. Edge {edge_ratio:.2f}x is below the "
+            f"threshold. The rest of the universe remains SELECTIVE."
         )
         status = "NOT_ACTIONABLE"
     else:
         narrative = (
-            f"{pair} no es accionable. Edge {edge_ratio:.2f}x por debajo del umbral. "
-            f"El mercado FX se mantiene SELECTIVE — ningún par supera el filtro económico hoy."
+            f"{pair} is not actionable. Edge {edge_ratio:.2f}x is below the "
+            f"threshold. The FX market remains SELECTIVE — no pair "
+            f"currently exceeds the economic filter."
         )
         status = "NOT_ACTIONABLE"
 
@@ -272,8 +285,10 @@ def _build_interpretation_for_pair(
 
     if selected is None:
         return [
-            f"{pair} no forma parte del universo monitoreado.",
-            "El analisis global sigue disponible.",
+            f"{pair} is not part of the monitored ranking universe.",
+            "The ranking currently tracks only pairs that passed the "
+            "registry promotion gate. The canonical Decision pipeline "
+            "still evaluates this pair separately.",
         ]
 
     direction = _direction_label(selected.get("direction", "NEUTRAL"))
@@ -284,23 +299,28 @@ def _build_interpretation_for_pair(
     quality = selected.get("decision_quality", "LOW")
 
     interpretation = [
-        f"{pair} esta clasificado como {'ACCIONABLE' if actionable else 'NO ACCIONABLE'}.",
-        f"Direccion {direction} con confianza {confidence * 100:.1f}% y calidad {quality}.",
-        f"Edge {edge:.2f}x.",
+        f"{pair} is classified as "
+        f"{'ACTIONABLE' if actionable else 'NOT ACTIONABLE'}.",
+        f"Direction: {direction}, confidence {confidence * 100:.1f}%, "
+        f"quality {quality}.",
+        f"Edge: {edge:.2f}x.",
     ]
 
     if actionable:
         interpretation.append(
-            "La senal pasa el filtro economico y merece evaluacion adicional para exposicion."
+            "The signal passes the economic filter and warrants further "
+            "evaluation for exposure."
         )
     else:
         interpretation.append(
-            "La senal no supera el umbral economico. El resto del universo se mantiene SELECTIVE."
+            "The signal does not exceed the economic threshold. The rest "
+            "of the universe remains SELECTIVE."
         )
 
     if rank is not None:
         interpretation.append(
-            f"Ranking: posicion #{rank} de {len(opportunities)} pares monitoreados."
+            f"Ranking: position #{rank} of {len(opportunities)} monitored "
+            f"pairs."
         )
 
     return interpretation
@@ -368,7 +388,12 @@ def _build_summary_for_pair(
     )
 
     if selected is None:
-        return f"{pair} no forma parte del universo monitoreado."
+        return (
+            f"{pair} is not part of the monitored ranking universe. "
+            f"The ranking currently tracks only pairs that passed the "
+            f"registry promotion gate. See the Decision page for the "
+            f"canonical evaluation of this pair."
+        )
 
     direction = _direction_label(selected.get("direction", "NEUTRAL"))
     confidence = selected.get("confidence", 0.0)
@@ -377,15 +402,15 @@ def _build_summary_for_pair(
 
     if actionable:
         return (
-            f"{pair} pasa el filtro economico con direccion {direction}, "
-            f"confianza {confidence * 100:.1f}% y edge {edge:.2f}x. "
-            f"Merece evaluacion adicional para exposicion."
+            f"{pair} passes the economic filter with direction {direction}, "
+            f"confidence {confidence * 100:.1f}%, and edge {edge:.2f}x. "
+            f"It warrants further evaluation for exposure."
         )
 
     return (
-        f"{pair} no es accionable. Direccion {direction}, "
-        f"confianza {confidence * 100:.1f}%, edge {edge:.2f}x. "
-        f"El resto del universo se mantiene SELECTIVE."
+        f"{pair} is not actionable. Direction: {direction}, "
+        f"confidence {confidence * 100:.1f}%, edge {edge:.2f}x. "
+        f"The rest of the universe remains SELECTIVE."
     )
 
 
