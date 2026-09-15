@@ -22,6 +22,9 @@ from datetime import datetime
 
 from pydantic import ValidationError
 
+from .contracts.exchange_regime import (
+    ForecastEligibility,
+)
 from .contracts import (
     ConfidenceCalculator,
     DataQualityRegistry,
@@ -85,6 +88,12 @@ class PipelineInputs:
     required_data_missing: bool = False
     macro_status: str = "UNAVAILABLE"  # FULL | PARTIAL | UNAVAILABLE
 
+    # KI-009: forecast eligibility gate. ELIGIBLE is the default, so
+    # existing PipelineInputs instantiations are unaffected. When the
+    # value is not ELIGIBLE, DecisionPipeline.build() short-circuits
+    # into a RESTRICTED decision and does NOT run the scoring pipeline.
+    forecast_eligibility: "ForecastEligibility" = ForecastEligibility.ELIGIBLE
+
     # PIT availability (Layer 4 Synthetic Datasets D / D2 acceptance)::
     #   D  → derived.available_time < max(inputs)  → Gate #2 INVALID
     #   D2 → derived.available_time == max(inputs) → Gate #2 VALID
@@ -139,6 +148,14 @@ class DecisionPipeline:
         # branches so Decision.timestamp reflects the start of the
         # decision, not the moment a specific branch was reached.
         decision_timestamp = utcnow()
+
+        # ---- KI-009: Forecast eligibility gate -----------------------------
+        # If the pair's exchange regime is not eligible (administered,
+        # managed float, unknown, insufficient data), the pipeline does
+        # NOT score. The decision is returned as RESTRICTED with an
+        # explicit reason. No silent hiding.
+        if inputs.forecast_eligibility != ForecastEligibility.ELIGIBLE:
+            return self._restricted_decision(inputs, decision_timestamp)
 
         # ---- Signals (§3) --------------------------------------------------
         quant = raw_quant_score(artifact.probability_up)
@@ -352,6 +369,44 @@ class DecisionPipeline:
         )
         return DecisionPipelineResult(decision=decision, vix=None)
 
+    def _restricted_decision(
+        self,
+        inputs: PipelineInputs,
+        decision_timestamp: datetime,
+    ) -> DecisionPipelineResult:
+        """KI-009: short-circuit for pairs whose exchange regime is not
+        eligible for directional forecasting.
+
+        The current Logistic_24 model uses 23 technical features + 1 macro
+        feature. For administered or managed-float pairs, technical
+        analysis of the market price is not informative because the price
+        does not clear through market forces. The pipeline returns
+        RESTRICTED without scoring.
+
+        The specific eligibility value (RESTRICTED, UNKNOWN,
+        INSUFFICIENT_DATA) is preserved on the returned Decision so
+        consumers can distinguish reasons.
+        """
+        artifact = inputs.artifact
+        decision = Decision(
+            decision_id=str(uuid.uuid4()),
+            prediction_id=artifact.prediction_id,
+            pair=artifact.pair,
+            timestamp=decision_timestamp,
+            as_of=artifact.as_of,
+            horizon_days=artifact.horizon_days,
+            actionable=False,
+            direction=Direction.NEUTRAL,
+            confidence=0.0,
+            edge_ratio=0.0,
+            net_return=0.0,
+            position_size=0.0,
+            rejection_reason=None,
+            signal_validity=SignalValidity.UNAVAILABLE,
+            forecast_eligibility=inputs.forecast_eligibility,
+        )
+        return DecisionPipelineResult(decision=decision, vix=None)
+
     def _invalid_edge_decision(
         self,
         inputs: PipelineInputs,
@@ -379,4 +434,3 @@ class DecisionPipeline:
         return DecisionPipelineResult(
             decision=decision, signals=signals, regime=regime, vix=None
         )
-

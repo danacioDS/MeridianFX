@@ -48,6 +48,9 @@ def test_decision_has_exact_prompt_1_field_set():
         "horizon_days", "actionable", "direction", "confidence",
         "edge_ratio", "net_return", "position_size", "rejection_reason",
         "signal_validity", "created_at",
+        # KI-009: forecast eligibility gate (added after Prompt 1).
+        # None for decisions built outside DecisionPipeline.
+        "forecast_eligibility",
     }
     assert set(dumped) == expected
 

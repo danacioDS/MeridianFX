@@ -33,6 +33,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .exchange_regime import ForecastEligibility
 from .fusion import Direction
 from .time import ensure_utc, utcnow
 
@@ -88,6 +89,11 @@ class Decision(BaseModel):
     rejection_reason: RejectionReason | None = None
     signal_validity: SignalValidity
     created_at: datetime = Field(default_factory=utcnow)
+
+    # KI-009: forecast eligibility gate. If not ELIGIBLE, the decision is
+    # RESTRICTED and the pipeline short-circuits before scoring.
+    # None is reserved for decisions built outside DecisionPipeline.
+    forecast_eligibility: ForecastEligibility | None = None
 
     # Temporal invariants (PIT-5): all timestamps timezone-aware UTC.
     _tz_checked = field_validator("timestamp", "as_of", "created_at")(ensure_utc)

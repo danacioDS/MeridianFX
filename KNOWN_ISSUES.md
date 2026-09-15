@@ -617,6 +617,76 @@ alongside the PIT audit of macro data.
 
 ---
 
+## KI-009 — Exchange regime classification and forecast eligibility
+
+**Status:** partially resolved
+**Detected:** 2026-09-15
+**Components:**
+- `backend/src/meridian_fx/decision/contracts/exchange_regime.py` (new)
+- `backend/src/meridian_fx/decision/contracts/decision.py`
+- `backend/src/meridian_fx/decision/pipeline.py`
+- `backend/layer2/pipeline_bridge.py`
+
+### Description
+
+The current `Logistic_24` model uses 23 technical features (RSI, SMA,
+MACD, Bollinger, ADX, ...) plus 1 macro feature (`policy_diff`). For
+pairs in administered or managed-float regimes (USD/BOB, USD/ARS,
+USD/CNY), technical analysis of the market price is not informative
+because the price does not clear through market forces.
+
+Before this change, `/v1/canonical/USD/BOB/decision` would produce a
+directional forecast (e.g. "▲ LONG · ACTIONABLE · edge 36×") derived
+exclusively from technical indicators over a price series that is not
+market-determined. This is economically incorrect and misleading.
+
+### Resolution (partial)
+
+A pre-model gate is introduced:
+
+    ExchangeRegime  +  FundamentalCoverage
+        → ForecastEligibility
+
+- `ExchangeRegime` classifies how a pair's price is determined:
+  `FREE_FLOAT | MANAGED_FLOAT | ADMINISTERED | UNKNOWN`.
+- `ForecastEligibility` decides whether the pipeline may produce a
+  directional forecast: `ELIGIBLE | RESTRICTED | INSUFFICIENT_DATA | UNKNOWN`.
+- `DecisionPipeline.build()` short-circuits into a RESTRICTED decision
+  when eligibility is not ELIGIBLE, WITHOUT running the scoring pipeline.
+
+### Provisional classification
+
+    FREE_FLOAT:       USD/JPY, EUR/USD, GBP/USD, USD/CHF, USD/MXN, USD/BRL
+    MANAGED_FLOAT:    USD/CNY
+    UNKNOWN:          USD/BOB, USD/ARS (pending primary-source verification)
+
+**Note:** USD/BOB and USD/ARS are NOT classified as `ADMINISTERED` yet.
+The classification requires verification against the primary source
+(BCB, BCRA) with an effective date. Until then, `get_exchange_regime()`
+returns `UNKNOWN`, and the pipeline short-circuits to an UNKNOWN
+eligibility decision rather than a directional forecast.
+
+### Residual scope (v3.0)
+
+- The gate prevents incorrect forecasts but does NOT yet provide a
+  fundamental model. Predicting administered-regime pairs correctly
+  requires fundamental features (reserves, monetary base, fiscal
+  balance, central bank intervention signals) plus a PIT pipeline for
+  those features.
+- The classification registry is provisional. Verifying each regime
+  against a primary source is tracked separately.
+- See `docs/fundamental_features/` (planned) for the fundamental
+  feature pipeline.
+
+### Test coverage
+
+`backend/tests/test_exchange_regime.py` (10 tests) covers:
+- Pair classification (free float, managed float, unknown).
+- Eligibility computation (all 4 regimes + insufficient coverage).
+- Registry consistency.
+
+---
+
 ## A3 — `policy_diff` PIT audit
 
 **Status:** open

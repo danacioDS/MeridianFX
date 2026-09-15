@@ -10,6 +10,14 @@ from .decision import (
     RejectionReason,
     SignalValidity,
 )
+from .exchange_regime import (
+    EXCHANGE_REGIME_BY_PAIR,
+    ExchangeRegime,
+    ForecastEligibility,
+    FundamentalCoverage,
+    compute_forecast_eligibility,
+    get_exchange_regime,
+)
 from .fusion import (
     ConfidenceCalculator,
     ConfidenceResult,
@@ -60,6 +68,12 @@ __all__ = [
     "DecisionContext",
     "RejectionReason",
     "SignalValidity",
+    "ExchangeRegime",
+    "FundamentalCoverage",
+    "ForecastEligibility",
+    "EXCHANGE_REGIME_BY_PAIR",
+    "get_exchange_regime",
+    "compute_forecast_eligibility",
     "FusionEngine",
     "FusionResult",
     "RegimeWeights",
