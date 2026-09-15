@@ -13,6 +13,10 @@ Issue statuses:
 - **resolved** — fully addressed, with a reference to the resolving
   commit or version.
 - **registered** — acknowledged, awaiting decision or scope.
+- **documented as incomplete** — the code exists in the tree, is
+  explicitly marked INCOMPLETE in its own docstrings, and its current
+  limitations are captured here. It is not broken (it fails safely);
+  it is not functional either. Tracked so no caller assumes it works.
 
 Issue IDs are stable and never renumbered.
 
@@ -307,7 +311,7 @@ deciding first.
 
 ## KI-008 — Incomplete macro providers (CNBS, ECB official)
 
-**Status:** open
+**Status:** documented as incomplete
 **Detected:** 2026-09-14
 **Component:**
 - `backend/layer2/data/macro/providers/cnbs.py:97`

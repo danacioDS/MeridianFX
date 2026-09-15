@@ -9,6 +9,12 @@ Indicadores:
 - Deposit Facility Rate (DFR)
 - Main Refinancing Operations Rate (MRO)
 - Marginal Lending Facility Rate (MLF)
+
+⚠️  INCOMPLETE — see KNOWN_ISSUES.md KI-008.
+    This provider is scaffolded but NOT wired into any chain. It returns
+    available=False unconditionally. Do NOT add it to ChainEURProvider
+    until the ECB API integration is implemented. Kept in the tree as a
+    reference for v3.0.
 """
 
 import logging
@@ -25,8 +31,10 @@ logger = logging.getLogger(__name__)
 class ECBOfficialProvider(CountryMacroProvider):
     """
     Proveedor de datos macro de la Eurozona via ECB API oficial.
-    
-    TODO: Implementar integración con la API oficial de la ECB.
+
+    ⚠️  INCOMPLETE — see KNOWN_ISSUES.md KI-008.
+    Scaffolded but not implemented. Returns available=False unconditionally.
+    Not wired into any chain.
     """
 
     def __init__(self):

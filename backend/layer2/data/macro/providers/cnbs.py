@@ -12,6 +12,12 @@ Indicadores disponibles:
 
 Este provider NO genera datos simulados. Si la API no responde o no
 entrega datos válidos, available=False.
+
+⚠️  INCOMPLETE — see KNOWN_ISSUES.md KI-008.
+    The NBS API call and response parser are scaffolded but not
+    implemented. This provider currently returns available=False
+    unconditionally. It IS wired into ChainCNYProvider and the chain
+    falls through to World Bank when this provider is unavailable.
 """
 
 import logging
@@ -70,27 +76,17 @@ class CNBSProvider(CountryMacroProvider):
         return context
 
     async def _fetch_nbs_data(self) -> Optional[Dict[str, Any]]:
-        """Obtiene datos de la API de NBS."""
-        try:
-            # Parámetros para obtener datos económicos de China
-            params = {
-                "m": "QueryData",
-                "dbcode": "hgyd",
-                "rowcode": "reg",
-                "colcode": "sj",
-                "wds": "[]",
-                "dfwds": '[]',
-            }
-            
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                response = await client.get(self._base_url, params=params)
-                if response.status_code == 200:
-                    return response.json()
-                logger.warning(f"NBS API error: {response.status_code}")
-                return None
-        except Exception as e:
-            logger.error(f"NBS request failed: {e}")
-            return None
+        """Obtiene datos de la API de NBS.
+
+        INCOMPLETE — see KNOWN_ISSUES.md KI-008.
+
+        The NBS response structure is not yet mapped (`_parse_nbs_response`
+        returns a hard-coded unavailable context). To avoid an unnecessary
+        network call whose result would be discarded, this method returns
+        None until both the API call and the parser are implemented.
+        """
+        # TODO(KI-008): implement NBS API call + response parser.
+        return None
 
     def _parse_nbs_response(self, data: Dict[str, Any]) -> CountryMacroContext:
         """Parsea la respuesta de NBS."""

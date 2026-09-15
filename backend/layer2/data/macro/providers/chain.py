@@ -77,7 +77,10 @@ class ChainCNYProvider(CountryMacroProvider):
         if not force_refresh and self._cache:
             return self._cache
 
-        # 1. Intentar CNBS/NBS primero
+        # 1. Intentar CNBS/NBS primero.
+        #    CNBS is currently INCOMPLETE (KI-008) and returns
+        #    available=False unconditionally. The chain falls through
+        #    to World Bank.
         cnbs_context = await self._cnbs.get_context(force_refresh=force_refresh)
         if cnbs_context.available:
             logger.info("CNY: usando datos de CNBS/NBS")
