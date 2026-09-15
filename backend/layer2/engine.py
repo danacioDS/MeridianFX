@@ -365,7 +365,10 @@ class DecisionEngine:
                     'source': result['provider'],
                     'fallback_used': result['fallback_used'],
                     'freshness': result['freshness'],
-                    'last_price': result['last_price']
+                    'last_price': result['last_price'],
+                    # KI-002-A: expose the market data cutoff so the adapter
+                    # can derive `as_of` from data, not from wall-clock time.
+                    'last_date': result['last_date'],
                 },
                 'timestamp': datetime.now().isoformat()
             }
@@ -402,6 +405,11 @@ class DecisionEngine:
             'position_size': 0.0,
             'model': {'version': 'fallback', 'type': 'fallback'},
             'shap': None,
-            'data_provider': {'source': 'none', 'fallback_used': True, 'freshness': 'UNKNOWN'},
+            'data_provider': {
+                'source': 'none',
+                'fallback_used': True,
+                'freshness': 'UNKNOWN',
+                'last_date': None,
+            },
             'timestamp': datetime.now().isoformat()
         }
