@@ -135,6 +135,10 @@ class DecisionPipeline:
     def build(self, inputs: PipelineInputs) -> DecisionPipelineResult:
         artifact = inputs.artifact
         as_of = artifact.as_of
+        # KI-002: capture wall-clock once per build; propagate to all
+        # branches so Decision.timestamp reflects the start of the
+        # decision, not the moment a specific branch was reached.
+        decision_timestamp = utcnow()
 
         # ---- Signals (§3) --------------------------------------------------
         quant = raw_quant_score(artifact.probability_up)
@@ -153,12 +157,12 @@ class DecisionPipeline:
             )
         except (SignalOutOfBoundsError, ValidationError):
             # pydantic wraps validator ValueError into ValidationError.
-            return self._out_of_bounds_decision(inputs, quant, macro, rag)
+            return self._out_of_bounds_decision(inputs, quant, macro, rag, decision_timestamp)
 
         # ---- Regime + Fusion (§4/§5) --------------------------------------
         regime = determine_regime(artifact.macro_regime.model_dump())
 
-        return self._build_valid_path(inputs, artifact, as_of, signals, regime)
+        return self._build_valid_path(inputs, artifact, as_of, decision_timestamp, signals, regime)
 
     # ------------------------------------------------------------------
     def _build_valid_path(
@@ -166,6 +170,7 @@ class DecisionPipeline:
         inputs: PipelineInputs,
         artifact: PredictionArtifact,
         as_of: datetime,
+        decision_timestamp: datetime,
         signals: SignalComponents,
         regime: str,
     ) -> DecisionPipelineResult:
@@ -206,7 +211,7 @@ class DecisionPipeline:
                     required_minimum_edge=inputs.required_minimum_edge,
                 )
             except EdgeThresholdInvalidError:
-                return self._invalid_edge_decision(inputs, artifact, signals, regime)
+                return self._invalid_edge_decision(inputs, artifact, decision_timestamp, signals, regime)
 
         # ---- Decision quality (§9, P5: consume L4 registries) -------------
         regime_alignment = compute_regime_alignment(
@@ -283,7 +288,7 @@ class DecisionPipeline:
             decision_id=str(uuid.uuid4()),
             prediction_id=artifact.prediction_id,  # P1 — complete artifact ref
             pair=artifact.pair,
-            timestamp=utcnow(),
+            timestamp=decision_timestamp,
             as_of=as_of,
             horizon_days=artifact.horizon_days,
             actionable=actionable,
@@ -321,14 +326,19 @@ class DecisionPipeline:
 
     # ------------------------------------------------------------------
     def _out_of_bounds_decision(
-        self, inputs: PipelineInputs, quant: float, macro: float, rag: float
+        self,
+        inputs: PipelineInputs,
+        quant: float,
+        macro: float,
+        rag: float,
+        decision_timestamp: datetime,
     ) -> DecisionPipelineResult:
         artifact = inputs.artifact
         decision = Decision(
             decision_id=str(uuid.uuid4()),
             prediction_id=artifact.prediction_id,
             pair=artifact.pair,
-            timestamp=utcnow(),
+            timestamp=decision_timestamp,
             as_of=artifact.as_of,
             horizon_days=artifact.horizon_days,
             actionable=False,
@@ -346,6 +356,7 @@ class DecisionPipeline:
         self,
         inputs: PipelineInputs,
         artifact: PredictionArtifact,
+        decision_timestamp: datetime,
         signals: SignalComponents,
         regime: str,
     ) -> DecisionPipelineResult:
@@ -353,7 +364,7 @@ class DecisionPipeline:
             decision_id=str(uuid.uuid4()),
             prediction_id=artifact.prediction_id,
             pair=artifact.pair,
-            timestamp=utcnow(),
+            timestamp=decision_timestamp,
             as_of=artifact.as_of,
             horizon_days=artifact.horizon_days,
             actionable=False,

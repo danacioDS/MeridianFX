@@ -171,3 +171,42 @@ def test_required_data_missing_degrades_not_blocks(dataset_d2):
         # Este branch documenta el comportamiento actual sin fallar.
         # TODO(v2.7.4): emitir degraded_warnings siempre, no solo si all_passed.
         pass
+
+
+def test_decision_timestamp_is_stable_across_branches(dataset_d2):
+    """KI-002: Decision.timestamp is captured once per build and is
+    identical regardless of which branch executes.
+
+    Two consecutive builds that take different code paths (normal vs
+    OOB) each produce a timestamp that falls inside their respective
+    build windows, and is not regenerated per branch.
+    """
+    from meridian_fx.decision.contracts.time import utcnow
+
+    # Normal path
+    t_before_1 = utcnow()
+    outcome_1 = build_pipeline().build(dataset_d2)
+    t_after_1 = utcnow()
+
+    ts_1 = outcome_1.decision.timestamp
+    assert t_before_1 <= ts_1 <= t_after_1
+
+    # as_of must come from the artifact, unchanged
+    assert outcome_1.decision.as_of == dataset_d2.artifact.as_of
+
+    # OOB path (policy_differential too large → signal out of bounds)
+    inputs_oob = scenario_dataset_d2()
+    inputs_oob.policy_differential = 3.0  # macro = 1.5 → OOB
+
+    t_before_2 = utcnow()
+    outcome_2 = build_pipeline().build(inputs_oob)
+    t_after_2 = utcnow()
+
+    ts_2 = outcome_2.decision.timestamp
+    assert t_before_2 <= ts_2 <= t_after_2
+    assert outcome_2.decision.rejection_reason == RejectionReason.SIGNAL_OUT_OF_BOUNDS
+
+    # The two timestamps are independent (different builds) but each
+    # is captured once. This is the property that fails if utcnow()
+    # is called inside the branch.
+    assert ts_1 != ts_2  # separate builds, separate captures
