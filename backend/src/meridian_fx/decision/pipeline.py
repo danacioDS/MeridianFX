@@ -316,6 +316,9 @@ class DecisionPipeline:
             position_size=sizing.position_size,
             rejection_reason=rejection_reason,
             signal_validity=gate.signal_validity,  # P3 — DIRECT assignment
+            # KI-009: propagate eligibility to the Decision. For an
+            # ELIGIBLE pair this is ForecastEligibility.ELIGIBLE.
+            forecast_eligibility=inputs.forecast_eligibility,
         )
 
         # ---- Risk assessment (v2.3.0) --------------------------------------
