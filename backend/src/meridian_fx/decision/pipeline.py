@@ -389,8 +389,28 @@ class DecisionPipeline:
         The specific eligibility value (RESTRICTED, UNKNOWN,
         INSUFFICIENT_DATA) is preserved on the returned Decision so
         consumers can distinguish reasons.
+
+        NOTE (Opción B): the RiskEngine is invoked even when the decision
+        is RESTRICTED. The resulting risk_score reflects the worst-case
+        inputs (confidence=0, edge=0, regime=UNKNOWN, macro=PARTIAL), but
+        this is exactly what a user needs to know: the pair carries risk
+        without the system being able to produce a directional signal.
+        Omitting the risk assessment entirely would hide useful
+        information from the /risk surface.
         """
         artifact = inputs.artifact
+
+        # Obtain VIX from the L4 feature store (same source as the
+        # happy path). If unavailable, risk computation still proceeds
+        # with vix=None.
+        vix: float | None = None
+        try:
+            vix = self._costs.vix_from_feature_store(
+                artifact.pair, self.feature_store, artifact.as_of
+            )
+        except VixUnavailableError:
+            vix = None
+
         decision = Decision(
             decision_id=str(uuid.uuid4()),
             prediction_id=artifact.prediction_id,
@@ -408,7 +428,22 @@ class DecisionPipeline:
             signal_validity=SignalValidity.UNAVAILABLE,
             forecast_eligibility=inputs.forecast_eligibility,
         )
-        return DecisionPipelineResult(decision=decision, vix=None)
+
+        # Compute risk assessment with worst-case inputs.
+        # The RiskEngine does not require a valid decision to run.
+        risk = self._risk.compute(
+            vix=vix,
+            macro_status=inputs.macro_status,
+            confidence=0.0,
+            regime="UNKNOWN",
+            edge_ratio=0.0,
+        )
+
+        return DecisionPipelineResult(
+            decision=decision,
+            vix=vix,
+            risk=risk,
+        )
 
     def _invalid_edge_decision(
         self,
