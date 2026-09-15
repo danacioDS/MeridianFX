@@ -32,6 +32,8 @@ from ..contracts import (
     Reproducibility,
     ShapValue,
     SignalValidity,
+    TemporalConfidence,
+    TemporalProvenance,
 )
 from ..contracts.providers import DataQualityStatus
 from ..gates import GateState
@@ -59,7 +61,18 @@ class StubFeatureStore:
             if self._vix is None:
                 return None
             return FeatureValue(
-                feature_id="vix", value=self._vix, available_time=as_of
+                feature_id="vix",
+                value=self._vix,
+                provenance=TemporalProvenance(
+                    event_time=as_of,
+                    release_time=None,
+                    source_available_time=as_of,
+                    system_available_time=as_of,
+                    event_time_confidence=TemporalConfidence.APPROXIMATED,
+                    release_time_confidence=TemporalConfidence.UNAVAILABLE,
+                    source_available_time_confidence=TemporalConfidence.APPROXIMATED,
+                    system_available_time_confidence=TemporalConfidence.VERIFIED,
+                ),
             )
         return None
 
