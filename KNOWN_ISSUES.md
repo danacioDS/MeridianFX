@@ -685,6 +685,38 @@ eligibility decision rather than a directional forecast.
 - Eligibility computation (all 4 regimes + insufficient coverage).
 - Registry consistency.
 
+### Supplementary analysis — regime divergence
+
+A statistical proxy for detecting administered regimes without
+fundamental data: project a clean-float ARIMA(1,0,1) path and measure
+the rolling z-score of the observed price against it.
+
+- Module: `backend/src/meridian_fx/decision/divergence/`
+- Endpoint: `GET /v1/fx/{pair}/regime-divergence`
+- Tests: `backend/tests/test_divergence.py` (10 tests)
+- Documentation: `docs/divergence/README.md`
+
+**Empirical evidence (2026-09-15, same window/period/source):**
+
+| Pair    | Regime       | current_zscore | interpretation |
+| ------- | ------------ | -------------- | -------------- |
+| USD/CHF | `free_float` | **+0.55**      | `normal`       |
+| USD/BOB | `unknown`    | **-2.43**      | `extreme`      |
+
+The indicator discriminates between a clean-float pair and an
+intervened pair **without using fundamental data**. The USD/BOB reading
+is consistent with the BCG intervention described above.
+
+**Note:** USD/BOB remains classified as `UNKNOWN` in the registry. The
+divergence indicator measures the anomaly; it does not upgrade the
+classification. Verifying the BCB regime against the primary source is
+still a separate task.
+
+**Limitations:** see `docs/divergence/README.md §Limitations`. In
+particular: (a) the Yahoo series for USD/BOB is not the true market
+rate; (b) high z-score is consistent with intervention but not
+causally proven; (c) warm-up and single-model baseline constraints.
+
 ---
 
 ## A3 — `policy_diff` PIT audit
