@@ -58,6 +58,32 @@ class DecisionEngineAdapter:
                 inflation="UNKNOWN",
             )
     
+    def _derive_as_of(
+        self,
+        forecast: Dict[str, Any],
+        wall_clock: datetime,
+    ) -> datetime:
+        """Derive `as_of` from the market data cutoff (KI-002-A).
+
+        Reads `forecast['data_provider']['last_date']` (populated by
+        DecisionEngine.get_forecast since KI-002-A step 1). Returns it
+        as the knowledge cutoff for the artifact.
+
+        Falls back to wall-clock time ONLY when the data cutoff is
+        missing. That fallback is a known approximation — see
+        KNOWN_ISSUES.md KI-002-A. It will be removed once the pipeline
+        carries a full TemporalProvenance (KI-002-A step 3).
+        """
+        provider_block = forecast.get("data_provider") or {}
+        last_date = provider_block.get("last_date")
+        if last_date is not None:
+            return last_date
+        logger.warning(
+            "as_of fallback to wall-clock: data_provider.last_date is "
+            "missing (KI-002-A incomplete)"
+        )
+        return wall_clock
+
     def get_prediction_artifact(
         self,
         pair: str,
@@ -83,7 +109,12 @@ class DecisionEngineAdapter:
         expected_volatility = forecast.get('expected_volatility', 0.12)  # Convertir decimal a bps
         model_version = forecast.get('model', {}).get('version', 'xgb-v1.0')
         model_type = forecast.get('model', {}).get('type', 'xgboost')
+
+        # KI-002-A: prediction_timestamp / created_at are wall-clock (the
+        # moment the artifact is produced). as_of must come from the data
+        # cutoff, not the wall-clock — that is the whole point of the fix.
         timestamp = datetime.now(timezone.utc)
+        as_of = self._derive_as_of(forecast, timestamp)
         
         # 4. LogisticModel.probability = P(UP)
         # No invertir la probabilidad cuando direction == DOWN.
@@ -129,7 +160,7 @@ class DecisionEngineAdapter:
             feature_snapshot_id=f"snapshot_{timestamp.strftime('%Y%m%d%H%M%S')}",
             dataset_id=f"dataset_{timestamp.strftime('%Y%m%d')}",
             feature_version="1.0",
-            as_of=timestamp,
+            as_of=as_of,
             research_gate_status="APPROVED",
             reproducibility=Reproducibility(
                 git_commit=self.git_commit,
