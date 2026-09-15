@@ -99,3 +99,6 @@ stop.sh
 src_backup_*/
 routers.backup_*
 backend/venv/
+
+# Runtime monitoring state (regenerated locally)
+monitor_history.json
