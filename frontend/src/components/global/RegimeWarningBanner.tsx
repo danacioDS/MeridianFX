@@ -25,13 +25,13 @@ export function RegimeWarningBanner({
 
   const regimeLabel = isManaged
     ? regime === "administered"
-      ? "RÉGIMEN ADMINISTRADO"
-      : "FLOTACIÓN GESTIONADA"
-    : "RÉGIMEN NO VERIFICADO";
+      ? "MANAGED REGIME"
+      : "MANAGED FLOAT"
+    : "REGIME NOT VERIFIED";
 
   const description = isManaged
-    ? "La clasificación del sistema indica que este par no opera bajo una flotación completamente libre. Las predicciones direccionales deben interpretarse con cautela."
-    : "El régimen cambiario de este par no está verificado por el sistema. La divergencia estadística no demuestra por sí sola intervención ni un régimen administrado.";
+    ? "The system classifies this pair as not operating under a fully free float. Directional forecasts should be interpreted with caution."
+    : "The exchange regime of this pair is not verified by the system. Statistical divergence alone does not prove intervention or a managed regime.";
 
   return (
     <div
@@ -65,7 +65,7 @@ export function RegimeWarningBanner({
             {zscore !== null && (
               <>
                 {" "}
-                Divergencia actual respecto a flotación limpia:{" "}
+                Current divergence vs clean-float baseline:{" "}
                 <span className="font-mono">
                   z = {zscore.toFixed(2)} ({interpretation})
                 </span>

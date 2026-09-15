@@ -110,7 +110,7 @@ export function GlobalPage(): JSX.Element {
 
       {/* Selected pair detail — master block */}
       {data && (
-        <Panel title={`📊 ${pair} · Precio y Cotización`}>
+        <Panel title={`📊 ${pair} · Price and Quote`}>
           <div className="space-y-4">
             {/* Current price + directional forecast */}
             <div className="flex flex-wrap items-center justify-between p-4 bg-panel-2 rounded-lg border border-line">
@@ -122,7 +122,7 @@ export function GlobalPage(): JSX.Element {
                 </div>
 
                 <div className="text-xs text-muted">
-                  Fuente: {data.source} · {data.last_date}
+                  Source: {data.source} · {data.last_date}
                 </div>
               </div>
 
@@ -241,7 +241,7 @@ export function GlobalPage(): JSX.Element {
                           </div>
 
                           <div className="text-xs text-muted mt-1">
-                            Precio: {safeToFixed(targetPrice, 4)}
+                            Price: {safeToFixed(targetPrice, 4)}
                           </div>
 
                           <div className="text-xs text-muted">
@@ -254,7 +254,7 @@ export function GlobalPage(): JSX.Element {
                   </div>
 
                   <div className="text-xs text-muted mt-3">
-                    Modelo: XGBoost v2.1 · Features: 37
+                    Model: XGBoost v2.1 · Features: 37
                   </div>
 
                   <div className="mt-2">

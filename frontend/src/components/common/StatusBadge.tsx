@@ -15,7 +15,7 @@ export function StatusBadge({ status, label }: StatusBadgeProps) {
 
   const labels: Record<string, string> = {
     FULL: '✅ Disponible',
-    PARTIAL: '⚠️ Parcial',
+    PARTIAL: '⚠️ Partial',
     UNAVAILABLE: '❌ No disponible',
     UNKNOWN: '❓ Desconocido',
     STALE: '🔄 Desactualizado',

@@ -19,7 +19,7 @@ export const safePercent = (value: any, decimals: number = 1): string => {
 };
 
 /**
- * Formatea un número con comas (para precios)
+ * Formats a number with commas (for prices)
  */
 export const safePrice = (value: any, decimals: number = 4): string => {
   if (value === undefined || value === null || value === '') return '—';

@@ -1,7 +1,7 @@
 # Meridian FX — README completo
 
 **Financial Intelligence & Decision Support System**
-**A Stratus Intelligence Project**
+**A Stratus Dynamics Project**
 Developed by **Daniel Canedo, MSc in Economics**
 
 **Versión actual: v2.7** (honesty & hardening release · tag `v2.7` pendiente)
@@ -370,14 +370,14 @@ explicit rather than implicit.
 
 ## License
 
-© 2026 Stratus Intelligence. All rights reserved.
+© 2026 Stratus Dynamics. All rights reserved.
 
 ---
 
 <p align="center">
   <strong>MERIDIAN FX</strong><br>
   Financial Intelligence System<br><br>
-  <strong>STRATUS INTELLIGENCE</strong>
+  <strong>STRATUS DYNAMICS</strong>
 </p>
 
 ---

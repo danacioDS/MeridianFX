@@ -1,13 +1,12 @@
 /**
- * Actionable Info — Explicación de qué significa "Actionable" y la fórmula estadística.
- *
- * ⚠️  Presentational ONLY. No thresholds are hardcoded. If the backend does not
- *     provide requiredMinimumEdge, the component renders an "unavailable" state
- *     instead of inventing values.
+ * Actionable Info — Explains what "Actionable" means and the statistical
+ * formula behind the decision. Presentational ONLY. No thresholds are
+ * hardcoded. If the backend does not provide requiredMinimumEdge, the
+ * component renders an "unavailable" state instead of inventing values.
  */
 
 interface ActionableInfoProps {
-  /** Required minimum edge ratio from the backend. Null/undefined → unavailable. */
+  /** Required minimum edge in bps, from the backend. Null/undefined → unavailable. */
   requiredMinimumEdge?: number | null;
 }
 
@@ -19,32 +18,32 @@ export function ActionableInfo({
   return (
     <div className="rounded-lg border border-border bg-surface p-5 mt-4">
       <h4 className="text-sm font-semibold text-text-primary mb-3">
-        📊 ¿Qué significa "Actionable"?
+        📊 What does "Actionable" mean?
       </h4>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-        {/* Columna 1: Definición */}
+        {/* Column 1: Definition */}
         <div className="bg-panel-2 rounded-lg p-4">
           <div className="text-xs text-muted uppercase tracking-wider mb-2">
-            Definición
+            Definition
           </div>
           <p className="text-text-primary leading-relaxed">
-            Una oportunidad es{" "}
-            <span className="text-bull font-semibold">actionable</span> cuando
-            el <strong>edge neto</strong> (beneficio esperado después de costes)
-            supera el umbral mínimo definido por el sistema.
+            An opportunity is{" "}
+            <span className="text-bull font-semibold">actionable</span> when
+            the <strong>net edge</strong> (expected profit after costs)
+            exceeds the minimum threshold defined by the system.
           </p>
           <p className="text-text-secondary text-xs mt-2">
-            No basta con tener una dirección probable; la oportunidad debe ser{" "}
-            <strong>económicamente atractiva</strong> después de considerar
-            costes de transacción, slippage y comisiones.
+            A probable direction is not enough; the opportunity must be{" "}
+            <strong>economically attractive</strong> after accounting for
+            transaction costs, slippage, and commissions.
           </p>
         </div>
 
-        {/* Columna 2: Fórmula */}
+        {/* Column 2: Formula */}
         <div className="bg-panel-2 rounded-lg p-4">
           <div className="text-xs text-muted uppercase tracking-wider mb-2">
-            Fórmula Estadística
+            Statistical Formula
           </div>
           <div className="font-mono text-xs text-text-primary space-y-1">
             <div>
@@ -65,44 +64,32 @@ export function ActionableInfo({
             </div>
           </div>
           <div className="mt-2 text-xs text-muted border-t border-border pt-2">
-            <span className="font-mono">Volatility</span> = Desviación estándar
-            anualizada de retornos
+            <span className="font-mono">Volatility</span> = Annualized standard
+            deviation of returns
           </div>
         </div>
 
-        {/* Columna 3: Teoría */}
+        {/* Column 3: Theory */}
         <div className="bg-panel-2 rounded-lg p-4">
           <div className="text-xs text-muted uppercase tracking-wider mb-2">
-            Base Teórica
+            Theoretical Basis
           </div>
           <p className="text-text-primary leading-relaxed">
-            El concepto de <strong>edge</strong> proviene de la teoría de
-            decisiones bajo incertidumbre. Una señal con alta probabilidad (ej:
-            70%) <span className="text-bear font-semibold">no es suficiente</span>{" "}
-            si el beneficio esperado no compensa el riesgo y los costes.
+            The concept of <strong>edge</strong> comes from decision theory
+            under uncertainty. A signal with high probability (e.g. 70%) is{" "}
+            <span className="text-bear font-semibold">not enough</span> if the
+            expected profit does not compensate for risk and costs.
           </p>
           <p className="text-text-secondary text-xs mt-2">
-            Referencia:{" "}
+            Reference:{" "}
             <span className="font-mono">
               Sharpe Ratio, Kelly Criterion, Transaction Cost Analysis
             </span>
           </p>
-          {hasEvaluation && (
-            <div className="mt-2 flex items-center gap-2 text-xs">
-              <span className="text-bull">✅ Actionable:</span>
-              <span className="text-text-secondary">
-                Edge Ratio ≥ 1.0
-              </span>
-              <span className="text-bear ml-2">❌ Not actionable:</span>
-              <span className="text-text-secondary">
-                Edge Ratio &lt; 1.0
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
-      {/* Umbrales o estado unavailable */}
+      {/* Thresholds or unavailable state */}
       <div className="mt-3 pt-3 border-t border-border text-xs text-muted flex flex-wrap gap-4">
         {hasEvaluation ? (
           <>
@@ -111,7 +98,7 @@ export function ActionableInfo({
               {requiredMinimumEdge.toFixed(2)} bps
             </div>
             <div>
-              💡 <span className="text-text-primary">Interpretación:</span>{" "}
+              💡 <span className="text-text-primary">Interpretation:</span>{" "}
               Edge Ratio &lt; 1.0 means Net Return is below the required minimum.
             </div>
           </>
@@ -125,7 +112,7 @@ export function ActionableInfo({
             </div>
             <div className="mt-1 text-[11px]">
               The backend did not provide the minimum required edge, so no
-              default value is shown. See the Model divergence notice for context.
+              default value is shown.
             </div>
           </div>
         )}

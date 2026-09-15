@@ -100,13 +100,13 @@ export function MarketIntelligenceHero({
         <div className="border-t border-line pt-4 mb-4">
           <div className="flex flex-wrap items-center gap-6 text-sm">
             <div>
-              <div className="text-xs text-muted">Estado del par</div>
+              <div className="text-xs text-muted">Pair status</div>
               <div className={`text-lg font-bold ${pairStyles.color}`}>
                 {pairStyles.label}
               </div>
             </div>
             <div>
-              <div className="text-xs text-muted">Dirección</div>
+              <div className="text-xs text-muted">Direction</div>
               <div className="text-lg font-bold font-mono text-ink">
                 {selectedPairView!.direction ?? "—"}
               </div>

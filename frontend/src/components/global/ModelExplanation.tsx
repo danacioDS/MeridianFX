@@ -46,9 +46,9 @@ export function ModelExplanation(): JSX.Element {
                 <span className="text-[10px] text-muted">(Clasificación)</span>
               </div>
               <div className="text-text-secondary text-xs space-y-1">
-                <div><span className="text-muted">Predice:</span> <strong className="text-text-primary">Dirección y probabilidad</strong> (ej: 65.8% Alcista)</div>
-                <div><span className="text-muted">Significa:</span> La probabilidad de que el precio suba o baje</div>
-                <div><span className="text-muted">Ejemplo:</span> 65.8% de probabilidad de que el precio suba</div>
+                <div><span className="text-muted">Predicts:</span> <strong className="text-text-primary">Direction and probability</strong> (e.g. 65.8% Bullish)</div>
+                <div><span className="text-muted">Means:</span> The probability that the price will go up or down</div>
+                <div><span className="text-muted">Example:</span> 65.8% probability that the price goes up</div>
               </div>
             </div>
           </div>
@@ -61,7 +61,7 @@ export function ModelExplanation(): JSX.Element {
               <br />
               Logistic te dice <strong className="text-text-primary">qué tan probable</strong> es que suba o baje.
               <br />
-              <span className="text-muted">Ejemplo: Si XGBoost dice +0.79% y Logistic dice 65.8% Alcista → ambos son consistentes.</span>
+              <span className="text-muted">Example: If XGBoost says +0.79% and Logistic says 65.8% Bullish → they are consistent.</span>
             </div>
           </div>
 

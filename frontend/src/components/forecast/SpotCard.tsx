@@ -1,5 +1,5 @@
 /**
- * SpotCard — Muestra precio actual y cambio
+ * SpotCard — Shows current price and change
  */
 interface SpotCardProps {
   spot: {
@@ -22,7 +22,7 @@ export function SpotCard({ spot, pair, last_date, source }: SpotCardProps): JSX.
         <div className="text-sm text-muted">{pair}</div>
         <div className="text-3xl font-bold text-ink">{spot.price.toFixed(4)}</div>
         <div className="text-xs text-muted">Última actualización: {last_date}</div>
-        <div className="text-xs text-muted">Fuente: {source}</div>
+        <div className="text-xs text-muted">Source: {source}</div>
       </div>
       <div className="text-right">
         <div className={`text-2xl font-bold ${isUp ? 'text-bull' : 'text-bear'}`}>

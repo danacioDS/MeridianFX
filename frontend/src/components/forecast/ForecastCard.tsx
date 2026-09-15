@@ -33,7 +33,7 @@ export function ForecastCard({ forecasts, currentPrice }: ForecastCardProps): JS
             </div>
             <div className="text-sm text-ink-soft">Confidence: {(probability * 100).toFixed(1)}%</div>
             <div className="text-xs text-muted mt-2">
-              Precio esperado: {(currentPrice * (1 + data.expected_return / 100)).toFixed(4)}
+              Expected price: {(currentPrice * (1 + data.expected_return / 100)).toFixed(4)}
             </div>
             <div className="text-xs text-muted">
               IC 95%: {data.ci_95_lower.toFixed(4)} — {data.ci_95_upper.toFixed(4)}

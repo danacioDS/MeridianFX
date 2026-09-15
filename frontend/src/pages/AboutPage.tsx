@@ -1,7 +1,7 @@
 /**
  * About Page — The Story Behind MeridianFX
- * 
- * Inspirado en SignalIQ con identidad de Stratus Intelligence
+ *
+ * Inspirado en SignalIQ con identidad de Stratus Dynamics
  */
 import { Panel } from "../components/common";
 
@@ -17,7 +17,7 @@ export function AboutPage(): JSX.Element {
           </span>
         </div>
         <p className="text-xl text-ink-soft font-light">
-          Financial Intelligence · Stratus Intelligence
+          Financial Intelligence · Stratus Dynamics
         </p>
         <div className="mt-3 inline-block bg-meridian-soft text-meridian text-xs font-mono font-semibold px-3 py-1 rounded-full">
           v2.0 · 28 de agosto 2026
@@ -28,18 +28,18 @@ export function AboutPage(): JSX.Element {
       <Panel title="📖 The Story Behind MeridianFX">
         <div className="space-y-4 text-ink-soft leading-relaxed">
           <p className="text-base">
-            <strong className="text-ink">MeridianFX</strong> was born from a fundamental question in quantitative finance: 
+            <strong className="text-ink">MeridianFX</strong> was born from a fundamental question in quantitative finance:
             <em className="text-meridian font-medium"> "What separates a market forecast from a decision-ready signal?"</em>
           </p>
           <p className="text-base">
-            For years, traders and analysts have relied on models that generate predictions — probabilities, directions, 
-            expected returns. But a prediction is not a decision. A decision requires understanding the economic friction: 
+            For years, traders and analysts have relied on models that generate predictions — probabilities, directions,
+            expected returns. But a prediction is not a decision. A decision requires understanding the economic friction:
             costs, liquidity, slippage, and the regime in which the signal exists.
           </p>
           <p className="text-base">
-            <strong className="text-ink">MeridianFX</strong> was developed to bridge that gap. It is not just a forecasting 
-            system — it is a <strong className="text-meridian">decision intelligence layer</strong> that applies an 
-            <strong className="text-ink"> Economic Filter</strong> to every signal, ensuring that only signals that survive 
+            <strong className="text-ink">MeridianFX</strong> was developed to bridge that gap. It is not just a forecasting
+            system — it is a <strong className="text-meridian">decision intelligence layer</strong> that applies an
+            <strong className="text-ink"> Economic Filter</strong> to every signal, ensuring that only signals that survive
             the friction of real markets are presented as actionable.
           </p>
           <div className="bg-panel-2 rounded-xl p-4 border border-line">
@@ -54,7 +54,7 @@ export function AboutPage(): JSX.Element {
       <Panel title="🎯 Why MeridianFX?">
         <div className="space-y-4 text-ink-soft leading-relaxed">
           <p className="text-base">
-            Financial markets are complex adaptive systems. Models can capture patterns, but they cannot capture the 
+            Financial markets are complex adaptive systems. Models can capture patterns, but they cannot capture the
             <strong className="text-ink"> economic friction</strong> that exists between a forecast and a trade.
           </p>
           <p className="text-base">
@@ -100,7 +100,7 @@ export function AboutPage(): JSX.Element {
           </div>
           <div className="bg-panel-2 rounded-xl p-4 border border-line mt-3">
             <p className="text-base text-ink-soft">
-              The <strong className="text-ink">Economic Filter</strong> in MeridianFX operationalizes these theories by 
+              The <strong className="text-ink">Economic Filter</strong> in MeridianFX operationalizes these theories by
               systematically testing whether a forecast can survive real-world friction.
             </p>
           </div>
@@ -131,7 +131,7 @@ export function AboutPage(): JSX.Element {
             </div>
             <div className="bg-panel-2 rounded-xl p-4 border border-line mt-2">
               <p className="text-sm text-ink-soft font-mono">
-                "This software was designed and built by Daniel Canedo as part of the <strong className="text-meridian">Stratus Intelligence</strong> project."
+                "This software was designed and built by Daniel Canedo as part of the <strong className="text-meridian">Stratus Dynamics</strong> project."
               </p>
             </div>
           </div>
@@ -142,18 +142,18 @@ export function AboutPage(): JSX.Element {
       </Panel>
 
       {/* Enterprise */}
-      <Panel title="🏢 Stratus Intelligence">
+      <Panel title="🏢 Stratus Dynamics">
         <div className="space-y-4 text-ink-soft leading-relaxed">
           <div className="flex items-center gap-3">
             <span className="text-2xl">☁️</span>
             <div>
-              <h4 className="text-lg font-semibold text-ink">Stratus Intelligence</h4>
+              <h4 className="text-lg font-semibold text-ink">Stratus Dynamics</h4>
               <p className="text-sm text-muted">Enterprise Financial Intelligence</p>
             </div>
           </div>
           <p className="text-base">
-            <strong className="text-ink">MeridianFX</strong> is a flagship product of 
-            <strong className="text-meridian"> Stratus Intelligence</strong>, an enterprise-grade financial 
+            <strong className="text-ink">MeridianFX</strong> is a flagship product of
+            <strong className="text-meridian"> Stratus Dynamics</strong>, an enterprise-grade financial
             intelligence platform focused on systematic decision-making in currency markets.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-2">
