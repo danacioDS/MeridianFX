@@ -223,7 +223,7 @@ matching test.
 
 ## KI-006 — Bare `except:` clauses in defensive code paths
 
-**Status:** open
+**Status:** resolved (pending commit)
 **Detected:** 2026-09-14
 **Component:**
 - `backend/layer2/status/engine.py:60`
@@ -506,3 +506,4 @@ v3.0 work alongside the PIT audit.
 ## Resolved
 
 - KI-005 — resolved in v2.7.4 (`e7312a3`).
+- KI-006 — resolved by the "replace bare except" commit (see log).

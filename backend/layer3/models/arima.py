@@ -35,7 +35,10 @@ class ARIMAModel:
             else:
                 # Non-stationary → d = 1
                 return 1
-        except:
+        except Exception:
+            # ADF is diagnostic, not mechanical (see §4.1).
+            # On pathological input (constant, too short, etc.),
+            # default to d=0 (log-returns are normally stationary).
             return 0
     
     def _search_order(self, series: pd.Series, max_p: int = 3, max_q: int = 3) -> Tuple[int, int, int]:
@@ -55,7 +58,10 @@ class ARIMAModel:
                     if fitted.aic < best_aic:
                         best_aic = fitted.aic
                         best_order = (p, d, q)
-                except:
+                except Exception:
+                    # Grid search over (p, q): skip combinations that fail
+                    # to converge. This is deliberate — the search must
+                    # continue with the next candidate.
                     continue
         
         return best_order

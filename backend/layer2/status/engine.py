@@ -57,7 +57,8 @@ class StatusEngine:
                 try:
                     created_date = datetime.fromisoformat(created_at)
                     age_days = (datetime.now() - created_date).days
-                except:
+                except ValueError:
+                    # Malformed created_at string — leave age_days as None.
                     pass
             
             # Determinar estado
@@ -347,7 +348,9 @@ class StatusEngine:
             import psutil
             process = psutil.Process()
             return process.memory_info().rss / (1024 * 1024)
-        except:
+        except Exception:
+            # Memory probing is best-effort. psutil may not be installed
+            # or may fail to read process info; returning 0.0 is acceptable.
             return 0.0
     
     def get_full_status(self) -> Dict[str, Any]:

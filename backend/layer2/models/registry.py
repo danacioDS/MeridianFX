@@ -39,7 +39,8 @@ class ModelRegistry:
             try:
                 with open(self.registry_path, 'r') as f:
                     return json.load(f)
-            except:
+            except (json.JSONDecodeError, OSError):
+                # Corrupted or unreadable registry — fall back to empty.
                 return {'models': [], 'current': {}}
         return {'models': [], 'current': {}}
     
