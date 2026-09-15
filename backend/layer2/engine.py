@@ -247,7 +247,7 @@ class DecisionEngine:
                     'timestamp': entry['timestamp'].isoformat()
                 }
             with open(cache_file, 'w') as f:
-                json.dump(data, f, indent=2)
+                json.dump(data, f, indent=2, default=str)
         except Exception as e:
             print(f"⚠️ Error guardando caché: {e}")
     

@@ -78,7 +78,7 @@ class ModelRegistry:
         data = [asdict(m) for m in self.models.values()]
         os.makedirs(os.path.dirname(self.registry_path), exist_ok=True)
         with open(self.registry_path, 'w') as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, default=str)
     
     def register(self, artifact: ModelArtifact) -> None:
         self.models[artifact.model_id] = artifact
