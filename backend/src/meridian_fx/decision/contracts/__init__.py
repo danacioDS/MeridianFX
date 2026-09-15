@@ -52,6 +52,7 @@ from .regime import (
     determine_regime,
 )
 from .signal import SignalComponents, SignalGenerator, SignalOutOfBoundsError
+from .temporal import TemporalConfidence, TemporalProvenance
 from .time import ensure_utc, utcnow
 
 __all__ = [
@@ -95,6 +96,8 @@ __all__ = [
     "FreshnessSnapshot",
     "DriftRegistry",
     "DriftSnapshot",
+    "TemporalConfidence",
+    "TemporalProvenance",
     "ensure_utc",
     "utcnow",
 ]
