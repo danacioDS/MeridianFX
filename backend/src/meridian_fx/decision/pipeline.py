@@ -368,3 +368,4 @@ class DecisionPipeline:
         return DecisionPipelineResult(
             decision=decision, signals=signals, regime=regime, vix=None
         )
+
