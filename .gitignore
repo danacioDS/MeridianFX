@@ -102,3 +102,6 @@ backend/venv/
 
 # Runtime monitoring state (regenerated locally)
 monitor_history.json
+frontend/.env.production
+frontend/.env.local
+frontend/.env
