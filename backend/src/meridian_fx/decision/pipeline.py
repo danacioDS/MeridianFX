@@ -368,30 +368,3 @@ class DecisionPipeline:
         return DecisionPipelineResult(
             decision=decision, signals=signals, regime=regime, vix=None
         )
-
-    def _unavailable_decision(
-        self,
-        inputs: PipelineInputs,
-        artifact: PredictionArtifact,
-        signals: SignalComponents,
-    ) -> DecisionPipelineResult:
-        """Decisión UNAVAILABLE cuando macro_score es None."""
-        decision = Decision(
-            decision_id=str(uuid.uuid4()),
-            prediction_id=artifact.prediction_id,
-            pair=artifact.pair,
-            timestamp=utcnow(),
-            as_of=artifact.as_of,
-            horizon_days=artifact.horizon_days,
-            actionable=False,
-            direction=Direction.NEUTRAL,
-            confidence=0.0,
-            edge_ratio=0.0,
-            net_return=0.0,
-            position_size=0.0,
-            rejection_reason=RejectionReason.MODEL_UNAVAILABLE,
-            signal_validity=SignalValidity.UNAVAILABLE,
-        )
-        return DecisionPipelineResult(
-            decision=decision, signals=signals, regime="UNKNOWN", vix=None
-        )
