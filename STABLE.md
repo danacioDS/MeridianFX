@@ -106,7 +106,7 @@
 | KI-004 | `MacroService` without per-request cache (FRED 502 risk) | open |
 | KI-005 | Obsolete `_unavailable_decision()` path | resolved in v2.7.4 |
 | KI-006 | Bare `except:` clauses in defensive code paths | resolved |
-| KI-007 | `/status` reports `database="NOT_CONFIGURED"` as a hardcoded state | open |
+| KI-007 | `/status` reports `database="NOT_CONFIGURED"` as a hardcoded state | resolved |
 | KI-008 | CNBS and ECB official macro providers are incomplete | open |
 | A3 | `policy_diff` PIT audit (source → effective date → alignment → feature → model) | open |
 | A4 | Async / event-loop audit under ASGI + workers | open |

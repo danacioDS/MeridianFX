@@ -68,11 +68,21 @@ async def get_status():
         safe_mode_state = "ACTIVE"
     
     # Infraestructura
+    # Contract: InfrastructureLevel = "healthy" | "degraded" | "unhealthy"
+    #           PipelineLevel       = "healthy" | "degraded" | "failed"
+    # The values below must belong to those scales (lowercase).
+    cache_status_raw = full_status.get("cache", {}).get("status", "online")
+    cache_level = "healthy" if cache_status_raw == "online" else "degraded"
+
     infrastructure = InfrastructureStatus(
-        api="HEALTHY",
-        database="NOT_CONFIGURED",  # TODO: conectar a DB real
-        pipeline="HEALTHY",
-        cache=full_status.get("cache", {}).get("status", "HEALTHY")
+        api="healthy",
+        # No production database configured. Narrative persistence uses a
+        # local SQLite file (backend/cache/narratives.db) which is
+        # ephemeral in containerized deployments. Degraded = functioning
+        # but below production infrastructure standard.
+        database="degraded",
+        pipeline="healthy",
+        cache=cache_level,
     )
     
     # Intelligence

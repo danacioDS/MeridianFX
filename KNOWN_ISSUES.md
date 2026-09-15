@@ -266,7 +266,7 @@ catch as deliberate.
 
 ## KI-007 — `/status` reports `database="NOT_CONFIGURED"` hardcoded
 
-**Status:** open
+**Status:** resolved (see commit)
 **Detected:** 2026-09-14
 **Component:** `backend/layer1/routers/status.py:73`
 
@@ -507,3 +507,12 @@ v3.0 work alongside the PIT audit.
 
 - KI-005 — resolved in v2.7.4 (`e7312a3`).
 - KI-006 — resolved by the "replace bare except" commit (see log).
+- KI-007 — resolved by the "status infra contract" commit (see log).
+  The endpoint now emits valid `InfrastructureLevel` values:
+
+      api="healthy", database="degraded", pipeline="healthy",
+      cache="healthy"|"degraded"
+
+  `database="degraded"` reflects that no production database is
+  configured; narrative persistence uses a local, ephemeral SQLite file.
+  Covered by backend/tests/test_status.py (5 contract tests).
