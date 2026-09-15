@@ -21,6 +21,7 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .temporal import TemporalProvenance
 from .time import ensure_utc
 
 
@@ -34,15 +35,26 @@ class DataQualityStatus(StrEnum):
 
 
 class FeatureValue(BaseModel):
-    """A single feature observation returned by FeatureStore (L4 v3.1.1)."""
+    """A single feature observation returned by FeatureStore (L4 v3.1.1).
+
+    The observation carries a full TemporalProvenance, not a single
+    collapsed timestamp. `available_time` is preserved as a derived
+    read-only alias for backwards compatibility with existing call
+    sites; the source of truth is `provenance.source_available_time`.
+
+    See KNOWN_ISSUES.md KI-002-D for the design rationale.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     feature_id: str
     value: float | None
-    available_time: datetime
+    provenance: TemporalProvenance
 
-    _tz = field_validator("available_time")(ensure_utc)
+    @property
+    def available_time(self) -> datetime:
+        """Backwards-compatible alias for provenance.source_available_time."""
+        return self.provenance.source_available_time
 
 
 class DataQualitySnapshot(BaseModel):

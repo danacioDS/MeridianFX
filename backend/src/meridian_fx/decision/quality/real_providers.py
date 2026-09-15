@@ -12,6 +12,7 @@ from typing import Optional
 import yfinance as yf
 
 from ..contracts.providers import FeatureValue
+from ..contracts.temporal import TemporalConfidence, TemporalProvenance
 
 
 class RealFeatureStore:
@@ -57,10 +58,27 @@ class RealFeatureStore:
             vix = self._get_cached_vix()
             if vix is None:
                 return None
+            # KI-002-A step 4: migrate to TemporalProvenance.
+            # NOTE (KI-002-B): the VIX observation timestamp is not yet
+            # captured from Yahoo (`hist.index[-1]`); it is approximated
+            # as `as_of`. Both confidences are marked APPROXIMATED to
+            # reflect this. See KNOWN_ISSUES.md KI-002-B.
+            now = time.time()  # placeholder for system_available_time below
+            import datetime as _dt
+
             return FeatureValue(
                 feature_id="vix",
                 value=vix,
-                available_time=as_of,
+                provenance=TemporalProvenance(
+                    event_time=as_of,
+                    release_time=None,
+                    source_available_time=as_of,
+                    system_available_time=_dt.datetime.now(_dt.timezone.utc),
+                    event_time_confidence=TemporalConfidence.APPROXIMATED,
+                    release_time_confidence=TemporalConfidence.UNAVAILABLE,
+                    source_available_time_confidence=TemporalConfidence.APPROXIMATED,
+                    system_available_time_confidence=TemporalConfidence.VERIFIED,
+                ),
             )
         return None
 
