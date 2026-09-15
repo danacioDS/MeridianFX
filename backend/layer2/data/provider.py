@@ -120,6 +120,17 @@ class DataProvider:
 
                 last_date = df.index[-1]
 
+                # KI-002-A fix: the canonical DataProvider contract
+                # returns a timezone-naive index, but `last_date` is
+                # exposed as the market data cutoff and MUST be
+                # timezone-aware UTC (it flows into PredictionArtifact.as_of,
+                # which validates with ensure_utc).
+                # The Yahoo/Alpha/Twelve sources normalise to UTC before
+                # stripping tzinfo, so interpreting the naive value as UTC
+                # is correct.
+                if last_date.tzinfo is None:
+                    last_date = last_date.tz_localize("UTC")
+
                 # Compare using date only to avoid timezone issues
                 today = datetime.now(timezone.utc).date()
                 last_day = last_date.date()
