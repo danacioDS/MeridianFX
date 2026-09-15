@@ -1,109 +1,144 @@
-"""PIT audit — diagnostic tests for KI-002.
+"""PIT audit — behavior tests for KI-002-A.
 
-These tests do NOT verify that PIT is correct. They capture the current
-structural behavior of the pipeline so that when KI-002 is fixed, the
-changes are forced to be explicit: the assertions here will fail and
-must be updated deliberately.
+These tests document the current behavior of DecisionEngineAdapter with
+respect to the temporal contract (KI-002-D). They replace the previous
+diagnostic tests that asserted `as_of == prediction_timestamp` — that
+assertion was valid before KI-002-A step 2, but the adapter now derives
+`as_of` from the data cutoff exposed by DecisionEngine.get_forecast().
+
+What these tests verify:
+
+- When `data_provider.last_date` is present, `as_of` equals it and is
+  distinct from `prediction_timestamp`.
+- When `data_provider.last_date` is missing, the adapter falls back to
+  wall-clock and logs a warning. That fallback is temporary — see
+  KNOWN_ISSUES.md KI-002-A step 3.
 
 See KNOWN_ISSUES.md KI-002 for the full diagnosis.
-
-⚠️  These tests are DIAGNOSTIC. They document the current state. When
-    KI-002-A / KI-002-B / KI-002-C are resolved, the assertions must be
-    inverted or removed together with the fix.
 """
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
-from meridian_fx.decision.contracts import PredictionArtifact
-from meridian_fx.decision.contracts.prediction import (
-    ConfidenceInterval,
-    MacroRegime,
-    Reproducibility,
-)
+from backend.src.meridian_fx.decision.contracts.prediction import MacroRegime
+
+from backend.layer1.adapters.decision_engine_adapter import DecisionEngineAdapter
 
 UTC = timezone.utc
 
 
-def _make_artifact_at_wall_clock() -> PredictionArtifact:
-    """Replicates the DecisionEngineAdapter pattern: one timestamp for
-    every temporal field.
+def _make_adapter_with_forecast(forecast: dict) -> DecisionEngineAdapter:
+    """Build a DecisionEngineAdapter whose underlying DecisionEngine
+    returns the given forecast dict from get_forecast()."""
+    engine = MagicMock()
+    engine.get_forecast.return_value = forecast
+    adapter = DecisionEngineAdapter(engine=engine)
+    # Bypass the real MacroService to avoid network calls.
+    adapter._get_macro_regime = lambda: MacroRegime(  # type: ignore[method-assign]
+        risk="Risk-On", policy="Neutral", growth="High", inflation="Low"
+    )
+    return adapter
 
-    This mirrors decision_engine_adapter.get_prediction_artifact() as of
-    the state documented in KI-002-A. Do NOT change this fixture until
-    the adapter itself is fixed.
+
+def _base_forecast(**overrides) -> dict:
+    base = {
+        "direction": "SHORT",
+        "probability": 0.6,
+        "expected_return": 0.002,
+        "expected_volatility": 0.05,
+        "actionable": False,
+        "confidence": 0.6,
+        "signal_strength": "moderate",
+        "edge_ratio": 0.5,
+        "net_return": 10.0,
+        "position_size": 0.0,
+        "model": {"version": "logistic-v1.0", "type": "logistic"},
+        "shap": None,
+        "data_provider": {
+            "source": "yahoo",
+            "fallback_used": False,
+            "freshness": "FRESH",
+            "last_price": 1.2345,
+            "last_date": datetime(2026, 9, 14, 0, 0, tzinfo=UTC),
+        },
+    }
+    base.update(overrides)
+    return base
+
+
+def test_as_of_uses_data_provider_last_date_when_present():
+    """KI-002-A step 2: as_of comes from data_provider.last_date,
+    not from the adapter's wall-clock."""
+    last_date = datetime(2026, 9, 14, 0, 0, tzinfo=UTC)
+    forecast = _base_forecast(
+        data_provider={
+            "source": "yahoo",
+            "fallback_used": False,
+            "freshness": "FRESH",
+            "last_price": 1.2345,
+            "last_date": last_date,
+        }
+    )
+    adapter = _make_adapter_with_forecast(forecast)
+
+    artifact = adapter.get_prediction_artifact("USD/CHF", horizon_days=5)
+
+    assert artifact is not None
+    assert artifact.as_of == last_date
+    # prediction_timestamp is wall-clock, distinct from data cutoff
+    assert artifact.prediction_timestamp != last_date
+    assert artifact.prediction_timestamp > last_date
+
+
+def test_as_of_falls_back_to_wall_clock_when_last_date_missing(caplog):
+    """KI-002-A step 2 (temporary fallback): when data_provider.last_date
+    is missing, the adapter falls back to wall-clock and logs a warning.
+
+    This is a known temporary approximation; the fallback will be
+    removed once the pipeline carries a full TemporalProvenance.
     """
-    timestamp = datetime(2026, 1, 5, 10, 30, tzinfo=UTC)
-    return PredictionArtifact(
-        prediction_id="pit-audit-1",
-        model_id="logistic_USD_CHF",
-        model_version="logistic-v1.0",
-        pair="USD/CHF",
-        prediction_timestamp=timestamp,
-        horizon_days=5,
-        probability_up=0.6,
-        expected_return=10.0,
-        expected_volatility=0.05,
-        confidence_interval=ConfidenceInterval(lower=0.2, upper=0.4),
-        regime_id="regime-test",
-        macro_regime=MacroRegime(
-            risk="Risk-On", policy="Neutral", growth="High", inflation="Low"
-        ),
-        feature_snapshot_id="snapshot-1",
-        dataset_id="dataset-1",
-        feature_version="1.0",
-        as_of=timestamp,
-        reproducibility=Reproducibility(
-            git_commit="test",
-            docker_image="test",
-            mlflow_run_id="test",
-        ),
-        created_at=timestamp,
+    import logging
+
+    forecast = _base_forecast(
+        data_provider={
+            "source": "none",
+            "fallback_used": True,
+            "freshness": "UNKNOWN",
+            "last_price": 0.0,
+            "last_date": None,
+        }
+    )
+    adapter = _make_adapter_with_forecast(forecast)
+
+    with caplog.at_level(logging.WARNING):
+        artifact = adapter.get_prediction_artifact("USD/CHF", horizon_days=5)
+
+    assert artifact is not None
+    # Fallback: as_of == prediction_timestamp (both wall-clock)
+    assert artifact.as_of == artifact.prediction_timestamp
+    # Warning was logged
+    assert any(
+        "as_of fallback to wall-clock" in record.message
+        for record in caplog.records
     )
 
 
-def test_ki_002_a_as_of_collapses_with_prediction_timestamp():
-    """KI-002-A diagnostic.
+def test_as_of_falls_back_when_data_provider_block_missing(caplog):
+    """KI-002-A step 2: when data_provider is missing entirely, the
+    adapter falls back to wall-clock."""
+    import logging
 
-    The adapter pattern collapses as_of, prediction_timestamp and
-    created_at into a single wall-clock value. This contradicts the
-    Layer 3 contract ("as_of: knowledge point for this prediction"),
-    which requires as_of <= prediction_timestamp and, in a real system,
-    likely as_of < prediction_timestamp.
+    forecast = _base_forecast()
+    del forecast["data_provider"]
+    adapter = _make_adapter_with_forecast(forecast)
 
-    When KI-002-A is fixed, replace this diagnostic assertion with a
-    test proving that `as_of` comes from the propagated knowledge cutoff
-    and is independent of the adapter's wall-clock generation time.
+    with caplog.at_level(logging.WARNING):
+        artifact = adapter.get_prediction_artifact("USD/CHF", horizon_days=5)
 
-    The fix is not merely "as_of <= prediction_timestamp" — it is that
-    `as_of` MUST be derived from temporal provenance (KI-002-D), not
-    from `datetime.now()`.
-    """
-    artifact = _make_artifact_at_wall_clock()
-
-    # Documents the collapse:
+    assert artifact is not None
     assert artifact.as_of == artifact.prediction_timestamp
-    assert artifact.as_of == artifact.created_at
-
-
-def test_ki_002_c_input_available_times_makes_pit2_vacuous():
-    """KI-002-C diagnostic.
-
-    PipelineBridge populates input_available_times=[as_of]. With a
-    single-element list, PIT-2 (derived.available_time =
-    max(inputs.available_time)) reduces to a trivially true identity.
-
-    This test documents the structure. When KI-002-C is fixed,
-    input_available_times should carry the real per-input timestamps,
-    and this test should assert that max(input_available_times) equals
-    derived_available_time AND that the list contains more than one
-    distinct input timestamp.
-    """
-    as_of = datetime(2026, 1, 5, 10, 30, tzinfo=UTC)
-    input_available_times = [as_of]  # current PipelineBridge pattern
-    derived_available_time = as_of
-
-    # Documents the vacuous pass:
-    assert max(input_available_times) == derived_available_time
-    # And that the list is degenerate:
-    assert len(set(input_available_times)) == 1
+    assert any(
+        "as_of fallback to wall-clock" in record.message
+        for record in caplog.records
+    )
