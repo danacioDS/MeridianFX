@@ -60,66 +60,208 @@ a 1-minute TTL ensures that within the same minute, all consumers
 
 ---
 
-## KI-002 — Temporal semantics of `as_of` are not audited end-to-end
+## KI-002 — `PredictionArtifact` temporal provenance is not verified
 
 **Status:** partially resolved
 **Detected:** 2026-09-14
-**Component:** `backend/src/meridian_fx/decision/pipeline.py`,
-`backend/layer1/adapters/decision_engine_adapter.py`
+**Components:**
+- `backend/layer2/data/provider.py`
+- `backend/layer2/engine.py`
+- `backend/layer1/adapters/decision_engine_adapter.py`
+- `backend/src/meridian_fx/decision/quality/real_providers.py`
+- `backend/layer2/pipeline_bridge.py`
 
-### Description
+### Contract
 
-The decision path contained multiple independent `utcnow()` calls, and
-the origin of `artifact.as_of` was not audited. This created uncertainty
-about whether the timestamps attached to a decision were semantically
-coherent and whether the point-in-time provenance of the data was
-verifiable.
+Two specs define the temporal contract:
+
+- **Layer 3 §11.2:** `as_of: datetime  // knowledge point for this prediction`.
+- **Layer 4 §3:** seven PIT invariants, including:
+    - PIT-1: `available_time <= T`
+    - PIT-2: `derived.available_time = max(inputs.available_time)`
+    - PIT-7: `event_time <= release_time <= source_available_time <= system_available_time`
+
+The contract distinguishes five temporal concepts that MUST NOT collapse
+into a single `datetime.now()`:
+
+    event_time             — when the economic fact occurred
+    release_time           — when the source published it
+    source_available_time  — when the source made it available
+    system_available_time  — when MeridianFX ingested it
+    as_of                  — knowledge cutoff: max(source_available_time)
 
 ### Sub-issue 1 — `Decision.timestamp` consistency (RESOLVED v2.7.5)
 
 Before v2.7.5, `DecisionPipeline` called `utcnow()` independently in
-each decision branch:
+each decision branch. Fixed in v2.7.5 (`f45b097`). Two regression tests
+in `backend/tests/test_pipeline.py` cover the semantics.
 
-    _build_valid_path        → timestamp=utcnow()
-    _out_of_bounds_decision  → timestamp=utcnow()
-    _invalid_edge_decision   → timestamp=utcnow()
+### Sub-issue 2 — Market data temporal propagation (OPEN — KI-002-A)
 
-The same build could produce different `Decision.timestamp` values
-depending on which branch executed.
+The chain is:
 
-**Resolution:** v2.7.5 (`f45b097`) captures `utcnow()` once at the
-start of `build()` and propagates it to all branches. Two regression
-tests cover the semantics.
+    DataProvider.get_historical()
+        ├── result['last_date']          ← ★ data cutoff exists here
+        └── result['timestamp']          ← datetime.now() (retrieval time)
+                    ↓
+    DecisionEngine.get_forecast()
+        ├── df = result['data']          ← OK
+        └── response['data_provider'] = {
+                'source': ..., 'freshness': ..., 'last_price': ...,
+                # ← FALTA 'last_date'
+            }
+                    ↓
+    DecisionEngineAdapter.get_prediction_artifact()
+        └── timestamp = datetime.now(timezone.utc)
+            as_of=timestamp, prediction_timestamp=timestamp,
+            created_at=timestamp
+                    ↓
+    PredictionArtifact
+        as_of = wall-clock, NOT data cutoff
 
-### Sub-issue 2 — `artifact.as_of` provenance (OPEN)
+**Evidence:**
+- `backend/layer2/data/provider.py` — `get_historical()` returns
+  `result['last_date'] = df.index[-1]` (data cutoff) alongside
+  `result['timestamp'] = datetime.now(timezone.utc)` (retrieval time).
+- `backend/layer2/engine.py` — `get_forecast()` extracts `df = result['data']`
+  but omits `result['last_date']` from the response payload.
+- `backend/layer1/adapters/decision_engine_adapter.py` — the adapter reads
+  `forecast` but has no data cutoff available, so it sets
+  `as_of = datetime.now(timezone.utc)`.
 
-`Decision.as_of` is copied from `PredictionArtifact.as_of`. The
-`PredictionArtifact` is produced by the adapter. The chain
+**Impact:**
+- `PredictionArtifact.as_of` does not currently satisfy the intended
+  Layer 3 semantic contract ("knowledge point for this prediction").
+  The type is correct (`datetime`), but the value is wall-clock time
+  rather than a data-derived knowledge cutoff.
+- `as_of == prediction_timestamp == created_at` (all three collapse).
+- Downstream PIT validation operates on the wall-clock cutoff.
 
-    request → adapter → artifact.as_of → pipeline → decision.as_of
+**Fix proposed:**
+1. `engine.get_forecast()`: add `'last_date': result['last_date']` to the
+   `data_provider` block of the response.
+2. `adapter.get_prediction_artifact()`: consume the temporal provenance
+   propagated by the engine and derive `as_of` from the validated
+   knowledge cutoff; it MUST NOT synthesize it with `datetime.now()`.
+   If the required temporal provenance is absent, fail explicitly —
+   do not fall back to wall-clock time.
 
-has NOT been audited. Specifically:
+   Note: `last_date` alone is not sufficient. It is an observation
+   timestamp, not necessarily `source_available_time`. For continuously
+   published market data the two may coincide, but they are conceptually
+   distinct. See KI-002-D.
+3. Consider whether `last_date` alone is sufficient, or whether
+   `event_time` / `release_time` / `source_available_time` need to be
+   distinguished (see KI-002-D below).
 
-- Whether `artifact.as_of` is deterministic given the same request.
-- Whether it reflects the "time of the data", the "time of the
-  computation", or something else.
-- Whether any information used by the decision could have been
-  published after `artifact.as_of` (PIT violation).
+### Sub-issue 3 — Layer 4 availability semantics (OPEN — KI-002-B)
 
-**This is the primary scope of the v3.0 PIT audit.**
+`RealFeatureStore` (VIX) fetches a real Yahoo observation but assigns:
 
-### Fix proposed
+    FeatureValue(
+        feature_id="vix",
+        value=vix,                      # real
+        available_time=as_of,            # ← inherited from caller, not observed
+    )
 
-Audit `DecisionEngineAdapter.get_prediction_artifact()`:
-- Identify where `as_of` is generated.
-- Determine whether it should be passed in by the caller (request
-  boundary) rather than generated by the adapter.
-- Add tests that verify PIT properties: no input timestamp may exceed
-  `as_of`, and `as_of` may not depend on values published after it.
+The source observation's actual timestamp (`hist.index[-1]` from the
+Yahoo fetch) is not captured or propagated.
 
-This is tracked jointly with A3 (below).
+**Impact:**
+- `FeatureValue.available_time` is synthetic, not observed.
+- PIT-1 validation (`available_time <= prediction_timestamp`) checks the
+  synthetic cutoff against itself, which is vacuously true.
+- PIT-7 (`event_time <= release_time <= source_available_time <=
+  system_available_time`) cannot be evaluated — only one timestamp exists.
 
----
+**Fix proposed:**
+1. In `RealFeatureStore._fetch_vix()`, capture `hist.index[-1]` (the
+   observation timestamp) alongside the value.
+2. Use that timestamp as `source_available_time` in the constructed
+   `FeatureValue`. Distinguish `source_available_time` from
+   `system_available_time` (when MeridianFX ingested it).
+3. This requires extending `FeatureValue` — or introducing a companion
+   type — to carry the full temporal metadata chain. Design decision
+   pending; see KI-002-D.
+
+### Sub-issue 4 — PIT-2 vacuously satisfied (OPEN — KI-002-C)
+
+`PipelineBridge.build_inputs()` populates:
+
+    derived_available_time=as_of,
+    input_available_times=[as_of],
+
+With a single-element list, PIT-2 (`derived.available_time =
+max(inputs.available_time)`) reduces to `as_of == as_of`, which is
+trivially true regardless of the actual input timestamps.
+
+**Impact:**
+- The `PITValidator` reports a passing report, but the pass does not
+  establish absence of look-ahead bias.
+- The validator is correct; the inputs it receives are the problem.
+
+**Fix proposed:**
+- Populate `input_available_times` with the real per-input timestamps
+  (from each `FeatureValue.available_time`, from the market data cutoff,
+  from the macro context timestamps).
+- Requires KI-002-A and KI-002-B to be resolved first.
+
+### Sub-issue 5 — Full temporal contract design (OPEN — KI-002-D)
+
+Design-level question: how should the five temporal concepts be
+represented across the pipeline?
+
+    event_time             — Layer 4 provider (e.g. FRED observation_date)
+    release_time           — Layer 4 provider (e.g. FRED release_date)
+    source_available_time  — Layer 4 provider (source-specific)
+    system_available_time  — DataProvider (ingestion wall-clock)
+    as_of                  — pipeline cutoff: max(source_available_time)
+
+Requirements:
+- The set of concepts must be reflected in the contract types
+  (`PredictionArtifact`, `FeatureValue`, `PipelineInputs`) or in a
+  companion "temporal provenance" type.
+- The propagation must be explicit end-to-end:
+  `source → provider → engine → adapter → artifact → validator`.
+- For market data (Yahoo FX candles): `event_time` ≈ `release_time` ≈
+  `source_available_time` (markets are continuously published).
+- For macro data (FRED): the three are distinct (observation_date,
+  release_date, retrieval).
+- `as_of` should be well-defined in both cases.
+
+**This sub-issue is design-only for now.** No code change until the
+representation decision is made.
+
+### Test coverage
+
+`backend/tests/test_pit_audit.py` contains **two** diagnostic tests
+that capture the current structural behavior:
+
+- `test_ki_002_a_as_of_collapses_with_prediction_timestamp` — documents
+  that `as_of`, `prediction_timestamp` and `created_at` all collapse to
+  the same wall-clock value in the adapter pattern.
+- `test_ki_002_c_input_available_times_makes_pit2_vacuous` — documents
+  that `PipelineBridge` passes `input_available_times=[as_of]`, which
+  reduces PIT-2 to a trivial identity.
+
+These tests are **intentionally not evidence of end-to-end PIT
+correctness**. They document the current failure modes and MUST be
+updated or removed when the corresponding fixes land. Their purpose is
+to force a conscious decision at fix time: a broken assertion is a
+prompt, not a regression.
+
+The jump from 148 → 150 tests in the suite is explained by these two
+new diagnostic tests.
+
+### Status summary
+
+| Sub-issue | Status |
+| --- | --- |
+| KI-002 sub-1 (`Decision.timestamp`) | RESOLVED v2.7.5 (`f45b097`) |
+| KI-002-A (market temporal propagation) | OPEN |
+| KI-002-B (Layer 4 availability) | OPEN |
+| KI-002-C (PIT-2 vacuous) | OPEN |
+| KI-002-D (full contract design) | OPEN (design-only) |
 
 ## KI-003 — Double Yahoo fetch per request
 
