@@ -14,34 +14,16 @@ import {
   IntelligenceBrief,
 } from "../components/global";
 import { PriceChartSignalIQ } from "../components/global/PriceChartSignalIQ";
+import { RegimeWarningBanner } from "../components/global/RegimeWarningBanner";
+import { DivergencePanel } from "../components/global/DivergencePanel";
 import {
   useRanking,
   useActivePair,
+  useRegimeDivergence,
   pairUniverseFromRanking,
 } from "../hooks";
 import { useForecastDashboard } from "../hooks/useForecastDashboard";
 import { useMarketIntelligence } from "../hooks/useMarketIntelligence";
-
-/**
- * ModelDivergenceNotice — flags that the Global ranking and the canonical
- * Decision pipeline use different models and may disagree on direction.
- */
-function ModelDivergenceNotice(): JSX.Element {
-  return (
-    <div className="space-y-2 mb-4">
-      <div className="text-xs font-mono px-3 py-2 rounded-lg bg-amber-soft text-amber border border-line">
-        ⚠ Model divergence — Global ranking (legacy registry model) and the
-        canonical Decision pipeline use different models and may produce
-        different signals for the same pair.
-      </div>
-      <div className="text-xs font-mono px-3 py-2 rounded-lg bg-panel-2 text-muted border border-line">
-        ℹ The three horizons use the same Logistic_24 signal, with expected
-        return scaled by volatility for 30/60/90 days. They are not separate
-        multi-horizon models.
-      </div>
-    </div>
-  );
-}
 
 /**
  * Global Page — Executive market intelligence overview.
@@ -57,6 +39,7 @@ export function GlobalPage(): JSX.Element {
   const ranking = useRanking();
   const dashboard = useForecastDashboard(pair);
   const marketIntelligence = useMarketIntelligence(pair);
+  const divergence = useRegimeDivergence(pair, 90, "1y");
 
   const universe = pairUniverseFromRanking(ranking.data);
 
@@ -190,11 +173,32 @@ export function GlobalPage(): JSX.Element {
             </div>
 
             {/* Interactive chart */}
+            {divergence.data && (
+              <RegimeWarningBanner
+                regime={divergence.data.regime}
+                interpretation={divergence.data.interpretation}
+                zscore={divergence.data.current_zscore}
+              />
+            )}
+
             <PriceChartSignalIQ
               history={data.history || []}
               currentPrice={data.spot.price}
               pair={pair}
+              projectedSeries={divergence.data?.projected_series}
             />
+
+            {divergence.data && (
+              <div className="mt-4">
+                <DivergencePanel
+                  pair={divergence.data.pair}
+                  windowDays={divergence.data.window_days}
+                  currentZscore={divergence.data.current_zscore}
+                  interpretation={divergence.data.interpretation}
+                  regime={divergence.data.regime}
+                />
+              </div>
+            )}
 
             {/* Forecast section (same panel, visual divider) */}
             <div className="border-t border-line pt-4 mt-6">
@@ -202,9 +206,7 @@ export function GlobalPage(): JSX.Element {
                 🔮 Logistic_24 Forecast
               </h3>
 
-              <ModelDivergenceNotice />
-
-              {data.forecasts && (
+                      {data.forecasts && (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {["30d", "60d", "90d"].map((h) => {

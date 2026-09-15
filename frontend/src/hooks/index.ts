@@ -9,5 +9,6 @@ export * from "./usePerformancePeriod";
 export * from "./usePolling";
 export * from "./usePrice";
 export * from "./useRanking";
+export * from "./useRegimeDivergence";
 
 export type { CanonicalDecision } from "./useCanonicalDecision";

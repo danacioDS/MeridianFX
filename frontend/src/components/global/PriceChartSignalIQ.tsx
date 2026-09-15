@@ -1,9 +1,10 @@
 /**
- * PriceChartSignalIQ — Gráfico estilo SignalIQ con área y gradiente
+ * PriceChartSignalIQ — Chart with area + projection line
  */
 import {
-  AreaChart,
+  ComposedChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -26,12 +27,19 @@ interface PriceChartSignalIQProps {
   currentPrice: number;
   pair: string;
   isMobile?: boolean;
+  /**
+   * Optional projected series (rolling ARIMA(1,0,1) under clean float).
+   * When provided, an additional yellow dashed line is drawn on the
+   * chart. Each entry is [YYYY-MM-DD, price].
+   */
+  projectedSeries?: [string, number][];
 }
 
-export function PriceChartSignalIQ({ 
-  history, 
-  currentPrice, 
-  isMobile = false 
+export function PriceChartSignalIQ({
+  history,
+  currentPrice,
+  isMobile = false,
+  projectedSeries,
 }: PriceChartSignalIQProps): JSX.Element {
   const [period, setPeriod] = useState("30d");
 
@@ -46,7 +54,15 @@ export function PriceChartSignalIQ({
   const filtered = history.slice(-limit);
 
   if (filtered.length === 0) {
-    return <div className="text-center text-muted py-8">No hay datos históricos</div>;
+    return <div className="text-center text-muted py-8">No historical data</div>;
+  }
+
+  // Build a lookup of projected values by original date (YYYY-MM-DD).
+  const projectedByDate = new Map<string, number>();
+  if (projectedSeries) {
+    for (const [d, v] of projectedSeries) {
+      projectedByDate.set(d, v);
+    }
   }
 
   const chartData = filtered.map((p) => ({
@@ -55,7 +71,11 @@ export function PriceChartSignalIQ({
     open: p.open,
     high: p.high,
     low: p.low,
+    // Look up by original full date (before slice) to avoid collisions.
+    projected: projectedByDate.get(p.date),
   }));
+
+  const hasProjection = projectedByDate.size > 0;
 
   const prices = filtered.map((p) => p.close);
   const minPrice = Math.min(...prices, currentPrice);
@@ -69,7 +89,7 @@ export function PriceChartSignalIQ({
 
   return (
     <div className="space-y-4">
-      {/* Selector de período */}
+      {/* Period selector */}
       <div className="flex gap-1">
         {["30d", "90d", "6m", "1y"].map((p) => (
           <button
@@ -86,10 +106,33 @@ export function PriceChartSignalIQ({
         ))}
       </div>
 
-      {/* Gráfico estilo SignalIQ */}
+      {/* Legend */}
+      <div className="flex flex-wrap gap-4 text-xs text-[#8a8a9a]">
+        <div className="flex items-center gap-2">
+          <span
+            className="inline-block w-6 h-0.5 rounded"
+            style={{ backgroundColor: "#00d4aa" }}
+          />
+          <span>Observed price</span>
+        </div>
+        {hasProjection && (
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block w-6 h-0.5 rounded"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(to right, #ffd84a 0 4px, transparent 4px 8px)",
+              }}
+            />
+            <span>Clean-float projection (rolling ARIMA 1,0,1)</span>
+          </div>
+        )}
+      </div>
+
+      {/* Chart */}
       <div className="bg-[#1a1a2e] rounded-lg p-4">
         <ResponsiveContainer width="100%" height={isMobile ? 150 : 220}>
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
+          <ComposedChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
             <defs>
               <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={accentColor} stopOpacity={0.3} />
@@ -119,14 +162,17 @@ export function PriceChartSignalIQ({
                 padding: "8px 12px",
               }}
               labelStyle={{ color: "#fff", fontSize: "11px" }}
-              formatter={(value: any) => [value.toFixed(4), "Precio"]}
+              formatter={(value: any, name: string) => [
+                value.toFixed(4),
+                name === "projected" ? "Clean-float projection" : "Observed price",
+              ]}
             />
             <ReferenceLine
               y={currentPrice}
               stroke={accentColor}
               strokeDasharray="3 3"
               label={{
-                value: `Actual ${currentPrice.toFixed(4)}`,
+                value: `Current ${currentPrice.toFixed(4)}`,
                 fill: accentColor,
                 fontSize: 9,
                 position: "right",
@@ -139,27 +185,40 @@ export function PriceChartSignalIQ({
               strokeWidth={2}
               fill="url(#priceGradient)"
             />
-          </AreaChart>
+            {hasProjection && (
+              <Line
+                type="monotone"
+                dataKey="projected"
+                stroke="#ffd84a"
+                strokeWidth={1.5}
+                strokeDasharray="4 4"
+                dot={false}
+                activeDot={false}
+                connectNulls={false}
+                name="Clean-float projection"
+              />
+            )}
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Métricas rápidas */}
+      {/* Quick metrics */}
       <div className="grid grid-cols-4 gap-2">
         <div className="text-center p-2 bg-[#2a2a3e] rounded">
-          <div className="text-xs text-[#8a8a9a]">Máx</div>
+          <div className="text-xs text-[#8a8a9a]">Max</div>
           <div className="text-sm font-mono font-semibold text-white">{maxPrice.toFixed(4)}</div>
         </div>
         <div className="text-center p-2 bg-[#2a2a3e] rounded">
-          <div className="text-xs text-[#8a8a9a]">Mín</div>
+          <div className="text-xs text-[#8a8a9a]">Min</div>
           <div className="text-sm font-mono font-semibold text-white">{minPrice.toFixed(4)}</div>
         </div>
         <div className="text-center p-2 bg-[#2a2a3e] rounded">
-          <div className="text-xs text-[#8a8a9a]">Rango</div>
+          <div className="text-xs text-[#8a8a9a]">Range</div>
           <div className="text-sm font-mono font-semibold text-white">{(maxPrice - minPrice).toFixed(4)}</div>
         </div>
         <div className="text-center p-2 bg-[#2a2a3e] rounded">
-          <div className="text-xs text-[#8a8a9a]">Datos</div>
-          <div className="text-sm font-mono font-semibold text-white">{filtered.length} días</div>
+          <div className="text-xs text-[#8a8a9a]">Data</div>
+          <div className="text-sm font-mono font-semibold text-white">{filtered.length} days</div>
         </div>
       </div>
     </div>
