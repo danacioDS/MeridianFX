@@ -1,0 +1,37 @@
+# Pre-commit hooks for MeridianFX.
+#
+# Install once per clone:
+#     pip install pre-commit
+#     pre-commit install
+#
+# Then run on every commit automatically, or manually via:
+#     pre-commit run --all-files
+#
+# Rationale: we have twice committed states that were not verified
+# (v2.7.3 and 4488464). The pytest hook below mechanically prevents
+# that class of mistake.
+
+repos:
+  # ── Standard hygiene hooks ────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: ['--markdown-linebreak-ext=md']
+      - id: check-yaml
+      - id: check-toml
+
+  # ── Backend tests (the critical hook) ─────────────────────────────
+  - repo: local
+    hooks:
+      - id: pytest-backend
+        name: pytest (backend test suite)
+        entry: pytest -q
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
