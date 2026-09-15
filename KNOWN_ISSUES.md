@@ -206,31 +206,158 @@ trivially true regardless of the actual input timestamps.
   from the macro context timestamps).
 - Requires KI-002-A and KI-002-B to be resolved first.
 
-### Sub-issue 5 — Full temporal contract design (OPEN — KI-002-D)
+### Sub-issue 5 — Full temporal contract design (DESIGN — KI-002-D)
 
-Design-level question: how should the five temporal concepts be
-represented across the pipeline?
+**Status:** design (no code change)
 
-    event_time             — Layer 4 provider (e.g. FRED observation_date)
-    release_time           — Layer 4 provider (e.g. FRED release_date)
-    source_available_time  — Layer 4 provider (source-specific)
-    system_available_time  — DataProvider (ingestion wall-clock)
-    as_of                  — pipeline cutoff: max(source_available_time)
+This sub-issue defines the target temporal contract for the pipeline.
+It is documented here before any code change, so that KI-002-A/B/C can
+be implemented against a settled design rather than against the current
+ad-hoc timestamps.
 
-Requirements:
-- The set of concepts must be reflected in the contract types
-  (`PredictionArtifact`, `FeatureValue`, `PipelineInputs`) or in a
-  companion "temporal provenance" type.
-- The propagation must be explicit end-to-end:
-  `source → provider → engine → adapter → artifact → validator`.
-- For market data (Yahoo FX candles): `event_time` ≈ `release_time` ≈
-  `source_available_time` (markets are continuously published).
-- For macro data (FRED): the three are distinct (observation_date,
-  release_date, retrieval).
-- `as_of` should be well-defined in both cases.
+#### The five temporal concepts
 
-**This sub-issue is design-only for now.** No code change until the
-representation decision is made.
+| Concept | Meaning | Source |
+| --- | --- | --- |
+| `event_time` | When the economic fact occurred. | Layer 4 provider (e.g. FRED `observation_date`, market candle timestamp). |
+| `release_time` | When the source published the fact. | Layer 4 provider (only when the provider exposes it). |
+| `source_available_time` | When the source made the value available for query. | Layer 4 provider (often equals `release_time`). |
+| `system_available_time` | When MeridianFX ingested the value. | `DataProvider` (wall-clock at ingestion). |
+| `as_of` | Knowledge cutoff for a prediction: the maximum `source_available_time` across all inputs used. | Derived by the pipeline. |
+
+**Invariant (Layer 4 §3, PIT-7):**
+event_time <= release_time <= source_available_time <= system_available_time
+
+#### Target type: `TemporalProvenance`
+
+Location (proposed): `backend/src/meridian_fx/decision/contracts/temporal.py`.
+
+class TemporalConfidence(str, Enum):
+    VERIFIED = "verified"
+    APPROXIMATED = "approximated"
+    UNAVAILABLE = "unavailable"
+
+class TemporalProvenance(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    event_time: datetime
+    release_time: datetime | None = None
+    source_available_time: datetime
+    system_available_time: datetime
+
+    event_time_confidence: TemporalConfidence = TemporalConfidence.VERIFIED
+    release_time_confidence: TemporalConfidence = TemporalConfidence.UNAVAILABLE
+    source_available_time_confidence: TemporalConfidence = TemporalConfidence.VERIFIED
+    system_available_time_confidence: TemporalConfidence = TemporalConfidence.VERIFIED
+
+**Notes on defaults:**
+
+- `release_time_confidence` defaults to `UNAVAILABLE` because no current
+  provider exposes a verified release timestamp.
+- `event_time_confidence`, `source_available_time_confidence`, and
+  `system_available_time_confidence` default to `VERIFIED`.
+- Callers that know a value is approximate MUST set the corresponding
+  confidence to `APPROXIMATED` explicitly.
+
+#### Integration into existing types
+
+**`FeatureValue`** (Layer 4 contract):
+
+class FeatureValue(BaseModel):
+    feature_id: str
+    value: float | None
+    provenance: TemporalProvenance
+
+    @property
+    def available_time(self) -> datetime:
+        return self.provenance.source_available_time
+
+**`PredictionArtifact`** (Layer 3 contract):
+
+- `as_of` preserved, but its value MUST be derived from
+  max(input.provenance.source_available_time for all inputs).
+- `prediction_timestamp` remains wall-clock at prediction time.
+- `created_at` remains wall-clock at artifact creation.
+
+**`PipelineInputs`** (Layer 2 pipeline):
+
+- `input_available_times` MUST be populated with the real per-input
+  `source_available_time`, not `[as_of]`.
+- `derived_available_time` becomes max(input_available_times) (PIT-2).
+
+#### Provider capability matrix (current state)
+
+| Provider | event_time | release_time | source_available_time | system_available_time |
+| --- | --- | --- | --- | --- |
+| Yahoo FX | VERIFIED | APPROXIMATED | APPROXIMATED | VERIFIED |
+| Alpha Vantage | VERIFIED | APPROXIMATED | APPROXIMATED | VERIFIED |
+| Twelve Data | VERIFIED | APPROXIMATED | APPROXIMATED | VERIFIED |
+| FRED | VERIFIED | UNAVAILABLE | APPROXIMATED | VERIFIED |
+| VIX (Yahoo) | VERIFIED | APPROXIMATED | APPROXIMATED | VERIFIED |
+
+#### Timezone handling — implementation risk
+
+`YahooSource.fetch()` converts the DataFrame index to timezone-naive.
+Any code that converts a naive timestamp back to UTC MUST interpret it
+as the original instant, not as local wall-clock time. Flagged as a risk
+to resolve during KI-002-A, not during design.
+
+#### `as_of` computation
+
+as_of = max(
+    input.provenance.source_available_time
+    for input in inputs
+    if input.provenance.source_available_time_confidence
+       in (TemporalConfidence.VERIFIED, TemporalConfidence.APPROXIMATED)
+)
+
+**Rules:**
+
+1. Computation performed once, at the point with access to all inputs.
+2. `datetime.now()` MUST NOT substitute for `as_of`.
+3. If no input provides `source_available_time`, fail explicitly.
+4. If any input is `APPROXIMATED`, the aggregate inherits the flag.
+
+#### PIT validation semantics
+
+A passing PIT report is only meaningful when inputs carry verified
+`source_available_time`. When inputs are approximated, the report MUST
+include a flag or warning indicating PIT correctness is not fully
+demonstrated.
+
+#### Planned tests
+
+- T-D-1: PIT-7 enforced when all four timestamps present.
+- T-D-2: release_time=None accepted with reduced ordering.
+- T-D-3: naive timestamps rejected (PIT-5).
+- T-D-4: FeatureValue.available_time returns provenance.source_available_time.
+- T-D-5: market provider has release/source APPROXIMATED.
+- T-D-6: FRED has release UNAVAILABLE, source APPROXIMATED.
+- T-D-7: as_of computed as max of input source_available_time.
+
+#### Scope
+
+**Design-only.** No code change until KI-002-A/B/C implemented against
+this contract.
+
+Not in scope: modifying providers/adapters/engine/pipeline code; adding
+`TemporalConfidence` to codebase; changing tests; migrating
+`PredictionArtifact`.
+
+#### Decisions closed
+
+| # | Decision |
+| --- | --- |
+| 1 | TemporalProvenance is a shared type. |
+| 2 | FeatureValue.available_time becomes a derived alias. |
+| 3 | FRED source_available_time is APPROXIMATED. |
+| 4 | as_of = max(input.source_available_time), PIT-2. |
+| 5 | Per-timestamp confidence enum. |
+| 6 | release_time_confidence defaults to UNAVAILABLE. |
+| 7 | Market timestamps are approximations. |
+| 8 | tz-naive → UTC is an implementation risk. |
+| 9 | datetime.now() MUST NOT substitute for as_of. |
+| 10 | Approximated inputs do not prove historical PIT correctness. |
 
 ### Test coverage
 
