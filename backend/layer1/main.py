@@ -4,24 +4,31 @@ from backend.layer1.routers import ranking, forecast, performance, status, histo
 
 app = FastAPI(title="Meridian FX API", version="1.0.0")
 
-# Configurar CORS - ACTUALIZADO CON DOMINIOS DE CLOUDFLARE
+# CORS configuration.
+#
+# IMPORTANT: do NOT include "*" in allow_origins when
+# allow_credentials=True — the CORS spec forbids it, and browsers
+# will silently reject every response (which manifests as
+# "No 'Access-Control-Allow-Origin' header is present").
+#
+# List every allowed origin explicitly.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Local development
         "http://localhost:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
-        "https://meridianfx.onrender.com",
-        "https://meridianfx-1.onrender.com",
+        # Production frontend (Cloudflare Pages)
+        "https://meridianfx.pages.dev",
+        "https://main.meridianfx.pages.dev",
+        "https://*.pages.dev",
+        # Legacy frontends (kept for compatibility while migrating)
         "https://meridian-fx-frontend.vercel.app",
         "https://meridian-fx-frontend-git-main.vercel.app",
-        "https://main.meridianfx.pages.dev",
-        "https://meridianfx.pages.dev",
-        "https://*.pages.dev",
         "https://preset-cost-freehand.ngrok-free.dev",
         "https://*.ngrok-free.dev",
-        "*"
     ],
     allow_credentials=True,
     allow_methods=["*"],
