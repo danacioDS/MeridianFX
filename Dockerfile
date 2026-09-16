@@ -18,6 +18,8 @@ COPY backend/ ./backend/
 ENV PYTHONPATH=/app/backend:/app
 ENV MERIDIAN_MODEL_DIR=/app/models
 
-EXPOSE 10000
+# Cloud Run injects $PORT dynamically (default 8080).
+# We use `sh -c` to allow variable expansion.
+EXPOSE 8080
 
-CMD ["uvicorn", "layer1.main:app", "--host", "0.0.0.0", "--port", "10000"]
+CMD ["sh", "-c", "uvicorn layer1.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
