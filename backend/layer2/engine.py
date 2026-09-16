@@ -17,25 +17,25 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 
 class DecisionEngine:
     """Motor de decisión principal con caché persistente en disco."""
-    
+
     def __init__(self):
         self.data_provider = DataProvider()
         self.economic_filter = EconomicFilter()
         self.registry = ModelRegistry("backend/models/registry.json")
-        
+
         # Caché en memoria
         self.cache = {}
         self.cache_ttl = 300
-        
+
         # Modelos por par
         self.log_models = {}
         self.xgb_models = {}
         self.logistic_models = {}
         self.shap_explainers = {}
-        
+
         # Cargar caché desde disco
         self._load_cache()
-    
+
         # Cargar modelo canónico Logistic_24
         self._load_canonical_model()
 
@@ -110,11 +110,11 @@ class DecisionEngine:
         """Calcula volatilidad anualizada a partir de retornos diarios."""
         if len(df) < days:
             return 0.0
-        
+
         returns = df['Close'].pct_change().dropna().tail(days)
         if len(returns) < 2:
             return 0.0
-        
+
         daily_vol = returns.std()
         annual_vol = daily_vol * (252 ** 0.5)
         return round(annual_vol, 4)  # Retorna en formato decimal (0.12 = 12%)
@@ -123,9 +123,9 @@ class DecisionEngine:
         import joblib
         import os
         import glob
-        
+
         from backend.layer2.models.logistic_model import LogisticModel
-        
+
         # Definir mapa de pares a modelos
         pair_map = {
             "EUR/USD": "models/canonical/logistic_24_20260908_172009.joblib",
@@ -138,23 +138,23 @@ class DecisionEngine:
             "USD/BRL": "models/canonical/logistic_24_USD_BRL_20260909_081913.joblib",
             "USD/ARS": "models/canonical/logistic_24_USD_ARS_20260909_081914.joblib",
         }
-        
+
         for pair, model_path in pair_map.items():
             if not os.path.exists(model_path):
                 print(f"⚠️ Modelo no encontrado: {model_path}")
                 continue
-            
+
             try:
                 artifact = joblib.load(model_path)
                 model = artifact["model"]
                 feature_names = artifact["feature_names"]
-                
+
                 # Crear wrapper
                 log_model = LogisticModel()
                 log_model.model = model
                 log_model.scaler = None
                 log_model.feature_names = feature_names
-                
+
                 cache_key = f"{pair}_logistic"
                 self.logistic_models[cache_key] = log_model
                 print(f"✅ Logistic_24 cargado para {pair} ({len(feature_names)} features)")
@@ -167,11 +167,11 @@ class DecisionEngine:
         model_type: str = "xgboost"
     ):
         """Obtiene el modelo específico para un par."""
-        
+
         from backend.layer1.utils.pair_normalizer import normalize_pair
-        
+
         pair = normalize_pair(pair)
-        
+
         if model_type == "xgboost":
             models = self.xgb_models
         elif model_type == "logistic":
@@ -180,45 +180,45 @@ class DecisionEngine:
             raise ValueError(
                 f"Unsupported model type: {model_type}"
             )
-        
+
         cache_key = f"{pair}_{model_type}"
-        
+
         # PRIMERO: verificar si ya está cargado
         if cache_key in models:
             return models[cache_key]
-        
+
         # SEGUNDO: intentar cargar desde registry
         try:
             active = self.registry.get_active(
                 pair,
                 model_type
             )
-            
+
             if active:
                 model_path = active.get("path")
-                
+
                 if model_path and os.path.exists(model_path):
-                    
+
                     if model_type == "xgboost":
                         model = XGBoostModel(model_path)
                     else:
                         model = LogisticModel(model_path)
-                    
+
                     models[cache_key] = model
-                    
+
                     print(
                         f"✅ Modelo {model_type} "
                         f"cargado para {pair}"
                     )
-                    
+
                     return model
-                    
+
         except Exception as e:
             print(
                 f"⚠️ Error cargando modelo "
                 f"{model_type} para {pair}: {e}"
             )
-        
+
         return None
     def _load_cache(self):
         """Carga caché desde disco."""
@@ -235,7 +235,7 @@ class DecisionEngine:
                     print(f"✅ Caché cargado desde disco ({len(self.cache)} entradas)")
             except Exception as e:
                 print(f"⚠️ Error cargando caché: {e}")
-    
+
     def _save_cache(self):
         """Guarda caché en disco."""
         cache_file = os.path.join(CACHE_DIR, "forecast_cache.json")
@@ -250,7 +250,7 @@ class DecisionEngine:
                 json.dump(data, f, indent=2, default=str)
         except Exception as e:
             print(f"⚠️ Error guardando caché: {e}")
-    
+
     def _get_cached(self, key: str):
         """Obtiene del caché si no ha expirado."""
         if key in self.cache:
@@ -258,7 +258,7 @@ class DecisionEngine:
             if datetime.now() - entry['timestamp'] < timedelta(seconds=self.cache_ttl):
                 return entry['data']
         return None
-    
+
     def _set_cache(self, key: str, data):
         """Guarda en caché (memoria + disco)."""
         self.cache[key] = {
@@ -266,23 +266,23 @@ class DecisionEngine:
             'timestamp': datetime.now()
         }
         self._save_cache()
-    
+
     def get_forecast(self, pair: str, horizon_days: int = 30) -> dict:
         """Obtiene forecast completo para un par específico."""
         cache_key = f"forecast_{pair}_{horizon_days}d"
-        
+
         cached = self._get_cached(cache_key)
         if cached:
             print(f"📦 Usando caché para {pair}")
             return cached
-        
+
         print(f"📊 Generando forecast para {pair}...")
-        
+
         try:
             # 1. Obtener datos
             result = self.data_provider.get_historical(pair, period="1y")
             df = result['data']
-            
+
             # 2. Generar features
             df_feat = TechnicalFeatures.generate(df)
             # Features técnicas + policy_diff
@@ -292,15 +292,15 @@ class DecisionEngine:
             df_feat["policy_diff"] = policy_diff_value
             feature_cols = feature_cols + ["policy_diff"]
             latest = df_feat.iloc[-1:][feature_cols].dropna()
-            
+
             if latest.empty:
                 print("⚠️ No hay datos suficientes")
                 return self._fallback_forecast(pair)
-            
+
             # 3. Cargar modelo canónico Logistic_24
             model = self._get_model_for_pair(pair, "logistic")
             is_trained = model is not None and model.model is not None
-            
+
             if is_trained:
                 try:
                     log_pred = model.predict(latest)
@@ -314,7 +314,7 @@ class DecisionEngine:
                 log_pred = self._heuristic_forecast(latest)
                 probability = log_pred.get('probability', 0.5)
                 print(f"⚠️ Usando heuristic para {pair}")
-            
+
             # 4. SHAP explicación
             shap_explanation = None
             if is_trained and model is not None:
@@ -329,7 +329,7 @@ class DecisionEngine:
                         shap_explanation = shap_explainer.explain(latest)
                 except Exception as e:
                     print(f"⚠️ SHAP falló: {e}")
-            
+
             # 5. Economic filter (recibe expected_return y volatility)
             # Nota: expected_return es escalado de volatilidad, no predicción multi-horizonte.
             # Ver README §Model Horizon Semantics.
@@ -338,13 +338,13 @@ class DecisionEngine:
             log_pred['expected_volatility'] = volatility
             log_pred['expected_return'] = expected_return
             filtered = self.economic_filter.apply(log_pred)
-            
+
             # 6. Determinar dirección
             direction = "UP" if probability > 0.5 + DIRECTION_THRESHOLD else "DOWN" if probability < 0.5 - DIRECTION_THRESHOLD else "NEUTRAL"
-            
+
             # expected_return ya fue calculado arriba (línea ~344)
             # usando el horizonte solicitado
-            
+
             response = {
                 'direction': direction,
                 'probability': probability,
@@ -372,25 +372,25 @@ class DecisionEngine:
                 },
                 'timestamp': datetime.now().isoformat()
             }
-            
+
             self._set_cache(cache_key, response)
             return response
-            
+
         except Exception as e:
             print(f"❌ Error: {e}")
             return self._fallback_forecast(pair)
-    
+
     def _heuristic_forecast(self, latest: pd.DataFrame) -> dict:
         rsi = latest['rsi_14'].iloc[-1] if 'rsi_14' in latest else 50
         macd = latest['macd'].iloc[-1] if 'macd' in latest else 0
-        
+
         if rsi > 70 and macd > 0:
             return {'direction': 'DOWN', 'probability': 0.65}
         elif rsi < 30 and macd < 0:
             return {'direction': 'UP', 'probability': 0.65}
         else:
             return {'direction': 'UP' if macd > 0 else 'DOWN', 'probability': 0.55}
-    
+
     def _fallback_forecast(self, pair: str) -> dict:
         return {
             'direction': 'NEUTRAL',
