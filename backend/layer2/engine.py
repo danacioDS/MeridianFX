@@ -36,8 +36,28 @@ class DecisionEngine:
         # Cargar caché desde disco
         self._load_cache()
 
-        # Cargar modelo canónico Logistic_24
-        self._load_canonical_model()
+        # NOTA (lazy loading): los modelos Logistic_24 ya NO se cargan
+        # aquí. Se cargan bajo demanda en _get_model_for_pair() la primera
+        # vez que se pide un forecast de ese par.
+        #
+        # Razón: el arranque de la app instanciaba DecisionEngine() en 11
+        # lugares distintos, y cada instancia cargaba los 9 modelos desde
+        # disco. Eso sumaba ~3 minutos de startup en Render free tier.
+        # Ahora cada instancia es casi instantánea, y los modelos se
+        # cargan solo cuando realmente se necesitan.
+
+        # Mapa de pares canónicos -> ruta del modelo Logistic_24
+        self._canonical_model_paths = {
+            "EUR/USD": "models/canonical/logistic_24_20260908_172009.joblib",
+            "USD/CHF": "models/canonical/logistic_24_USD_CHF_20260909_081530.joblib",
+            "USD/BOB": "models/canonical/logistic_24_USD_BOB_20260909_081531.joblib",
+            "USD/MXN": "models/canonical/logistic_24_USD_MXN_20260909_081531.joblib",
+            "USD/CNY": "models/canonical/logistic_24_USD_CNY_20260909_081532.joblib",
+            "USD/JPY": "models/canonical/logistic_24_USD_JPY_20260909_081908.joblib",
+            "GBP/USD": "models/canonical/logistic_24_GBP_USD_20260909_081913.joblib",
+            "USD/BRL": "models/canonical/logistic_24_USD_BRL_20260909_081913.joblib",
+            "USD/ARS": "models/canonical/logistic_24_USD_ARS_20260909_081914.joblib",
+        }
 
 
 
@@ -119,6 +139,14 @@ class DecisionEngine:
         annual_vol = daily_vol * (252 ** 0.5)
         return round(annual_vol, 4)  # Retorna en formato decimal (0.12 = 12%)
     def _load_canonical_model(self):
+        """
+        DEPRECATED (v2.8): ya no se llama desde __init__.
+
+        Los modelos Logistic_24 se cargan bajo demanda en
+        _get_model_for_pair(). Este método se mantiene como no-op
+        para backwards compatibility con código que pudiera llamarlo.
+        """
+        return
         """Carga todos los modelos Logistic_24 disponibles."""
         import joblib
         import os
@@ -187,7 +215,26 @@ class DecisionEngine:
         if cache_key in models:
             return models[cache_key]
 
-        # SEGUNDO: intentar cargar desde registry
+        # SEGUNDO (lazy loading): cargar modelo canónico Logistic_24
+        # bajo demanda, la primera vez que se pide un forecast de este par.
+        if model_type == "logistic":
+            model_path = getattr(self, "_canonical_model_paths", {}).get(pair)
+            if model_path and os.path.exists(model_path):
+                try:
+                    import joblib
+                    artifact = joblib.load(model_path)
+                    log_model = LogisticModel()
+                    log_model.model = artifact["model"]
+                    log_model.scaler = None
+                    log_model.feature_names = artifact["feature_names"]
+                    models[cache_key] = log_model
+                    print(f"✅ Logistic_24 cargado (lazy) para {pair} "
+                          f"({len(log_model.feature_names)} features)")
+                    return log_model
+                except Exception as e:
+                    print(f"⚠️ Error cargando Logistic_24 lazy para {pair}: {e}")
+
+        # TERCERO: intentar cargar desde registry
         try:
             active = self.registry.get_active(
                 pair,
