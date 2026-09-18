@@ -217,7 +217,6 @@ function _buildInterpretation(
 
 function _buildSummary(
   opportunities: CanonicalOpportunity[],
-  actionable: CanonicalOpportunity[],
   selectedPair?: string
 ): string {
   if (opportunities.length === 0) {
@@ -342,7 +341,7 @@ function _adaptCanonicalRanking(
     key_signals: _buildSignals(opportunities, pair),
     model_interpretation: _buildInterpretation(opportunities, pair),
     decision_view: decisionView,
-    summary: _buildSummary(opportunities, actionable, pair),
+    summary: _buildSummary(opportunities, pair),
     source: {
       ranking_engine:
         "backend.layer1.routers.ranking.evaluate_canonical_universe",
