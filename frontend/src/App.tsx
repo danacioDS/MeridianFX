@@ -5,6 +5,7 @@ import { GlobalPage } from "./pages/GlobalPage";
 import { MarketPage } from "./pages/MarketPage";
 import { MacroPage } from "./pages/MacroPage";
 import { AboutPage } from "./pages/AboutPage";
+import { ArchitecturePage } from "./pages/ArchitecturePage";
 import { RiskPage } from "./pages/RiskPage";
 import { DecisionPage } from "./pages/DecisionPage";
 
@@ -37,6 +38,7 @@ function App() {
             <Route path="/risk"     element={<RiskPage />} />
             <Route path="/decision" element={<DecisionPage />} />
             <Route path="/about"    element={<AboutPage />} />
+            <Route path="/architecture" element={<ArchitecturePage />} />
           </Route>
         </Routes>
       </BrowserRouter>
