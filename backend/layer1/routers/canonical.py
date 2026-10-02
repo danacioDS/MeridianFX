@@ -9,7 +9,7 @@ from backend.layer1.dependencies import bridge
 router = APIRouter(tags=["canonical"])
 
 @router.get("/{pair:path}/decision")
-async def get_canonical_decision(pair: str, horizon_days: int = 5):
+async def get_canonical_decision(pair: str, horizon_days: int = 10):
     """
     Obtiene decisión del pipeline canónico.
     """
@@ -24,7 +24,7 @@ async def get_canonical_decision(pair: str, horizon_days: int = 5):
 
 
 @router.get("/{pair:path}/risk")
-async def get_canonical_risk(pair: str, horizon_days: int = 5):
+async def get_canonical_risk(pair: str, horizon_days: int = 10):
     """
     Obtiene el Risk Assessment canónico para un par.
     """

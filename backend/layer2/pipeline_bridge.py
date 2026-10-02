@@ -59,7 +59,7 @@ class PipelineBridge:
     async def evaluate_pair(
         self,
         pair: str,
-        horizon_days: int = 5,
+        horizon_days: int = 10,
         *,
         force_refresh: bool = False,
     ) -> Dict[str, Any]:
@@ -98,7 +98,7 @@ class PipelineBridge:
         result["_cache"] = {"hit": False, "bucket": bucket}
         return result
 
-    async def _evaluate_pair_uncached(self, pair: str, horizon_days: int = 5) -> Dict[str, Any]:
+    async def _evaluate_pair_uncached(self, pair: str, horizon_days: int = 10) -> Dict[str, Any]:
         """
         Evalúa un par usando el pipeline canónico.
         Versión async que obtiene el régimen macro correctamente.
