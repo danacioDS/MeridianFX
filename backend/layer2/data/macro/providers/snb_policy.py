@@ -24,6 +24,7 @@ import httpx
 import pandas as pd
 
 from .policy_rate import PolicyRateProvider, PolicyRateResult
+from .base import CountryMacroContext
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +169,13 @@ class SNBPolicyRateProvider(PolicyRateProvider):
             if df.empty:
                 return pd.DataFrame(columns=["date", "policy_rate"])
 
+            # El cube snboffzisa{LZ} publica 0.0 en los meses en que no
+            # ha actualizado. Cortar la serie en el último valor no-cero
+            # evita calcular policy_diff sobre datos espurios.
+            last_nonzero = df[df["policy_rate"] != 0.0].index.max()
+            if pd.notna(last_nonzero):
+                df = df.loc[:last_nonzero].copy()
+
             mask = (
                 (df["date"] >= pd.to_datetime(start_date))
                 & (df["date"] <= pd.to_datetime(end_date))
@@ -181,3 +189,30 @@ class SNBPolicyRateProvider(PolicyRateProvider):
         except Exception as e:
             logger.error(f"SNB historical error: {e}")
             return pd.DataFrame(columns=["date", "policy_rate"])
+
+
+    async def get_context(self, force_refresh: bool = False) -> CountryMacroContext:
+        """Contexto macro de Suiza. Solo policy_rate tiene fuente oficial aquí."""
+        result = await self.get_policy_rate()
+
+        # El cube snboffzisa{LZ} tiene los últimos meses en 0.0 (serie
+        # desactualizada). Un 0.0 espurio produce un policy_diff falso.
+        # Se marca available=False para que el pipeline impute por mediana.
+        if result.available and result.rate == 0.0:
+            return CountryMacroContext(
+                currency="CHF",
+                policy_rate=None,
+                timestamp=result.timestamp,
+                source="SNB Official API",
+                available=False,
+                reason="SNB LZ series stale (trailing zeros)",
+            )
+
+        return CountryMacroContext(
+            currency="CHF",
+            policy_rate=result.rate if result.available else None,
+            timestamp=result.timestamp,
+            source="SNB Official API",
+            available=result.available,
+            reason=result.reason,
+        )

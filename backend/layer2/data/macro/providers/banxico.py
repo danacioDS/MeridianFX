@@ -3,7 +3,7 @@ Banxico Provider - Tasa objetivo oficial de México.
 
 Fuente: Banco de México API (SIE)
 API: https://www.banxico.org.mx/SieAPIRest/
-Serie: SF43718 - Tasa de interés objetivo (target rate)
+Serie: SF61745 - Tasa objetivo (target rate)
 
 Requisitos:
 - TLS 1.3 (a partir del 23 de marzo de 2023)
@@ -11,6 +11,9 @@ Requisitos:
 """
 
 import logging
+import os
+from dotenv import load_dotenv
+load_dotenv()
 import pandas as pd
 import httpx
 from datetime import datetime
@@ -26,7 +29,8 @@ class BanxicoProvider(CountryMacroProvider):
 
     def __init__(self):
         self._cache: Optional[CountryMacroContext] = None
-        self._base_url = "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF43718"
+        self._base_url = "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF61745"
+        self._token = os.environ.get("BANXICO_TOKEN")
 
     @property
     def currency(self) -> str:
@@ -42,25 +46,31 @@ class BanxicoProvider(CountryMacroProvider):
         end_date: str,
     ) -> pd.DataFrame:
         """Obtiene el histórico de la tasa objetivo de Banxico."""
+        if not self._token:
+            logger.warning("BANXICO_TOKEN not set; returning empty")
+            return pd.DataFrame(columns=["date", "policy_rate"])
         try:
             # Banxico espera formato DD/MM/YYYY
             start_dt = datetime.strptime(start_date, "%Y-%m-%d")
             end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-            
-            params = {
-                "startDate": start_dt.strftime("%d/%m/%Y"),
-                "endDate": end_dt.strftime("%d/%m/%Y"),
-                "format": "json",
-            }
 
-            logger.info(f"Banxico request: {params}")
+            url = (
+                f"{self._base_url}/datos/"
+                f"{start_dt.strftime('%Y-%m-%d')}/"
+                f"{end_dt.strftime('%Y-%m-%d')}"
+            )
+
+            logger.info(f"Banxico request: {url}")
 
             async with httpx.AsyncClient(
                 timeout=15.0,
                 http2=False,
                 verify=True,
             ) as client:
-                response = await client.get(self._base_url, params=params)
+                response = await client.get(
+                    url,
+                    headers={"Bmx-Token": self._token},
+                )
 
                 if response.status_code != 200:
                     logger.error(
@@ -77,24 +87,24 @@ class BanxicoProvider(CountryMacroProvider):
                     logger.warning("No series data in Banxico response")
                     return pd.DataFrame(columns=["date", "policy_rate"])
 
-                observations = series_data[0].get("observations", [])
-                if not observations:
-                    logger.warning("No observations in Banxico response")
+                datos = series_data[0].get("datos", [])
+                if not datos:
+                    logger.warning("No datos in Banxico response")
                     return pd.DataFrame(columns=["date", "policy_rate"])
 
                 rows = []
-                for obs in observations:
-                    date_str = obs.get("date")
-                    value_str = obs.get("value")
+                for obs in datos:
+                    fecha = obs.get("fecha")
+                    valor = obs.get("dato")
 
-                    if not date_str or value_str in (None, "", "."):
+                    if not fecha or valor in (None, "", ".", "N/E"):
                         continue
 
                     try:
-                        obs_date = datetime.strptime(date_str, "%d/%m/%Y")
+                        obs_date = datetime.strptime(fecha, "%d/%m/%Y")
                         rows.append({
                             "date": obs_date,
-                            "policy_rate": float(value_str),
+                            "policy_rate": float(valor),
                         })
                     except (ValueError, TypeError) as e:
                         logger.debug(f"Error parsing Banxico observation: {e}")
