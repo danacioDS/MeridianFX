@@ -21,7 +21,7 @@ class DecisionEngine:
     def __init__(self):
         self.data_provider = DataProvider()
         self.economic_filter = EconomicFilter()
-        self.registry = ModelRegistry("backend/models/registry.json")
+        self.registry = ModelRegistry("models/registry.json")
 
         # Caché en memoria
         self.cache = {}

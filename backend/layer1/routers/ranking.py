@@ -51,7 +51,7 @@ _RAW_TO_DISPLAY_DIRECTION = {
 async def _evaluate_pair_for_ranking(pair: str) -> Optional[dict]:
     """Evalúa un par con el pipeline canónico y lo formatea para el ranking."""
     try:
-        result = await bridge.evaluate_pair(pair, horizon_days=5)
+        result = await bridge.evaluate_pair(pair, horizon_days=10)
     except Exception as e:
         print(f"⚠️ Ranking: error evaluando {pair}: {e}")
         return None
