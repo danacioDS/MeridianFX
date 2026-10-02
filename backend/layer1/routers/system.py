@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -20,8 +21,20 @@ def _read_json(path: Path) -> dict[str, Any] | None:
         return None
 
 
+# ═══════════════════════════════════════════════════════════════
+# RESEARCH
+# ═══════════════════════════════════════════════════════════════
+
 @router.get("/research")
 async def research_status() -> dict[str, Any]:
+    """
+    RESEARCH layer state.
+
+    Findings surfaced:
+    - F-02: artifacts missing training_period/provenance
+    - F-03: models below random; placeholder metrics; corpus unbound
+    - F-04: registry split-brain (only if both files exist)
+    """
     root_reg = _read_json(REPO_ROOT / "models" / "registry.json")
     backend_reg = _read_json(REPO_ROOT / "backend" / "models" / "registry.json")
 
@@ -75,8 +88,7 @@ async def research_status() -> dict[str, Any]:
             "finding": "F-03",
             "detail": (
                 f"{len(round_metrics)} entries with round AUC "
-                f"(likely placeholder): "
-                f"{[m['model_id'] for m in round_metrics]}"
+                f"(likely placeholder)"
             ),
         })
         findings.add("F-03")
@@ -139,14 +151,18 @@ async def research_status() -> dict[str, Any]:
             "authoritative_registry": "models/registry.json",
         },
     }
-# ── añadir al final del archivo, después de research_status ─────────
+
+
+# ═══════════════════════════════════════════════════════════════
+# DATA
+# ═══════════════════════════════════════════════════════════════
 
 CANONICAL_PAIRS = [
     "EUR/USD", "GBP/USD", "USD/JPY", "USD/CNY", "USD/MXN",
     "USD/BRL", "USD/ARS", "USD/BOB", "USD/CHF",
 ]
 
-# semántica conocida por moneda, según audit informe.md §4
+# semántica conocida por moneda, según informe.md §4
 _KNOWN_SERIES_SEMANTICS = {
     "USD": ("DFF", "Federal Funds Rate", "OK"),
     "EUR": ("ECB DFR", "ECB Deposit Facility Rate", "OK"),
@@ -160,21 +176,22 @@ _KNOWN_SERIES_SEMANTICS = {
     "BOB": (None, "no historical series", "ABSENT"),
 }
 
+_STATUS_RANK = {"OK": 0, "STALE": 1, "MISLABELED": 2, "ABSENT": 3, "UNKNOWN": 4}
+
 
 @router.get("/data")
 async def data_status() -> dict[str, Any]:
     """
     DATA layer state.
 
-    Reads:
-    - backend/layer2/data/macro/__init__.py (which providers are registered)
-    - each provider's SERIES_ID via the live CountryMacroRegistry
-    - models/canonical/*.joblib (horizon, feature count)
+    Reads the live CountryMacroRegistry and the known series semantics
+    per currency. Checks BOTH base and quote of each pair — a pair is
+    only OK if both legs use correct policy-rate semantics.
 
     Findings surfaced:
-    - F-01: policy_diff uses the wrong series for GBP/JPY/BRL; CHF
-      series is stale; CNY/ARS/BOB have no series at all
-    - F-10: MERIDIAN_MODEL_DIR has no consumers
+    - F-01: long-term rates under a policy_rate label; missing series;
+      stale series
+    - F-10: MERIDIAN_MODEL_DIR set but unconsumed
     """
     from backend.layer2.data.macro import CountryMacroRegistry
 
@@ -184,32 +201,40 @@ async def data_status() -> dict[str, Any]:
 
     for pair in CANONICAL_PAIRS:
         base, quote = pair.split("/")
+        base_info = _KNOWN_SERIES_SEMANTICS.get(base, (None, "unknown", "UNKNOWN"))
         quote_info = _KNOWN_SERIES_SEMANTICS.get(quote, (None, "unknown", "UNKNOWN"))
 
+        # el estado del par es el peor de los dos
+        worst = max(
+            [base_info[2], quote_info[2]],
+            key=lambda s: _STATUS_RANK.get(s, 5),
+        )
+
         provider = CountryMacroRegistry.get(quote)
-        provider_name = type(provider).__name__ if provider else None
-        has_historical = hasattr(provider, "get_historical") if provider else False
-        has_context = hasattr(provider, "get_context") if provider else False
 
         pair_rows.append({
             "pair": pair,
-            "quote_currency": quote,
-            "provider": provider_name,
-            "series": quote_info[0],
-            "series_semantic": quote_info[1],
-            "status": quote_info[2],
-            "has_get_historical": has_historical,
-            "has_get_context": has_context,
+            "base": {
+                "currency": base,
+                "series": base_info[0],
+                "semantic": base_info[1],
+                "status": base_info[2],
+            },
+            "quote": {
+                "currency": quote,
+                "series": quote_info[0],
+                "semantic": quote_info[1],
+                "status": quote_info[2],
+            },
+            "quote_provider": type(provider).__name__ if provider else None,
+            "status": worst,
+            "has_get_historical": hasattr(provider, "get_historical") if provider else False,
+            "has_get_context": hasattr(provider, "get_context") if provider else False,
         })
 
-        if quote_info[2] == "MISLABELED":
-            findings.add("F-01")
-        elif quote_info[2] == "ABSENT":
-            findings.add("F-01")
-        elif quote_info[2] == "STALE":
+        if worst in ("MISLABELED", "ABSENT", "STALE"):
             findings.add("F-01")
 
-    # agregados
     mislabeled = [r for r in pair_rows if r["status"] == "MISLABELED"]
     absent = [r for r in pair_rows if r["status"] == "ABSENT"]
     stale = [r for r in pair_rows if r["status"] == "STALE"]
@@ -221,8 +246,8 @@ async def data_status() -> dict[str, Any]:
             "status": "FAIL",
             "finding": "F-01",
             "detail": (
-                f"{len(mislabeled)} currencies use long-term rates under a "
-                f"policy_rate label: {[r['quote_currency'] for r in mislabeled]}"
+                f"{len(mislabeled)} pairs use long-term rates under a "
+                f"policy_rate label: {[r['pair'] for r in mislabeled]}"
             ),
         })
     if absent:
@@ -231,8 +256,8 @@ async def data_status() -> dict[str, Any]:
             "status": "FAIL",
             "finding": "F-01",
             "detail": (
-                f"{len(absent)} currencies have no historical series: "
-                f"{[r['quote_currency'] for r in absent]}"
+                f"{len(absent)} pairs have no historical series: "
+                f"{[r['pair'] for r in absent]}"
             ),
         })
     if stale:
@@ -241,8 +266,8 @@ async def data_status() -> dict[str, Any]:
             "status": "WARN",
             "finding": "F-01",
             "detail": (
-                f"{len(stale)} currencies have stale series: "
-                f"{[r['quote_currency'] for r in stale]}"
+                f"{len(stale)} pairs have stale series: "
+                f"{[r['pair'] for r in stale]}"
             ),
         })
     if ok:
@@ -250,15 +275,14 @@ async def data_status() -> dict[str, Any]:
             "id": "valid_series",
             "status": "OK",
             "detail": (
-                f"{len(ok)} currencies with correct policy-rate semantics: "
-                f"{[r['quote_currency'] for r in ok]}"
+                f"{len(ok)} pairs with correct policy-rate semantics "
+                f"on both legs: {[r['pair'] for r in ok]}"
             ),
         })
 
     # MERIDIAN_MODEL_DIR (F-10)
-    import os
     model_dir = os.environ.get("MERIDIAN_MODEL_DIR")
-    consumers = []
+    consumers: list[str] = []
     backend_dir = REPO_ROOT / "backend"
     if backend_dir.exists():
         for py in backend_dir.rglob("*.py"):
@@ -279,103 +303,6 @@ async def data_status() -> dict[str, Any]:
             ),
         })
         findings.add("F-10")
-
-    layer_status = (
-        "DEGRADED" if any(c["status"] == "FAIL" for c in checks)
-        else "WARNING" if any(c["status"] == "WARN" for c in checks)
-        else "HEALTHY"
-    )
-
-    return {
-        "layer": "data",
-        "status": layer_status,
-        "checks": checks,
-        "findings": sorted(findings),
-        "pairs": pair_rows,
-        "summary": {
-            "pairs_total": len(pair_rows),
-            "pairs_ok": len(ok),
-            "pairs_mislabeled": len(mislabeled),
-            "pairs_absent": len(absent),
-            "pairs_stale": len(stale),
-        },
-    }
-
-
-# ─── /v1/system/data ────────────────────────────────────────
-
-CANONICAL_PAIRS = [
-    "EUR/USD", "GBP/USD", "USD/JPY", "USD/CNY", "USD/MXN",
-    "USD/BRL", "USD/ARS", "USD/BOB", "USD/CHF",
-]
-
-_KNOWN_SERIES_SEMANTICS = {
-    "USD": ("DFF", "Federal Funds Rate", "OK"),
-    "EUR": ("ECB DFR", "ECB Deposit Facility Rate", "OK"),
-    "GBP": ("IRLTLT01GBM156N", "long-term rate", "MISLABELED"),
-    "JPY": ("IRLTLT01JPM156N", "long-term rate", "MISLABELED"),
-    "CHF": ("snboffzisa{LZ}", "SNB policy rate", "STALE"),
-    "MXN": ("SF61745", "Banxico target rate", "OK"),
-    "BRL": ("INTDSRBRM193N", "long-term rate", "MISLABELED"),
-    "CNY": (None, "no historical series", "ABSENT"),
-    "ARS": (None, "no historical series", "ABSENT"),
-    "BOB": (None, "no historical series", "ABSENT"),
-}
-
-
-@router.get("/data")
-async def data_status() -> dict[str, Any]:
-    """DATA layer state — see docstring above."""
-    from backend.layer2.data.macro import CountryMacroRegistry
-
-    checks: list[dict[str, Any]] = []
-    findings: set[str] = set()
-    pair_rows: list[dict[str, Any]] = []
-
-    for pair in CANONICAL_PAIRS:
-        base, quote = pair.split("/")
-        quote_info = _KNOWN_SERIES_SEMANTICS.get(quote, (None, "unknown", "UNKNOWN"))
-        provider = CountryMacroRegistry.get(quote)
-
-        pair_rows.append({
-            "pair": pair,
-            "quote_currency": quote,
-            "provider": type(provider).__name__ if provider else None,
-            "series": quote_info[0],
-            "series_semantic": quote_info[1],
-            "status": quote_info[2],
-            "has_get_historical": hasattr(provider, "get_historical") if provider else False,
-            "has_get_context": hasattr(provider, "get_context") if provider else False,
-        })
-
-    mislabeled = [r for r in pair_rows if r["status"] == "MISLABELED"]
-    absent = [r for r in pair_rows if r["status"] == "ABSENT"]
-    stale = [r for r in pair_rows if r["status"] == "STALE"]
-    ok = [r for r in pair_rows if r["status"] == "OK"]
-
-    if mislabeled:
-        findings.add("F-01")
-        checks.append({
-            "id": "mislabeled_series", "status": "FAIL", "finding": "F-01",
-            "detail": f"{len(mislabeled)} currencies use long-term rates under a policy_rate label: {[r['quote_currency'] for r in mislabeled]}",
-        })
-    if absent:
-        findings.add("F-01")
-        checks.append({
-            "id": "absent_series", "status": "FAIL", "finding": "F-01",
-            "detail": f"{len(absent)} currencies have no historical series: {[r['quote_currency'] for r in absent]}",
-        })
-    if stale:
-        findings.add("F-01")
-        checks.append({
-            "id": "stale_series", "status": "WARN", "finding": "F-01",
-            "detail": f"{len(stale)} currencies have stale series: {[r['quote_currency'] for r in stale]}",
-        })
-    if ok:
-        checks.append({
-            "id": "valid_series", "status": "OK",
-            "detail": f"{len(ok)} currencies with correct policy-rate semantics: {[r['quote_currency'] for r in ok]}",
-        })
 
     layer_status = (
         "DEGRADED" if any(c["status"] == "FAIL" for c in checks)
