@@ -58,7 +58,7 @@ export interface CanonicalRiskResponse {
 
 export function useCanonicalRisk(
   pair: string,
-  horizonDays: number = 5,
+  horizonDays: number = 10,
 ): UseQueryResult<CanonicalRiskResponse, Error> {
   const url = `/v1/canonical/${pair}/risk?horizon_days=${horizonDays}`;
 

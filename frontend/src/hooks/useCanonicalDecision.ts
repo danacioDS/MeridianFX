@@ -211,7 +211,7 @@ export interface CanonicalDecision {
 
 // ─── Hook ──────────────────────────────────────────────────────────
 
-export function useCanonicalDecision(pair: string, horizonDays: number = 5) {
+export function useCanonicalDecision(pair: string, horizonDays: number = 10) {
   const url = `/v1/canonical/${pair}/decision?horizon_days=${horizonDays}`;
 
   return useQuery<CanonicalDecision>({

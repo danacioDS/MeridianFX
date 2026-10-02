@@ -31,7 +31,7 @@ export interface CanonicalNarrative {
 
 export function useCanonicalNarrative(
   pair: string,
-  horizonDays: number = 5
+  horizonDays: number = 10
 ): UseQueryResult<CanonicalNarrative, Error> {
   return useQuery<CanonicalNarrative, Error>({
     queryKey: ["canonical-narrative", pair, horizonDays],
