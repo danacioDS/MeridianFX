@@ -49,9 +49,9 @@ class DecisionEngine:
         # Mapa de pares canónicos -> ruta del modelo Logistic_24
         self._canonical_model_paths = {
             "EUR/USD": "models/canonical/logistic_24_20260908_172009.joblib",
-            "USD/CHF": "models/canonical/logistic_24_USD_CHF_20260909_081530.joblib",
+            "USD/CHF": "models/canonical/logistic_24_USD_CHF_20261002_184737.joblib",
             "USD/BOB": "models/canonical/logistic_24_USD_BOB_20260909_081531.joblib",
-            "USD/MXN": "models/canonical/logistic_24_USD_MXN_20260909_081531.joblib",
+            "USD/MXN": "models/canonical/logistic_24_USD_MXN_20261002_184743.joblib",
             "USD/CNY": "models/canonical/logistic_24_USD_CNY_20260909_081532.joblib",
             "USD/JPY": "models/canonical/logistic_24_USD_JPY_20260909_081908.joblib",
             "GBP/USD": "models/canonical/logistic_24_GBP_USD_20260909_081913.joblib",
@@ -157,9 +157,9 @@ class DecisionEngine:
         # Definir mapa de pares a modelos
         pair_map = {
             "EUR/USD": "models/canonical/logistic_24_20260908_172009.joblib",
-            "USD/CHF": "models/canonical/logistic_24_USD_CHF_20260909_081530.joblib",
+            "USD/CHF": "models/canonical/logistic_24_USD_CHF_20261002_184737.joblib",
             "USD/BOB": "models/canonical/logistic_24_USD_BOB_20260909_081531.joblib",
-            "USD/MXN": "models/canonical/logistic_24_USD_MXN_20260909_081531.joblib",
+            "USD/MXN": "models/canonical/logistic_24_USD_MXN_20261002_184743.joblib",
             "USD/CNY": "models/canonical/logistic_24_USD_CNY_20260909_081532.joblib",
             "USD/JPY": "models/canonical/logistic_24_USD_JPY_20260909_081908.joblib",
             "GBP/USD": "models/canonical/logistic_24_GBP_USD_20260909_081913.joblib",

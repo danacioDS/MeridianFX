@@ -156,10 +156,8 @@
         "n_features": 23
       },
       "created_at": "2026-08-28T15:36:47.603623",
-      "active": true
+      "active": false
     }
   ],
-  "current": {
-    "USD/CHF_xgboost": "USD/CHF_xgboost_v1.0_20260828_153647"
-  }
+  "current": {}
 }

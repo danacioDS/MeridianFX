@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 class BanxicoProvider(CountryMacroProvider):
     """Proveedor de datos macro de México via Banxico API."""
 
+    SERIES_ID = "SF61745"
+
     def __init__(self):
         self._cache: Optional[CountryMacroContext] = None
         self._base_url = "https://www.banxico.org.mx/SieAPIRest/service/v1/series/SF61745"

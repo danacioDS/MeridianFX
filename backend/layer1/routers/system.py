@@ -96,7 +96,17 @@ async def research_status() -> dict[str, Any]:
     # artifact provenance (F-02)
     artifact_provenance_missing: list[str] = []
     canonical_dir = REPO_ROOT / "models" / "canonical"
+
+    # Solo el artefacto más reciente por par. Los anteriores son historia.
+    latest_by_pair: dict[str, Path] = {}
     for art in sorted(canonical_dir.glob("logistic_24_*.joblib")):
+        stem = art.stem.replace("logistic_24_", "")
+        # el par son los dos primeros tokens (USD_CHF, EUR_USD, ...)
+        parts = stem.split("_")
+        pair_key = "_".join(parts[:2]) if len(parts) >= 2 else stem
+        latest_by_pair[pair_key] = art   # sorted ascendente → el último gana
+
+    for art in latest_by_pair.values():
         try:
             import joblib
             obj = joblib.load(art)

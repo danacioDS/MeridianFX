@@ -36,6 +36,8 @@ class SNBPolicyRateProvider(PolicyRateProvider):
     Obtiene la tasa oficial del SNB desde su Data Portal.
     """
 
+    SERIES_ID = "snboffzisa{LZ}"
+
     def __init__(self):
         self._cache: Optional[PolicyRateResult] = None
         self._base_url = (
