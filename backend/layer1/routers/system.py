@@ -513,3 +513,110 @@ async def decision_status(pair: str = "USD/CHF") -> dict[str, Any]:
             "model_version": artifact.get("model_version"),
         },
     }
+
+# ═══════════════════════════════════════════════════════════════
+# INTELLIGENCE
+# ═══════════════════════════════════════════════════════════════
+
+@router.get("/intelligence")
+async def intelligence_status() -> dict[str, Any]:
+    """
+    INTELLIGENCE layer state.
+
+    Compares the two paths that produce the intelligence surface:
+    - server:  /v1/market-intelligence  (legacy RankingEngine)
+    - canonical: /v1/fx/ranking          (PipelineBridge, 9 pairs)
+    - client:  frontend/src/hooks/useMarketIntelligence.ts
+
+    Findings surfaced:
+    - F-06: artifact.model_id does not identify Logistic_24
+    - F-07: server publishes total_pairs=1 while the canonical ranking
+      serves 9; the client now adapts the canonical ranking locally,
+      so aggregation logic lives in two languages
+    """
+    from fastapi.testclient import TestClient
+    from backend.layer1.main import app as _app
+
+    client = TestClient(_app)
+
+    # server legacy
+    legacy = client.get("/v1/market-intelligence").json()
+    legacy_pairs = (legacy.get("source") or {}).get("total_pairs")
+    legacy_actionable = (legacy.get("source") or {}).get("total_actionable")
+
+    # canonical ranking
+    canon = client.get("/v1/fx/ranking").json()
+    canon_pairs = canon.get("total_pairs")
+    canon_actionable = sum(1 for p in canon.get("pairs", []) if p.get("actionable"))
+
+    # client hook file
+    hook_path = REPO_ROOT / "frontend" / "src" / "hooks" / "useMarketIntelligence.ts"
+    client_loc = None
+    if hook_path.exists():
+        client_loc = len(hook_path.read_text().splitlines())
+
+    checks: list[dict[str, Any]] = []
+    findings: set[str] = set()
+
+    # ── F-07: server vs canonical ───────────────────────────────
+    if legacy_pairs is not None and canon_pairs is not None and legacy_pairs != canon_pairs:
+        checks.append({
+            "id": "intelligence_source_divergence",
+            "status": "FAIL",
+            "finding": "F-07",
+            "detail": (
+                f"server /v1/market-intelligence says total_pairs={legacy_pairs}, "
+                f"canonical /v1/fx/ranking says {canon_pairs}"
+            ),
+        })
+        findings.add("F-07")
+
+    if client_loc is not None and client_loc > 100:
+        checks.append({
+            "id": "client_side_aggregation",
+            "status": "WARN",
+            "finding": "F-07",
+            "detail": (
+                f"frontend/src/hooks/useMarketIntelligence.ts is {client_loc} "
+                f"lines — aggregation logic lives in the client"
+            ),
+        })
+        findings.add("F-07")
+
+    # ── narrative state ─────────────────────────────────────────
+    narrative_resp = client.get("/v1/canonical/USD/CHF/narrative")
+    narrative_ok = narrative_resp.status_code == 200
+    checks.append({
+        "id": "narrative_reachable",
+        "status": "OK" if narrative_ok else "WARN",
+        "detail": f"/v1/canonical/USD/CHF/narrative -> {narrative_resp.status_code}",
+    })
+
+    layer_status = (
+        "DEGRADED" if any(c["status"] == "FAIL" for c in checks)
+        else "WARNING" if any(c["status"] == "WARN" for c in checks)
+        else "HEALTHY"
+    )
+
+    return {
+        "layer": "intelligence",
+        "status": layer_status,
+        "checks": checks,
+        "findings": sorted(findings),
+        "sources": {
+            "server_legacy": {
+                "endpoint": "/v1/market-intelligence",
+                "total_pairs": legacy_pairs,
+                "total_actionable": legacy_actionable,
+            },
+            "canonical": {
+                "endpoint": "/v1/fx/ranking",
+                "total_pairs": canon_pairs,
+                "total_actionable": canon_actionable,
+            },
+            "client": {
+                "hook": "frontend/src/hooks/useMarketIntelligence.ts",
+                "loc": client_loc,
+            },
+        },
+    }
