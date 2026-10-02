@@ -21,6 +21,7 @@ from datetime import datetime
 from typing import Optional, Tuple
 
 import httpx
+import pandas as pd
 
 from .policy_rate import PolicyRateProvider, PolicyRateResult
 
@@ -135,3 +136,48 @@ class SNBPolicyRateProvider(PolicyRateProvider):
 
         logger.error("SNB policy rate series {LZ} not found")
         return None, None
+
+
+    async def get_historical(
+        self,
+        start_date: str,
+        end_date: str,
+    ) -> "pd.DataFrame":
+        """
+        Histórico de la policy rate oficial del SNB.
+
+        Fuente: SNB Data Portal, cube snboffzisa, serie LZ.
+        Frecuencia mensual. Columnas: ['date', 'policy_rate'].
+        """
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                r = await client.get(self._base_url)
+                r.raise_for_status()
+                payload = r.json()
+
+            values = payload["timeseries"][0]["values"]
+            rows = [
+                {
+                    "date": pd.to_datetime(v["date"], format="%Y-%m"),
+                    "policy_rate": float(v["value"]),
+                }
+                for v in values
+                if v.get("value") is not None
+            ]
+            df = pd.DataFrame(rows)
+            if df.empty:
+                return pd.DataFrame(columns=["date", "policy_rate"])
+
+            mask = (
+                (df["date"] >= pd.to_datetime(start_date))
+                & (df["date"] <= pd.to_datetime(end_date))
+            )
+            return (
+                df.loc[mask]
+                .drop_duplicates(subset=["date"])
+                .sort_values("date")
+                .reset_index(drop=True)
+            )
+        except Exception as e:
+            logger.error(f"SNB historical error: {e}")
+            return pd.DataFrame(columns=["date", "policy_rate"])
