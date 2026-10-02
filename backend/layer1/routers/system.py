@@ -324,3 +324,192 @@ async def data_status() -> dict[str, Any]:
             "pairs_stale": len(stale),
         },
     }
+# ═══════════════════════════════════════════════════════════════
+# DECISION
+# ═══════════════════════════════════════════════════════════════
+
+_TRACED_PAIRS = ["USD/CHF", "USD/MXN", "EUR/USD"]
+
+
+@router.get("/decision")
+async def decision_status(pair: str = "USD/CHF") -> dict[str, Any]:
+    """
+    DECISION layer state for one pair.
+
+    Reads the live DTO from /v1/canonical/{pair}/decision and surfaces
+    the pipeline steps with explicit pass/fail per contract.
+
+    Findings surfaced:
+    - F-05: horizon mismatch between trained artifact and served DTO
+    - F-08: expected_return is a volatility rescaling, not a forecast
+    - F-12: data_quality_score comes from a Stub* registry
+    - F-22: fusion declares macro/rag weights but rag is hardcoded 0.0
+    - F-06: artifact.model_id does not identify Logistic_24
+    """
+    from fastapi.testclient import TestClient
+    from backend.layer1.main import app as _app
+
+    if "/" not in pair:
+        return {"layer": "decision", "status": "UNKNOWN",
+                "error": f"invalid pair: {pair}"}
+
+    base, quote = pair.split("/")
+
+    # llamada interna al endpoint canónico — misma lógica, sin duplicar
+    client = TestClient(_app)
+    resp = client.get(f"/v1/canonical/{base}/{quote}/decision")
+    if resp.status_code != 200:
+        return {
+            "layer": "decision",
+            "status": "UNKNOWN",
+            "pair": pair,
+            "error": f"canonical decision returned {resp.status_code}",
+        }
+    dto = resp.json()
+
+    # ── extraer campos (rutas defensivas, no asumen estructura) ──
+    decision = dto.get("decision") or {}
+    economic = dto.get("economic") or {}
+    quality = dto.get("quality") or {}
+    quality_components = quality.get("components") or {}
+    signals = dto.get("signals") or {}
+    macro = (signals.get("macro_score") or {}).get("value")
+    rag = (signals.get("rag_score") or {}).get("value")
+    artifact = dto.get("artifact") or {}
+
+    served_horizon = decision.get("horizon_days") or dto.get("horizon_days")
+    trained_horizon = 10   # todos los .joblib tienen horizon: 10
+
+    checks: list[dict[str, Any]] = []
+    findings: set[str] = set()
+
+    # ── F-05: horizon match ─────────────────────────────────────
+    if served_horizon == trained_horizon:
+        checks.append({
+            "id": "horizon_match",
+            "status": "OK",
+            "detail": f"served={served_horizon}d, trained={trained_horizon}d",
+        })
+    else:
+        checks.append({
+            "id": "horizon_match",
+            "status": "FAIL",
+            "finding": "F-05",
+            "detail": f"served={served_horizon}d, trained={trained_horizon}d",
+        })
+        findings.add("F-05")
+
+    # ── F-08: economic layer sanity ─────────────────────────────
+    net_return = economic.get("net_return")
+    edge_ratio = economic.get("edge_ratio")
+    # umbral: un retorno neto esperado > 5% en <=10 días es artefacto
+    if net_return is not None and abs(net_return) > 5.0:
+        checks.append({
+            "id": "economic_layer",
+            "status": "FAIL",
+            "finding": "F-08",
+            "detail": (
+                f"net_return={net_return} edge_ratio={edge_ratio} — "
+                f"expected_return is a volatility rescaling, not a forecast"
+            ),
+        })
+        findings.add("F-08")
+    else:
+        checks.append({
+            "id": "economic_layer",
+            "status": "OK",
+            "detail": f"net_return={net_return}",
+        })
+
+    # ── F-12: data quality is a constant ────────────────────────
+    dq_score = quality_components.get("data_quality_score")
+    if dq_score == 0.9:
+        checks.append({
+            "id": "data_quality_source",
+            "status": "WARN",
+            "finding": "F-12",
+            "detail": (
+                f"data_quality_score={dq_score} — comes from a "
+                f"StubDataQualityRegistry(0.90), not from real PIT data"
+            ),
+        })
+        findings.add("F-12")
+    else:
+        checks.append({
+            "id": "data_quality_source",
+            "status": "OK",
+            "detail": f"data_quality_score={dq_score}",
+        })
+
+    # ── F-22: fusion weights vs signals ─────────────────────────
+    fusion = dto.get("fusion") or {}
+    weights = fusion.get("weights") or {}
+    declared_rag = weights.get("rag", 0)
+    if declared_rag > 0 and rag == 0.0:
+        checks.append({
+            "id": "fusion_honesty",
+            "status": "WARN",
+            "finding": "F-22",
+            "detail": (
+                f"declared rag weight={declared_rag} but rag_score={rag} "
+                f"— the weight is decorative"
+            ),
+        })
+        findings.add("F-22")
+    else:
+        checks.append({
+            "id": "fusion_honesty",
+            "status": "OK",
+            "detail": f"macro={macro} rag={rag}",
+        })
+
+    # ── F-06: artifact label ────────────────────────────────────
+    model_id = artifact.get("model_id", "")
+    if model_id and not model_id.startswith("Logistic_24"):
+        checks.append({
+            "id": "artifact_label",
+            "status": "WARN",
+            "finding": "F-06",
+            "detail": (
+                f"artifact.model_id={model_id!r} — running model is "
+                f"Logistic_24, label does not identify it"
+            ),
+        })
+        findings.add("F-06")
+    else:
+        checks.append({
+            "id": "artifact_label",
+            "status": "OK",
+            "detail": f"model_id={model_id}",
+        })
+
+    layer_status = (
+        "DEGRADED" if any(c["status"] == "FAIL" for c in checks)
+        else "WARNING" if any(c["status"] == "WARN" for c in checks)
+        else "HEALTHY"
+    )
+
+    return {
+        "layer": "decision",
+        "status": layer_status,
+        "pair": pair,
+        "checks": checks,
+        "findings": sorted(findings),
+        "decision": {
+            "direction": decision.get("direction"),
+            "confidence": decision.get("confidence"),
+            "actionable": decision.get("actionable"),
+            "horizon_days": served_horizon,
+            "signal_validity": decision.get("signal_validity"),
+        },
+        "economic": {
+            "net_return": net_return,
+            "edge_ratio": edge_ratio,
+            "position_size": economic.get("position_size"),
+            "required_minimum_edge": economic.get("required_minimum_edge"),
+        },
+        "artifact": {
+            "model_id": model_id,
+            "model_version": artifact.get("model_version"),
+        },
+    }
