@@ -28,14 +28,14 @@ class DecisionEngineAdapter:
     Adaptador que convierte la salida del DecisionEngine legacy
     en un PredictionArtifact canónico para el DecisionPipeline.
     """
-    
+
     def __init__(self, engine: Optional[DecisionEngine] = None):
         self._engine = engine or DecisionEngine()
         self._macro_service = MacroService()
         self.git_commit = "unknown"
         self.docker_image = "meridianfx:latest"
         self.mlflow_run_id = "unknown"
-    
+
     def _get_macro_regime(self) -> MacroRegime:
         """Obtiene el régimen macro desde MacroService."""
         try:
@@ -57,7 +57,7 @@ class DecisionEngineAdapter:
                 growth="UNKNOWN",
                 inflation="UNKNOWN",
             )
-    
+
     def _derive_as_of(
         self,
         forecast: Dict[str, Any],
@@ -73,10 +73,37 @@ class DecisionEngineAdapter:
         missing. That fallback is a known approximation — see
         KNOWN_ISSUES.md KI-002-A. It will be removed once the pipeline
         carries a full TemporalProvenance (KI-002-A step 3).
+
+        NOTE (KI-002-A bugfix): the cached forecast may return
+        `last_date` as a string (JSON round-trip), and the value may
+        be in the future (Yahoo applies UTC+12 for some pairs, e.g.
+        USD/CNY). Both are normalized here to preserve the PIT-7
+        invariant.
         """
         provider_block = forecast.get("data_provider") or {}
         last_date = provider_block.get("last_date")
         if last_date is not None:
+            # Normalize: str -> datetime
+            if isinstance(last_date, str):
+                try:
+                    last_date = datetime.fromisoformat(last_date)
+                except ValueError:
+                    logger.warning(
+                        "as_of unparseable (%r), falling back to wall-clock",
+                        last_date,
+                    )
+                    return wall_clock
+            # Normalize: naive -> UTC-aware
+            if last_date.tzinfo is None:
+                last_date = last_date.replace(tzinfo=timezone.utc)
+            # Clamp: PIT-7 invariant (event_time <= system_available_time)
+            if last_date > wall_clock:
+                logger.warning(
+                    "as_of %s > wall_clock %s; clamping to wall_clock (KI-002-A)",
+                    last_date,
+                    wall_clock,
+                )
+                return wall_clock
             return last_date
         logger.warning(
             "as_of fallback to wall-clock: data_provider.last_date is "
@@ -97,11 +124,11 @@ class DecisionEngineAdapter:
         forecast = self._engine.get_forecast(pair, horizon_days)
         if not forecast:
             return None
-        
+
         # 2. Obtener régimen macro (real o proporcionado)
         if macro_regime is None:
             macro_regime = self._get_macro_regime()
-        
+
         # 3. Extraer datos
         probability = forecast.get('probability', 0.5)
         direction = forecast.get('direction', 'NEUTRAL')
@@ -115,11 +142,11 @@ class DecisionEngineAdapter:
         # cutoff, not the wall-clock — that is the whole point of the fix.
         timestamp = datetime.now(timezone.utc)
         as_of = self._derive_as_of(forecast, timestamp)
-        
+
         # 4. LogisticModel.probability = P(UP)
         # No invertir la probabilidad cuando direction == DOWN.
         probability_up = probability
-        
+
         # 5. Construir confidence_interval
         # expected_volatility ya está en decimal (0.0374 = 3.74% anual)
         # El intervalo se construye como ±50% de la volatilidad alrededor de la probabilidad
@@ -127,7 +154,7 @@ class DecisionEngineAdapter:
         lower = max(0.0, probability_up - delta)
         upper = min(1.0, probability_up + delta)
         confidence_interval = ConfidenceInterval(lower=lower, upper=upper)
-        
+
         # 6. Construir shap_values
         shap_values = []
         shap_data = forecast.get('shap')
@@ -140,7 +167,7 @@ class DecisionEngineAdapter:
                     shap_values.append(
                         ShapValue(feature=feature, value=contribution)
                     )
-        
+
         # 7. Construir artifact con macro_regime real
         return PredictionArtifact(
             prediction_id=str(uuid.uuid4()),
@@ -169,13 +196,13 @@ class DecisionEngineAdapter:
             ),
             created_at=timestamp
         )
-    
+
     def get_drivers(self, pair: str) -> Dict[str, Any]:
         """Wrapper legacy para drivers."""
         model = self._engine._get_model_for_pair(pair, 'xgboost')
         if not model:
             return {"error": f"No model found for {pair}"}
-        
+
         return {
             "shap_values": [],
             "feature_importance": {},

@@ -63,8 +63,19 @@ class RealFeatureStore:
             # captured from Yahoo (`hist.index[-1]`); it is approximated
             # as `as_of`. Both confidences are marked APPROXIMATED to
             # reflect this. See KNOWN_ISSUES.md KI-002-B.
-            now = time.time()  # placeholder for system_available_time below
             import datetime as _dt
+
+            now_utc = _dt.datetime.now(_dt.timezone.utc)
+            # Defensive normalization (KI-002-A bugfix):
+            # - as_of may be a str (if the artifact was cached as JSON)
+            # - as_of may be naive (no tz)
+            # - as_of may be in the future (Yahoo UTC+12 for some pairs)
+            if isinstance(as_of, str):
+                as_of = _dt.datetime.fromisoformat(as_of)
+            if as_of.tzinfo is None:
+                as_of = as_of.replace(tzinfo=_dt.timezone.utc)
+            if as_of > now_utc:
+                as_of = now_utc
 
             return FeatureValue(
                 feature_id="vix",
@@ -73,7 +84,7 @@ class RealFeatureStore:
                     event_time=as_of,
                     release_time=None,
                     source_available_time=as_of,
-                    system_available_time=_dt.datetime.now(_dt.timezone.utc),
+                    system_available_time=now_utc,
                     event_time_confidence=TemporalConfidence.APPROXIMATED,
                     release_time_confidence=TemporalConfidence.UNAVAILABLE,
                     source_available_time_confidence=TemporalConfidence.APPROXIMATED,
