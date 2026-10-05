@@ -2,6 +2,7 @@
 FRED Data Source — Datos macroeconómicos de la Reserva Federal.
 """
 
+import asyncio
 import os
 import json
 import httpx
@@ -45,7 +46,7 @@ MACRO_SERIES = {
         unit="%",
         fx_relevance="HIGH"
     ),
-    
+
     # Inflación
     "CPIAUCSL": FredSeries(
         id="CPIAUCSL",
@@ -63,7 +64,7 @@ MACRO_SERIES = {
         unit="%",
         fx_relevance="HIGH"
     ),
-    
+
     # Mercado laboral
     "UNRATE": FredSeries(
         id="UNRATE",
@@ -81,7 +82,7 @@ MACRO_SERIES = {
         unit="thousands",
         fx_relevance="MEDIUM"
     ),
-    
+
     # Crecimiento
     "GDPC1": FredSeries(
         id="GDPC1",
@@ -99,7 +100,7 @@ MACRO_SERIES = {
         unit="billions USD",
         fx_relevance="MEDIUM"
     ),
-    
+
     # Tasas de interés
     "DGS10": FredSeries(
         id="DGS10",
@@ -125,7 +126,7 @@ MACRO_SERIES = {
         unit="%",
         fx_relevance="HIGH"
     ),
-    
+
     # Confianza
     "UMCSENT": FredSeries(
         id="UMCSENT",
@@ -149,13 +150,13 @@ MACRO_SERIES = {
 class FredDataSource:
     """
     Fuente de datos macro FRED.
-    
+
     Obtiene series de la API de FRED y las transforma
     para su uso en el Decision Context.
     """
-    
+
     BASE_URL = "https://api.stlouisfed.org/fred"
-    
+
     def __init__(
         self,
         api_key: Optional[str] = None,
@@ -167,13 +168,13 @@ class FredDataSource:
             logger.warning("FRED_API_KEY not set. Using simulated data.")
         self._cache = {}
         self._last_fetch = {}
-        
+
         # Cache persistente en disco
         self._cache_dir = Path("cache/fred")
         self._cache_dir.mkdir(parents=True, exist_ok=True)
         self._disk_cache = {}
         self._load_disk_cache()
-    
+
     def _load_disk_cache(self):
         """Carga caché de disco."""
         try:
@@ -185,7 +186,7 @@ class FredDataSource:
         except Exception as e:
             logger.warning(f"Error cargando caché FRED: {e}")
             self._disk_cache = {}
-    
+
     def _save_disk_cache(self):
         """Guarda caché en disco."""
         try:
@@ -194,27 +195,27 @@ class FredDataSource:
                 json.dump(self._disk_cache, f)
         except Exception as e:
             logger.warning(f"Error guardando caché FRED: {e}")
-    
+
     def _get_from_disk_cache(self, series_id: str):
         """Obtiene serie de caché en disco."""
         if series_id in self._disk_cache:
             logger.info(f"Usando caché de disco para {series_id}")
             return self._disk_cache[series_id]
         return None
-    
+
     def _save_to_disk_cache(self, series_id: str, result: dict):
         """Guarda serie en caché de disco."""
         self._disk_cache[series_id] = result
         self._save_disk_cache()
-    
+
     def get_series(self, series_id: str) -> Optional[FredSeries]:
         """Obtiene la definición de una serie."""
         return MACRO_SERIES.get(series_id.upper())
-    
+
     def get_all_series(self) -> Dict[str, FredSeries]:
         """Obtiene todas las series disponibles."""
         return MACRO_SERIES
-    
+
     async def fetch_series(
         self,
         series_id: str,
@@ -224,13 +225,13 @@ class FredDataSource:
     ) -> Optional[Dict[str, Any]]:
         """
         Obtiene una serie de FRED.
-        
+
         Args:
             series_id: ID de la serie FRED
             start_date: Fecha inicio (YYYY-MM-DD)
             end_date: Fecha fin (YYYY-MM-DD)
             limit: Número de observaciones
-            
+
         Returns:
             Diccionario con los datos de la serie
         """
@@ -250,13 +251,13 @@ class FredDataSource:
                 "available": False,
                 "warning": "FRED_API_KEY not set",
             }
-        
+
         # Verificar caché
         cache_key = f"{series_id}_{start_date}_{end_date}_{limit}"
         if cache_key in self._cache:
             logger.debug(f"Cache hit for {series_id}")
             return self._cache[cache_key]
-        
+
         try:
             params = {
                 "series_id": series_id,
@@ -265,21 +266,21 @@ class FredDataSource:
                 "limit": limit,
                 "sort_order": "desc"
             }
-            
+
             if start_date:
                 params["observation_start"] = start_date
             if end_date:
                 params["observation_end"] = end_date
-            
+
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.get(
                     f"{self.BASE_URL}/series/observations",
                     params=params
                 )
-                
+
                 if response.status_code != 200:
                     logger.error(f"FRED API error: {response.status_code}")
-                    
+
                     # Error 4xx: dato no existe (no reintentar)
                     if 400 <= response.status_code < 500:
                         return {
@@ -290,20 +291,20 @@ class FredDataSource:
                             "available": False,
                             "warning": f"FRED API error: {response.status_code}",
                         }
-                    
+
                     # Error 5xx: servicio caído (usar caché o reintentar)
                     if response.status_code >= 500:
                         # Intentar caché de disco
                         cached = self._get_from_disk_cache(series_id)
                         if cached:
                             return cached
-                        
+
                         # Reintentar con backoff
                         for attempt in range(3):
                             wait_time = 2 ** attempt
                             logger.info(f"Reintentando FRED {series_id} en {wait_time}s (intento {attempt + 1}/3)")
                             await asyncio.sleep(wait_time)
-                            
+
                             try:
                                 retry_response = await client.get(
                                     f"{self.BASE_URL}/series/observations",
@@ -324,7 +325,7 @@ class FredDataSource:
                                 "available": False,
                                 "warning": f"FRED API error: {response.status_code}",
                             }
-                    
+
                     # Si no es 4xx ni 5xx, devolver vacío
                     return {
                         "series_id": series_id,
@@ -334,9 +335,9 @@ class FredDataSource:
                         "available": False,
                         "warning": f"FRED API error: {response.status_code}",
                     }
-                
+
                 data = response.json()
-                
+
                 # Parsear observaciones
                 observations = []
                 for obs in data.get("observations", []):
@@ -345,21 +346,21 @@ class FredDataSource:
                             "date": obs.get("date"),
                             "value": float(obs.get("value", 0))
                         })
-                
+
                 result = {
                     "series_id": series_id,
                     "observations": observations,
                     "last_updated": datetime.now().isoformat(),
                     "source": "FRED"
                 }
-                
+
                 # Guardar en caché en memoria y disco
                 self._cache[cache_key] = result
                 self._last_fetch[series_id] = datetime.now()
                 self._save_to_disk_cache(series_id, result)
-                
+
                 return result
-                
+
         except Exception as e:
             logger.error(f"Error fetching {series_id}: {e}")
 
@@ -374,11 +375,11 @@ class FredDataSource:
                 "available": False,
                 "warning": str(e),
             }
-    
+
     def _simulate_series(self, series_id: str) -> Dict[str, Any]:
         """Genera datos simulados para una serie (fallback)."""
         series = self.get_series(series_id)
-        
+
         # Datos simulados según tipo de serie
         values = {
             "FEDFUNDS": [5.25, 5.25, 5.00, 5.00, 4.75],
@@ -394,21 +395,21 @@ class FredDataSource:
             "UMCSENT": [67.0, 68.5, 69.0, 68.0, 67.5],
             "CSCICP03USM665S": [98.5, 99.0, 98.5, 98.0, 97.5],
         }
-        
+
         default_values = [100, 101, 102, 101, 100]
         series_values = values.get(series_id.upper(), default_values)
-        
+
         # Generar fechas
         end_date = datetime.now()
         dates = []
         for i in range(len(series_values)):
             dates.append((end_date - timedelta(days=i*30)).strftime("%Y-%m-%d"))
-        
+
         observations = [
             {"date": dates[i], "value": val}
             for i, val in enumerate(reversed(series_values))
         ]
-        
+
         return {
             "series_id": series_id,
             "observations": observations,
@@ -416,11 +417,11 @@ class FredDataSource:
             "source": "SIMULATED",
             "warning": "FRED_API_KEY not set"
         }
-    
+
     async def get_macro_context(self) -> Dict[str, Any]:
         """
         Obtiene el contexto macro completo para el Decision Context.
-        
+
         Returns:
             Diccionario con todas las series macro actualizadas.
         """
@@ -430,14 +431,14 @@ class FredDataSource:
             "series": {},
             "summary": {}
         }
-        
+
         # Obtener todas las series relevantes
         for series_id in MACRO_SERIES:
             data = await self.fetch_series(series_id, limit=5)
             if data and data.get("observations"):
                 latest = data["observations"][0]
                 previous = data["observations"][1] if len(data["observations"]) > 1 else None
-                
+
                 macro_context["series"][series_id] = {
                     "series": MACRO_SERIES[series_id],
                     "latest": latest,
@@ -446,12 +447,12 @@ class FredDataSource:
                     "source": data.get("source", "FRED"),
                     "warning": data.get("warning")
                 }
-        
+
         # Generar resumen
         macro_context["summary"] = self._generate_summary(macro_context["series"])
-        
+
         return macro_context
-    
+
     def _generate_summary(self, series_data: Dict) -> Dict[str, Any]:
         """Genera un resumen del contexto macro."""
         summary = {
@@ -464,22 +465,22 @@ class FredDataSource:
             "yield_spread": None,
             "consumer_sentiment": None
         }
-        
+
         for series_id, data in series_data.items():
             if not data.get("latest"):
                 continue
-            
+
             latest_value = data["latest"]["value"]
-            
+
             if series_id in ["FEDFUNDS", "DFF"]:
                 summary["fed_funds"] = latest_value
-            
+
             elif series_id == "CORESTICKM159SFRBATL":
                 summary["inflation"] = latest_value
-            
+
             elif series_id == "UNRATE":
                 summary["unemployment"] = latest_value
-            
+
             elif series_id == "GDPC1":
                 # Calcular crecimiento anualizado aproximado
                 if len(data.get("all_observations", [])) >= 4:
@@ -487,17 +488,17 @@ class FredDataSource:
                     previous = data["all_observations"][3]["value"]
                     growth = ((current - previous) / previous) * 100
                     summary["gdp_growth"] = round(growth, 2)
-            
+
             elif series_id == "DGS10":
                 summary["yield_10y"] = latest_value
-            
+
             elif series_id == "DGS2":
                 summary["yield_2y"] = latest_value
-            
+
             elif series_id == "T10Y2Y":
                 summary["yield_spread"] = latest_value
-            
+
             elif series_id in ["UMCSENT", "CSCICP03USM665S"]:
                 summary["consumer_sentiment"] = latest_value
-        
+
         return summary
