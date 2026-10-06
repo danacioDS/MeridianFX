@@ -31,6 +31,9 @@ export function DecisionHero({
 }: DecisionHeroProps): JSX.Element {
   const dirStyle = DIRECTION_STYLES[direction] ?? DIRECTION_STYLES.NEUTRAL;
   const valStyle = VALIDITY_STYLES[signalValidity] ?? VALIDITY_STYLES.UNAVAILABLE;
+  // FIX (2026-10-06): probabilidades extremas indican modelo saturado.
+  // Mostrar "—" en lugar de "100.0%". Ver filter.py MODEL_SATURATED.
+  const isSaturated = confidence > 0.99 || confidence < 0.01;
 
   return (
     <div className={`rounded-lg border ${dirStyle.border} ${dirStyle.bg} p-6`}>
@@ -44,9 +47,15 @@ export function DecisionHero({
             <div className={`text-3xl font-bold ${dirStyle.color}`}>
               {direction}
             </div>
-            <div className="text-sm text-muted mt-1">
-              Confidence {(confidence * 100).toFixed(1)}%
-            </div>
+            {isSaturated ? (
+              <div className="text-sm text-amber mt-1">
+                Confidence — <span className="text-xs">(modelo saturado)</span>
+              </div>
+            ) : (
+              <div className="text-sm text-muted mt-1">
+                Confidence {(confidence * 100).toFixed(1)}%
+              </div>
+            )}
           </div>
         </div>
 

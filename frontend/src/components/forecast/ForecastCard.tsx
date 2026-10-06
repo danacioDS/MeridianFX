@@ -24,6 +24,10 @@ export function ForecastCard({ forecasts, currentPrice }: ForecastCardProps): JS
         if (!data) return null;
         const isUp = data.direction === "UP";
         const probability = data.probability || 0.5;
+        // FIX (2026-10-06): probabilidades extremas indican modelo
+        // saturado. Mostrar "—" en lugar de "100.0%" que confunde.
+        // Ver filter.py MODEL_SATURATED.
+        const isSaturated = probability > 0.99 || probability < 0.01;
 
         return (
           <div key={h.key} className="p-4 bg-panel-2 rounded-lg border border-line">
@@ -31,7 +35,15 @@ export function ForecastCard({ forecasts, currentPrice }: ForecastCardProps): JS
             <div className={`text-lg font-bold ${isUp ? 'text-bull' : 'text-bear'}`}>
               {isUp ? '▲' : '▼'} {data.expected_return}%
             </div>
-            <div className="text-sm text-ink-soft">Confidence: {(probability * 100).toFixed(1)}%</div>
+            {isSaturated ? (
+              <div className="text-sm text-amber">
+                Confidence: — <span className="text-xs">(modelo saturado)</span>
+              </div>
+            ) : (
+              <div className="text-sm text-ink-soft">
+                Confidence: {(probability * 100).toFixed(1)}%
+              </div>
+            )}
             <div className="text-xs text-muted mt-2">
               Expected price: {(currentPrice * (1 + data.expected_return / 100)).toFixed(4)}
             </div>
