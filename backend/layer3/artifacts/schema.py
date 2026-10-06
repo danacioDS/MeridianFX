@@ -40,6 +40,18 @@ class ValidationMetrics:
     cal_brier: float | None = None
     n_samples: int | None = None
     folds: list[dict[str, Any]] = field(default_factory=list)
+
+    # Per-fold stability metrics (2026-10-06, gate v2)
+    # These capture the variability across folds, which the previous
+    # gate ignored. A model with high mean AUC but high fold variance
+    # is not reliable enough to serve.
+    val_auc: float | None = None       # mean of val_auc across folds
+    test_auc: float | None = None      # mean of test_auc across folds
+    val_std: float | None = None       # std of val_auc across folds
+    test_std: float | None = None      # std of test_auc across folds
+    pct_val_gt_55: float | None = None # fraction of folds with val_auc > 0.55
+    pct_test_gt_55: float | None = None # fraction of folds with test_auc > 0.55
+
     validated: bool = False
     promotion_status: str = "REJECTED"
     reasons: list[str] = field(default_factory=list)
@@ -142,7 +154,17 @@ def validate_artifact(obj: dict[str, Any]) -> list[str]:
     else:
         errors.append("validation is not a dict")
 
-    if obj.get("promotion_status") not in ("PROMOTED", "REJECTED", "PENDING"):
-        errors.append("promotion_status must be PROMOTED|REJECTED|PENDING")
+    allowed_statuses = (
+        "PROMOTED",           # production-grade
+        "APPROVED_RESEARCH",  # research-grade
+        "REJECTED",           # evaluated, did not pass
+        "PENDING",            # not yet evaluated
+        "UNAVAILABLE",        # could not be evaluated (no data)
+    )
+    if obj.get("promotion_status") not in allowed_statuses:
+        errors.append(
+            "promotion_status must be one of: "
+            + "|".join(allowed_statuses)
+        )
 
     return errors

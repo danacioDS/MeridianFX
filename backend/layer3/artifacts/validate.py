@@ -40,9 +40,37 @@ VAL_OBS = 100
 TEST_OBS = 100
 STEP_OBS = 40
 
+# Promotion gate v2 (2026-10-06).
+#
+# The v1 gate only looked at mean AUC, which is misleading: a model with
+# mean AUC 0.64 but 2/6 folds below 0.5 is not reliable. The v2 gate
+# adds stability (std across folds), classification accuracy (bal_acc),
+# and fold-consistency (% folds above 0.55).
+#
+# Statuses produced:
+#   PROMOTED          → production-grade (all production thresholds pass)
+#   APPROVED_RESEARCH → research-grade (research thresholds pass, not prod)
+#   REJECTED          → evaluated and did not meet even research thresholds
+#   UNAVAILABLE       → could not be evaluated (insufficient data)
+#
+# Thresholds are PROVISIONAL and should be revisited once more models
+# are trained and the distribution of metrics is better understood.
 GATE = {
-    "min_val_auc": 0.60,
-    "min_test_auc": 0.60,
+    # --- Production thresholds ---
+    "min_val_auc_production": 0.60,
+    "min_test_auc_production": 0.60,
+    "max_val_std_production": 0.08,
+    "min_bal_acc_production": 0.55,
+    "min_pct_folds_gt_55_production": 0.83,
+
+    # --- Research thresholds ---
+    "min_val_auc_research": 0.55,
+    "min_test_auc_research": 0.55,
+    "max_val_std_research": 0.10,
+    "min_bal_acc_research": 0.50,
+    "min_pct_folds_gt_55_research": 0.66,
+
+    # --- Shared ---
     "max_auc_drop": 0.20,
     "max_brier": 0.40,
 }
@@ -163,27 +191,87 @@ async def run_walk_forward(pair: str) -> ValidationMetrics:
             reasons=["no valid folds generated"],
         )
 
-    val_auc = float(np.mean([f["val_auc"] for f in folds]))
-    test_auc = float(np.mean([f["test_auc"] for f in folds]))
+    # --- Aggregate metrics across folds ---
+    val_aucs = [f["val_auc"] for f in folds]
+    test_aucs = [f["test_auc"] for f in folds]
+    val_auc = float(np.mean(val_aucs))
+    test_auc = float(np.mean(test_aucs))
+    val_std = float(np.std(val_aucs))
+    test_std = float(np.std(test_aucs))
     cal_brier = float(np.mean([f["cal_brier"] for f in folds]))
     cal_bal_acc = float(np.mean([f["cal_bal_acc"] for f in folds]))
+    pct_val_gt_55 = sum(1 for a in val_aucs if a > 0.55) / len(val_aucs)
+    pct_test_gt_55 = sum(1 for a in test_aucs if a > 0.55) / len(test_aucs)
 
     reasons: list[str] = []
     warnings: list[str] = []
 
-    if val_auc < GATE["min_val_auc"]:
-        reasons.append(f"val_auc {val_auc:.3f} < {GATE['min_val_auc']}")
-    if test_auc < GATE["min_test_auc"]:
-        reasons.append(f"test_auc {test_auc:.3f} < {GATE['min_test_auc']}")
-    if (val_auc - test_auc) > GATE["max_auc_drop"]:
-        warnings.append(f"auc_drop {val_auc - test_auc:.3f} > {GATE['max_auc_drop']}")
-    if cal_brier > GATE["max_brier"]:
-        warnings.append(f"cal_brier {cal_brier:.3f} > {GATE['max_brier']}")
+    # --- Production gate ---
+    is_production = (
+        val_auc >= GATE["min_val_auc_production"]
+        and test_auc >= GATE["min_test_auc_production"]
+        and val_std <= GATE["max_val_std_production"]
+        and cal_bal_acc >= GATE["min_bal_acc_production"]
+        and pct_val_gt_55 >= GATE["min_pct_folds_gt_55_production"]
+    )
 
-    if reasons or warnings:
-        status = "REJECTED"
-    else:
+    # --- Research gate ---
+    is_research = (
+        val_auc >= GATE["min_val_auc_research"]
+        and test_auc >= GATE["min_test_auc_research"]
+        and val_std <= GATE["max_val_std_research"]
+        and cal_bal_acc >= GATE["min_bal_acc_research"]
+        and pct_val_gt_55 >= GATE["min_pct_folds_gt_55_research"]
+    )
+
+    # --- Shared warnings (do not block promotion but are recorded) ---
+    if (val_auc - test_auc) > GATE["max_auc_drop"]:
+        warnings.append(
+            f"auc_drop {val_auc - test_auc:.3f} > {GATE['max_auc_drop']}"
+        )
+    if cal_brier > GATE["max_brier"]:
+        warnings.append(
+            f"cal_brier {cal_brier:.3f} > {GATE['max_brier']}"
+        )
+
+    # --- Reasons (only for the failed level) ---
+    if not is_research:
+        if val_auc < GATE["min_val_auc_research"]:
+            reasons.append(
+                f"val_auc {val_auc:.3f} < {GATE['min_val_auc_research']}"
+            )
+        if test_auc < GATE["min_test_auc_research"]:
+            reasons.append(
+                f"test_auc {test_auc:.3f} < {GATE['min_test_auc_research']}"
+            )
+        if val_std > GATE["max_val_std_research"]:
+            reasons.append(
+                f"val_std {val_std:.3f} > {GATE['max_val_std_research']}"
+            )
+        if cal_bal_acc < GATE["min_bal_acc_research"]:
+            reasons.append(
+                f"bal_acc {cal_bal_acc:.3f} < {GATE['min_bal_acc_research']}"
+            )
+        if pct_val_gt_55 < GATE["min_pct_folds_gt_55_research"]:
+            reasons.append(
+                f"pct_val_gt_55 {pct_val_gt_55:.2f} < "
+                f"{GATE['min_pct_folds_gt_55_research']}"
+            )
+    elif not is_production:
+        # Research-grade but not production: record what is missing
+        warnings.append(
+            f"research-grade only: val_auc={val_auc:.3f}, "
+            f"test_auc={test_auc:.3f}, val_std={val_std:.3f}, "
+            f"bal_acc={cal_bal_acc:.3f}, pct_val_gt_55={pct_val_gt_55:.2f}"
+        )
+
+    # --- Final status ---
+    if is_production:
         status = "PROMOTED"
+    elif is_research:
+        status = "APPROVED_RESEARCH"
+    else:
+        status = "REJECTED"
 
     return ValidationMetrics(
         protocol="walk_forward",
@@ -193,7 +281,13 @@ async def run_walk_forward(pair: str) -> ValidationMetrics:
         cal_brier=cal_brier,
         n_samples=len(X),
         folds=folds,
-        validated=(status == "PROMOTED"),
+        val_auc=val_auc,
+        test_auc=test_auc,
+        val_std=val_std,
+        test_std=test_std,
+        pct_val_gt_55=pct_val_gt_55,
+        pct_test_gt_55=pct_test_gt_55,
+        validated=(status in ("PROMOTED", "APPROVED_RESEARCH")),
         promotion_status=status,
         reasons=reasons,
         warnings=warnings,
