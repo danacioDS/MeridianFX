@@ -20,49 +20,49 @@ logger = logging.getLogger(__name__)
 class MacroService:
     """
     Servicio de datos macro unificado.
-    
+
     Orquesta:
     1. FRED API (legacy - para compatibilidad)
     2. Country Macro Providers (nuevo)
     3. Caché
     4. Transformación
     """
-    
+
     def __init__(self, api_key: Optional[str] = None):
         self.source = FredDataSource(api_key)
         self.cache = MacroCache()
         self.transformer = MacroTransformer()
-    
+
     async def get_macro_context(
         self,
         force_refresh: bool = False
     ) -> Dict[str, Any]:
         """
         Obtiene el contexto macro completo (legacy - solo USD).
-        
+
         Mantenido para compatibilidad con PipelineBridge para el régimen macro.
         """
         cache_key = "macro_context"
-        
+
         # Intentar obtener de caché
         if not force_refresh:
             cached = self.cache.get(cache_key)
             if cached:
                 logger.debug("Macro context from cache")
                 return cached
-        
+
         # Obtener datos de FRED
         logger.info("Fetching macro data from FRED...")
         raw_data = await self.source.get_macro_context()
-        
+
         # Transformar
         macro_context = self.transformer.transform(raw_data)
-        
+
         # Guardar en caché
         self.cache.set(cache_key, macro_context)
-        
+
         return macro_context
-    
+
     async def get_country_context(
         self,
         currency: str,
@@ -70,16 +70,16 @@ class MacroService:
     ) -> CountryMacroContext:
         """
         Obtiene el contexto macro de un país específico usando el Registry.
-        
+
         Args:
             currency: Código de la moneda (ej: USD, CNY)
             force_refresh: Si es True, ignora la caché
-            
+
         Returns:
             CountryMacroContext con los datos del país
         """
         provider = CountryMacroRegistry.get(currency.upper())
-        
+
         if provider is None:
             logger.warning(f"No provider found for currency: {currency}")
             return CountryMacroContext(
@@ -89,7 +89,7 @@ class MacroService:
                 timestamp=datetime.now(),
                 source="unknown",
             )
-        
+
         try:
             context = await provider.get_context(force_refresh=force_refresh)
             return context
@@ -102,7 +102,7 @@ class MacroService:
                 timestamp=datetime.now(),
                 source=provider.source,
             )
-    
+
     async def get_country_contexts(
         self,
         currencies: list[str],
@@ -110,58 +110,58 @@ class MacroService:
     ) -> Dict[str, CountryMacroContext]:
         """
         Obtiene contextos macro para múltiples países.
-        
+
         Args:
             currencies: Lista de códigos de moneda
             force_refresh: Si es True, ignora la caché
-            
+
         Returns:
             Dict con currency -> CountryMacroContext
         """
         result = {}
         for currency in currencies:
             result[currency] = await self.get_country_context(
-                currency, 
+                currency,
                 force_refresh=force_refresh
             )
         return result
-    
+
     async def get_series(self, series_id: str) -> Optional[Dict]:
         """
         Obtiene una serie específica (legacy - solo FRED).
-        
+
         Args:
             series_id: ID de la serie FRED
-            
+
         Returns:
             Datos de la serie
         """
         cache_key = f"series_{series_id}"
-        
+
         # Intentar de caché
         cached = self.cache.get(cache_key)
         if cached:
             return cached
-        
+
         # Obtener de FRED
         data = await self.source.fetch_series(series_id)
         if data:
             self.cache.set(cache_key, data)
             return data
-        
+
         return None
-    
+
     def get_cache_status(self) -> Dict[str, Any]:
         """Obtiene el estado de la caché."""
         macro_context_age = self.cache.get_age("macro_context")
-        
+
         return {
             "macro_context_cached": macro_context_age is not None,
             "macro_context_age_seconds": macro_context_age,
             "cache_dir": self.cache.CACHE_DIR,
             "ttl_hours": self.cache.ttl_hours,
         }
-    
+
     def clear_cache(self) -> None:
         """Limpia la caché."""
         self.cache.clear()
@@ -191,6 +191,29 @@ class MacroService:
             return pd.DataFrame(
                 columns=["date", "policy_rate"]
             )
+
+        # FIX (2026-10-06): si el provider es FRED y su api_key está
+        # vacía, re-instanciar con la key del entorno. En Cloud Run,
+        # os.getenv("FRED_API_KEY") puede devolver None cuando el
+        # registry se importa (timing de las env vars del contenedor).
+        # Este chequeo garantiza que la key se lea al momento del uso.
+        try:
+            from .providers.fred import FREDProvider
+            if isinstance(provider, FREDProvider):
+                source = getattr(provider, "_source", None)
+                current_key = getattr(source, "api_key", None) if source else None
+                if not current_key:
+                    import os as _os
+                    env_key = _os.getenv("FRED_API_KEY")
+                    if env_key:
+                        provider = FREDProvider(api_key=env_key)
+                        logger.info(
+                            "FREDProvider re-instanced with api_key "
+                            "from environment (length=%d)",
+                            len(env_key),
+                        )
+        except Exception as _exc:  # pragma: no cover - defensive
+            logger.warning("Could not re-instance FREDProvider: %s", _exc)
 
         if not hasattr(provider, "get_historical"):
             logger.warning(
@@ -239,4 +262,3 @@ class MacroService:
             return pd.DataFrame(
                 columns=["date", "policy_rate"]
             )
-
