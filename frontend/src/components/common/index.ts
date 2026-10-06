@@ -9,3 +9,4 @@ export * from "./RegimeBar";
 export * from "./UniverseSelector";
 export * from "./Panel";
 export * from "./MetricsHelp";
+export * from "./InfoTooltip";
