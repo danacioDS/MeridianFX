@@ -31,6 +31,10 @@ data/pit/*
 models/*.pkl
 models/*.joblib
 !models/.gitkeep
+# Los modelos canónicos sí se trackean (pequeños, ~5KB cada uno).
+# Los experimentales siguen ignorados.
+!models/canonical/*.joblib
+!models/canonical/*.json
 
 # Logs
 logs/
