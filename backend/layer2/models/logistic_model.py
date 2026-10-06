@@ -15,7 +15,16 @@ class LogisticModel:
         self.model = None
         self.scaler = StandardScaler()
         self.feature_names = None
-        
+        # Provenance (2026-10-06): metadatos del artefacto canónico.
+        # El engine los propaga al response para que el runtime sepa
+        # si el modelo está PROMOTED / APPROVED_RESEARCH / REJECTED /
+        # UNAVAILABLE / PENDING. Default "UNAVAILABLE" para modelos
+        # legacy sin el campo.
+        self.promotion_status: str = "UNAVAILABLE"
+        self.val_auc: float | None = None
+        self.val_std: float | None = None
+        self.bal_acc: float | None = None
+
         if model_path and os.path.exists(model_path):
             try:
                 # Cargar el modelo y los metadatos
@@ -33,31 +42,31 @@ class LogisticModel:
                 print(f"⚠️ Error cargando modelo Logistic: {e}")
                 self.model = None
                 self.feature_names = None
-    
+
     def train(self, X: pd.DataFrame, y: pd.Series, test_size: float = 0.2):
         """Entrena el modelo de regresión logística y retorna métricas."""
         self.feature_names = X.columns.tolist()
-        
+
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=test_size, shuffle=False
         )
-        
+
         # Escalar features
         X_train_scaled = self.scaler.fit_transform(X_train)
         X_test_scaled = self.scaler.transform(X_test)
-        
+
         self.model = LogisticRegression(
             C=1.0,
             max_iter=1000,
             random_state=42,
             class_weight='balanced'
         )
-        
+
         self.model.fit(X_train_scaled, y_train)
-        
+
         y_pred = self.model.predict(X_test_scaled)
         y_proba = self.model.predict_proba(X_test_scaled)[:, 1]
-        
+
         # Extraer métricas como diccionario simple
         metrics = {
             'accuracy': float(accuracy_score(y_test, y_pred)),
@@ -66,14 +75,14 @@ class LogisticModel:
             'n_samples': int(len(X)),
             'n_features': int(X.shape[1])
         }
-        
+
         print(f"✅ Logistic Regression:")
         print(f"   Accuracy: {metrics['accuracy']:.4f}")
         print(f"   AUC: {metrics['auc']:.4f}")
         print(f"   Brier: {metrics['brier']:.4f}")
-        
+
         return metrics
-    
+
     def predict(self, X: pd.DataFrame) -> dict:
         """Predice dirección y probabilidad usando el modelo configurado."""
         if self.model is None:

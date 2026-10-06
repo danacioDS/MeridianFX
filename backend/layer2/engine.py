@@ -47,16 +47,20 @@ class DecisionEngine:
         # cargan solo cuando realmente se necesitan.
 
         # Mapa de pares canónicos -> ruta del modelo Logistic_24
+        # Pares servidos (reentrenados 2026-10-06, commit bc055f6, gate v2).
+        # NOTA: los 3 pares sin datos macro (USD/BOB, USD/CNY, USD/ARS) NO
+        # aparecen aquí. No hay provider de policy rate histórico para sus
+        # monedas, así que no se pueden validar con el gate. El engine los
+        # trata como UNAVAILABLE por defecto.
+        #   APPROVED_RESEARCH → USD/JPY, USD/BRL
+        #   REJECTED          → EUR/USD, GBP/USD, USD/CHF, USD/MXN
         self._canonical_model_paths = {
-            "EUR/USD": "models/canonical/logistic_24_20260908_172009.joblib",
-            "USD/CHF": "models/canonical/logistic_24_USD_CHF_20261002_184737.joblib",
-            "USD/BOB": "models/canonical/logistic_24_USD_BOB_20260909_081531.joblib",
-            "USD/MXN": "models/canonical/logistic_24_USD_MXN_20261002_184743.joblib",
-            "USD/CNY": "models/canonical/logistic_24_USD_CNY_20260909_081532.joblib",
-            "USD/JPY": "models/canonical/logistic_24_USD_JPY_20260909_081908.joblib",
-            "GBP/USD": "models/canonical/logistic_24_GBP_USD_20260909_081913.joblib",
-            "USD/BRL": "models/canonical/logistic_24_USD_BRL_20260909_081913.joblib",
-            "USD/ARS": "models/canonical/logistic_24_USD_ARS_20260909_081914.joblib",
+            "EUR/USD":  "models/canonical/logistic_24_EUR_USD_20261006_095751.joblib",
+            "GBP/USD":  "models/canonical/logistic_24_GBP_USD_20261006_095756.joblib",
+            "USD/JPY":  "models/canonical/logistic_24_USD_JPY_20261006_095758.joblib",
+            "USD/CHF":  "models/canonical/logistic_24_USD_CHF_20261006_095802.joblib",
+            "USD/MXN":  "models/canonical/logistic_24_USD_MXN_20261006_095807.joblib",
+            "USD/BRL":  "models/canonical/logistic_24_USD_BRL_20261006_095811.joblib",
         }
 
 
@@ -227,9 +231,18 @@ class DecisionEngine:
                     log_model.model = artifact["model"]
                     log_model.scaler = None
                     log_model.feature_names = artifact["feature_names"]
+                    # Provenance (2026-10-06): leer metadatos del artefacto.
+                    log_model.promotion_status = artifact.get(
+                        "promotion_status", "UNAVAILABLE"
+                    )
+                    validation = artifact.get("validation") or {}
+                    log_model.val_auc = validation.get("val_auc")
+                    log_model.val_std = validation.get("val_std")
+                    log_model.bal_acc = validation.get("bal_acc")
                     models[cache_key] = log_model
                     print(f"✅ Logistic_24 cargado (lazy) para {pair} "
-                          f"({len(log_model.feature_names)} features)")
+                          f"({len(log_model.feature_names)} features, "
+                          f"status={log_model.promotion_status})")
                     return log_model
                 except Exception as e:
                     print(f"⚠️ Error cargando Logistic_24 lazy para {pair}: {e}")
@@ -392,6 +405,24 @@ class DecisionEngine:
             # expected_return ya fue calculado arriba (línea ~344)
             # usando el horizonte solicitado
 
+            # Provenance (2026-10-06): derivar signal_validity y
+            # forecast_eligibility del promotion_status del modelo.
+            # Si el modelo no es PROMOTED ni APPROVED_RESEARCH, la señal
+            # se marca como UNAVAILABLE y no se debe tratar como accionable.
+            model_status = getattr(model, "promotion_status", "UNAVAILABLE") if is_trained else "UNAVAILABLE"
+            if model_status == "PROMOTED":
+                signal_validity = "VALID"
+                forecast_eligibility = "production"
+            elif model_status == "APPROVED_RESEARCH":
+                signal_validity = "VALID"
+                forecast_eligibility = "research"
+            elif model_status == "REJECTED":
+                signal_validity = "UNAVAILABLE"
+                forecast_eligibility = "rejected"
+            else:
+                signal_validity = "UNAVAILABLE"
+                forecast_eligibility = "unavailable"
+
             response = {
                 'direction': direction,
                 'probability': probability,
@@ -403,9 +434,15 @@ class DecisionEngine:
                 'edge_ratio': filtered.get('edge_ratio', 0.0),
                 'net_return': filtered.get('net_return', 0.0),
                 'position_size': filtered.get('position_size', 0.0),
+                'signal_validity': signal_validity,
+                'forecast_eligibility': forecast_eligibility,
                 'model': {
                     'version': 'logistic-v1.0' if is_trained else 'heuristic-v1.0',
-                    'type': 'logistic' if is_trained else 'heuristic'
+                    'type': 'logistic' if is_trained else 'heuristic',
+                    'promotion_status': model_status,
+                    'val_auc': getattr(model, "val_auc", None) if is_trained else None,
+                    'val_std': getattr(model, "val_std", None) if is_trained else None,
+                    'bal_acc': getattr(model, "bal_acc", None) if is_trained else None,
                 },
                 'shap': shap_explanation,
                 'data_provider': {

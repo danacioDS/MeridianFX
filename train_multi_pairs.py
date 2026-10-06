@@ -35,8 +35,8 @@ print("=" * 70)
 
 # Configuración
 PAIRS = [
-    "USD/CHF",
-    "USD/MXN",
+    "EUR/USD", "GBP/USD", "USD/JPY",
+    "USD/CHF", "USD/MXN", "USD/BRL",
 ]
 HORIZON = 10
 OUTPUT_DIR = "models/canonical"
